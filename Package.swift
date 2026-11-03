@@ -4,12 +4,13 @@ import PackageDescription
 let package = Package(
     name: "Whisk",
     defaultLocalization: "en",
-    platforms: [.macOS(.v14)],
+    platforms: [.macOS(.v15)],
     targets: [
         .executableTarget(
             name: "Whisk",
-            resources: [.process("Resources")],
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            exclude: ["Resources/Localizable.xcstrings"],
+            resources: [.process("Resources"), .copy("WhiskyMacSymbols.bundle")],
+            swiftSettings: [.swiftLanguageMode(.v5), .define("WHISK_MAY_DEV")]
         ),
         .testTarget(
             name: "WhiskTests",

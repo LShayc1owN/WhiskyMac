@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import Foundation
 
 /// Type-erased history store: the composition root picks a gateway at
@@ -25,26 +30,15 @@ enum HistoryStorage {
     static let legacyIndexName = "history.json"
     static let retiredSuffix = ".migrated"
 
-    /// Overrides the data directory, so a build under test runs beside an
-    /// installed Whisk without the two writing the same database.
-    static let directoryOverride = "WHISK_DATA_DIR"
+    /// A test build can use its own synthetic data directory.
+    static let directoryOverride = AppIdentity.dataDirectoryOverride
 
-    /// `~/Library/Application Support/Whisk`, unless the environment points
-    /// elsewhere.
+    /// The May development directory, unless a dedicated test path is set.
     static func defaultDirectory(
         fileManager: FileManager = .default,
         environment: [String: String] = ProcessInfo.processInfo.environment
     ) throws -> URL {
-        if let override = environment[directoryOverride], !override.isEmpty {
-            return URL(fileURLWithPath: override, isDirectory: true)
-        }
-        let base = try fileManager.url(
-            for: .applicationSupportDirectory,
-            in: .userDomainMask,
-            appropriateFor: nil,
-            create: true
-        )
-        return base.appendingPathComponent("Whisk", isDirectory: true)
+        try AppIdentity.dataDirectory(fileManager: fileManager, environment: environment)
     }
 
     static func open(

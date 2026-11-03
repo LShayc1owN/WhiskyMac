@@ -4,6 +4,8 @@
 Environment: ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8 (path to the .p8).
 Usage: asc_api.py status <bundle-id>
 """
+from __future__ import annotations
+
 import base64
 import json
 import os

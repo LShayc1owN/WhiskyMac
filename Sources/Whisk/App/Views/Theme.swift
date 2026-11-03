@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import AppKit
 import SwiftUI
 
@@ -23,19 +28,9 @@ extension View {
 }
 
 extension NSColor {
-    /// The landing page's matcha accent: its pale green (#7fd8a4) glows on
-    /// dark backdrops but washes out on light ones, so the light theme
-    /// deepens to a darker leaf (#1e8248).
-    static let matcha = NSColor(
-        name: nil,
-        dynamicProvider: { appearance in
-            appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-                ? NSColor(srgbRed: 127 / 255, green: 216 / 255, blue: 164 / 255, alpha: 1)
-                : NSColor(srgbRed: 30 / 255, green: 130 / 255, blue: 72 / 255, alpha: 1)
-        }
-    )
+    static var matcha: NSColor { AppAccent.color }
 }
 
 extension Color {
-    static let matcha = Color(nsColor: NSColor.matcha)
+    static var matcha: Color { Color(nsColor: NSColor.matcha) }
 }

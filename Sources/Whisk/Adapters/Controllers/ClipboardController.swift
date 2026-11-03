@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import Foundation
 
 /// One step of keyboard navigation through the visible cards.
@@ -54,6 +59,9 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     private var nextExpiry: Date = .distantPast
     private var isPaused = false
     private var excludedBundleIDs: Set<String> = []
+    private var sensitiveBundleIDs: Set<String> = []
+    var retainSensitive: (PasteboardSnapshot) -> Void = { _ in }
+    var didRecord: () -> Void = {}
     /// The access state the panel last saw; a change re-presents on its own,
     /// since granting access in System Settings mutates nothing else.
     private var presentedAccess: PasteboardAccess = .granted
@@ -138,7 +146,11 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
             // retro-captured on resume.
             _ = pasteboard.readIfChanged()
         } else {
-            mutate { try capture(into: $0, excluding: excludedBundleIDs) }
+            mutate {
+                try capture(
+                    into: $0, excluding: excludedBundleIDs,
+                    sensitiveBundleIDs: sensitiveBundleIDs, retainSensitive: retainSensitive, didRecord: didRecord)
+            }
         }
         guard retention.maxAge != nil, clock.now() >= nextExpiry else { return }
         enforceRetentionNow()
@@ -170,6 +182,10 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     /// Applications whose copies must never be recorded.
     func applyExclusions(_ bundleIDs: Set<String>) {
         excludedBundleIDs = bundleIDs
+    }
+
+    func applySensitiveSources(_ bundleIDs: Set<String>) {
+        sensitiveBundleIDs = bundleIDs
     }
 
     /// Applies a new retention policy immediately and keeps enforcing it.
@@ -206,8 +222,13 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     func activate(at index: Int) -> Bool {
         let items = visibleItems
         guard items.indices.contains(index) else { return false }
-        select(items[index].id)
+        select(items[index].id, forPaste: true)
         return true
+    }
+
+    func refreshLocalization() {
+        presenter.invalidateLocalizedLabels()
+        refresh()
     }
 
     func search(_ newQuery: String) {
@@ -218,6 +239,19 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
 
     /// Adds a source application to the filter, or removes it when already
     /// selected — several may be active at once (OR).
+    /// Hover switches to one reachable application instead of accumulating filters.
+    func selectSourceFilter(_ key: String) {
+        guard
+            chipEntries.contains(where: {
+                if case .app = $0 { return $0.id == key }; return false
+            }),
+            activeSourceKeys != [key]
+        else { return }
+        activeSourceKeys = [key]
+        selectedID = nil
+        refresh()
+    }
+
     func toggleSourceFilter(_ key: String) {
         if activeSourceKeys.remove(key) == nil {
             activeSourceKeys.insert(key)
@@ -229,6 +263,14 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     /// Adds a content category to the filter, or removes it when already
     /// selected — or toggles the pinned filter when given the pinned chip.
     func toggleCategoryFilter(_ rawCategory: String) {
+        if rawCategory == allFiltersChipID {
+            activeSourceKeys = []
+            activeCategories = []
+            pinnedOnly = false
+            selectedID = nil
+            refresh()
+            return
+        }
         if rawCategory == pinnedChipID {
             pinnedOnly.toggle()
             selectedID = nil
@@ -243,8 +285,34 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         refresh()
     }
 
-    func select(_ id: UUID, plain: Bool = false) {
-        mutate { try selectItem(id, in: $0, plain: plain) }
+    func item(for id: UUID) -> ClipboardItem? {
+        history.items.first { $0.id == id }
+    }
+
+    func items(for ids: [UUID]) -> [ClipboardItem] {
+        let wanted = Set(ids)
+        let found = Dictionary(
+            uniqueKeysWithValues: history.items.filter { wanted.contains($0.id) }.map { ($0.id, $0) })
+        return ids.compactMap { found[$0] }
+    }
+
+    func editRich(_ id: UUID, text: String, rtf: Data) {
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+            let old = item(for: id)
+        else { return }
+        remember()
+        mutate { history in
+            let replacement = ClipboardItem(
+                id: id, payload: .text(text), source: old.source, copiedAt: old.copiedAt,
+                isPinned: old.isPinned, rtf: rtf)
+            let next = History(items: history.items.map { $0.id == id ? replacement : $0 }, capacity: history.capacity)
+            _ = try self.restoreHistory(next)
+            return next
+        }
+    }
+
+    func select(_ id: UUID, plain: Bool = false, forPaste: Bool = false) {
+        mutate { try selectItem(id, in: $0, plain: plain, forPaste: forPaste) }
     }
 
     /// Puts a rewritten copy of the card's text on the pasteboard. False
@@ -256,7 +324,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
             let text = item.payload.transformableText,
             let rewritten = transform.apply(to: text)
         else { return false }
-        mutate { try selectItem(id, in: $0, writing: .text(rewritten)) }
+        mutate { try selectItem(id, in: $0, writing: .text(rewritten), forPaste: true) }
         return true
     }
 
@@ -343,7 +411,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         }
     }
 
-    /// Jumps to the start of the next chip group (pinned → apps →
+    /// Jumps to the start of the next chip group (All → pinned → apps →
     /// categories, cyclically) — the fast lane next to arrowing across
     /// the separators.
     func switchChipGroup() {
@@ -383,11 +451,13 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     func activateFocused(plain: Bool = false) -> Bool {
         switch focusZone {
         case .cards:
-            return activateSelected(plain: plain)
+            return activateSelected(plain: plain, forPaste: true)
         case .chips:
             let chips = chipEntries
             guard !chips.isEmpty else { return false }
             switch chips[resolvedChipIndex(in: chips)] {
+            case .all:
+                toggleCategoryFilter(allFiltersChipID)
             case .pinned:
                 toggleCategoryFilter(pinnedChipID)
             case .app(let source):
@@ -402,9 +472,9 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     /// Puts the highlighted card back on the pasteboard; the first visible
     /// card counts as highlighted until the selection is stepped.
     @discardableResult
-    func activateSelected(plain: Bool = false) -> Bool {
+    func activateSelected(plain: Bool = false, forPaste: Bool = false) -> Bool {
         guard let id = selectedID ?? visibleItems.first?.id else { return false }
-        select(id, plain: plain)
+        select(id, plain: plain, forPaste: forPaste)
         return true
     }
 
@@ -433,7 +503,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         while !pasteStack.isEmpty {
             let id = pasteStack.removeFirst()
             if let item = history.items.first(where: { $0.id == id }) {
-                pasteboard.write(item.payload, rtf: item.rtf)
+                pasteboard.writeForPaste(item.payload, rtf: item.rtf)
                 refresh()
                 return true
             }
@@ -599,7 +669,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     }
 
     private var visibleItems: [ClipboardItem] {
-        cachedVisible
+        RichTextGroups.groups(cachedVisible).map { $0[0] }
     }
 
     private func mutate(_ transform: (History) throws -> History) {
@@ -632,8 +702,8 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
             focusZone = .cards
         }
         cachedVisible = filterHistory(history, filter: currentFilter())
-        if selectedID == nil || !cachedVisible.contains(where: { $0.id == selectedID }) {
-            selectedID = cachedVisible.first?.id
+        if selectedID == nil || !visibleItems.contains(where: { $0.id == selectedID }) {
+            selectedID = visibleItems.first?.id
         }
         pasteStack.removeAll { id in !history.items.contains(where: { $0.id == id }) }
         present(

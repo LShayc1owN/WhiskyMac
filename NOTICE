@@ -1,0 +1,22 @@
+WhiskyMac
+WhiskyMac modifications: Copyright (C) 2026 LinShay (琳曦)
+Modified version notice: this checkout contains changes to Whisk, documented
+on 2026-11-03. See WHISK_MAY_DEV.md and the source history for the changes.
+
+This product is a modified derivative of Whisk v1.0.3, based on upstream
+commit 1ebcee1e0735e957777c599017ee411d8046c7e7.
+
+Original Whisk work
+Copyright (C) 2026 Nathan Poncet and contributors
+https://github.com/nathan-poncet/whisk
+
+WhiskyMac is distributed under the GNU General Public License, version 3 or
+any later version. See LICENSE. The upstream App Store additional permission
+under GPLv3 section 7 is retained in LICENSE-EXCEPTION-APP-STORE.md.
+LinShay's separate grant for WhiskyMac additions is recorded in
+LICENSE-EXCEPTION-WHISKYMAC.md; it grants no rights in third-party material.
+
+Bundled third-party materials and their required notices are listed in
+THIRD_PARTY_NOTICES.md. Product names, logos, and marks remain the property of
+their respective owners. No endorsement by the upstream Whisk project, Neovim,
+Kenney, Apple, or any other third party is implied.

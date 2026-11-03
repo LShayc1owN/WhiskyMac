@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import Foundation
 import SQLite3
 import Testing
@@ -112,9 +117,119 @@ private func sampleItems() throws -> [ClipboardItem] {
 
         #expect(try harness.makeStore().load() == items)
     }
+
+    @Test(arguments: StoreGateway.allCases)
+    func same_id_content_changes_replace_old_columns_and_can_be_restored(_ gateway: StoreGateway) throws {
+        let harness = StoreHarness(gateway)
+        defer { harness.tearDown() }
+        let store = try harness.makeStore()
+        let original = try sampleItems()[0]
+        try store.save([original])
+        let link = original.replacing(payload: .link(try #require(URL(string: "https://example.com/edited"))))
+
+        try store.save([link])
+        #expect(try store.load() == [link])
+        try store.save([original])
+        #expect(try store.load() == [original])
+
+        let newFormat = ClipboardItem(
+            id: original.id, payload: original.payload, source: nil, copiedAt: original.copiedAt,
+            isPinned: original.isPinned, rtf: Data("new format".utf8))
+        try store.save([newFormat])
+        #expect(try store.load() == [newFormat])
+    }
+
+    @Test func sqlite_edit_and_undo_survive_closed_connections() throws {
+        let harness = StoreHarness(.sqlite)
+        defer { harness.tearDown() }
+        let original = History(items: try sampleItems())
+        let id = original.items[0].id
+        try harness.makeStore().save(original.items)
+
+        let edited = try EditItem(store: SQLiteHistoryStore(databaseURL: harness.databaseURL))(
+            id, text: "func edited() {}", in: original)
+
+        #expect(try harness.makeStore().load() == edited.items)
+        #expect(edited.items[0].rtf == nil)
+        _ = try RestoreHistory(store: SQLiteHistoryStore(databaseURL: harness.databaseURL))(original)
+        #expect(try harness.makeStore().load() == original.items)
+    }
+
+    @Test(arguments: StoreGateway.allCases)
+    func empty_rtf_is_distinct_from_absent_rtf(_ gateway: StoreGateway) throws {
+        let harness = StoreHarness(gateway)
+        defer { harness.tearDown() }
+        let store = try harness.makeStore()
+        let item = ClipboardItem(
+            id: UUID(), payload: .text("hello"), source: nil, copiedAt: date(ms: 1_700_000_000_000),
+            isPinned: false, rtf: Data())
+        try store.save([item])
+        #expect(try store.load() == [item])
+        let plain = item.replacing(payload: item.payload)
+        try store.save([plain])
+        #expect(try store.load() == [plain])
+    }
+
+    @Test func captured_format_versions_survive_relaunch_and_write_the_selected_format() throws {
+        let harness = StoreHarness(.sqlite)
+        defer { harness.tearDown() }
+        let board = ScriptedPasteboard()
+        let clock = FakeClock()
+        let formats: [Data?] = [Data("format A".utf8), Data("format B".utf8), nil]
+        var history = History()
+        for format in formats {
+            board.pendingSnapshots = [PasteboardSnapshot(payload: .text("hello"), source: nil, rtf: format)]
+            history = try CaptureClipboardChange(
+                pasteboard: board, clock: clock, store: SQLiteHistoryStore(databaseURL: harness.databaseURL)
+            )(into: history)
+            clock.advance(by: 1)
+        }
+        let loaded = try harness.makeStore().load()
+        #expect(loaded == history.items)
+        #expect(loaded.map(\.rtf) == Array(formats.reversed()))
+        for item in loaded {
+            _ = try SelectItem(
+                pasteboard: board, clock: clock, store: SQLiteHistoryStore(databaseURL: harness.databaseURL)
+            )(item.id, in: History(items: loaded))
+            #expect(board.writtenRTF.last == .some(item.rtf))
+        }
+    }
 }
 
 @Suite struct SQLiteHistoryStoreSpecifics {
+    @Test func reorder_recency_and_pin_saves_never_update_unchanged_content() throws {
+        let harness = StoreHarness(.sqlite)
+        defer { harness.tearDown() }
+        let store = try harness.makeStore()
+        let items = try sampleItems()
+        try store.save(items)
+        try sabotage(
+            harness.databaseURL,
+            "CREATE TRIGGER refuse_update BEFORE UPDATE ON content BEGIN SELECT RAISE(ABORT, 'content rewritten'); END")
+
+        let reordered = [items[1].copied(at: date(ms: 1_800_000_000_000)), items[0].pinToggled(), items[2], items[3]]
+        try store.save(reordered)
+
+        #expect(try store.load() == reordered)
+    }
+
+    @Test func a_failed_content_update_rolls_back_content_and_ordering() throws {
+        let harness = StoreHarness(.sqlite)
+        defer { harness.tearDown() }
+        let store = try harness.makeStore()
+        let items = try sampleItems()
+        try store.save(items)
+        // Content is updated first; the later ordering failure must undo it.
+        try sabotage(
+            harness.databaseURL,
+            "CREATE TRIGGER refuse BEFORE INSERT ON ordering BEGIN SELECT RAISE(ABORT, 'refused'); END")
+
+        #expect(throws: HistoryStoreError.self) {
+            try store.save([items[0].replacing(payload: .text("changed")), items[1]])
+        }
+        #expect(try harness.makeStore().load() == items)
+    }
+
     @Test func a_row_with_an_unknown_kind_is_skipped_not_fatal() throws {
         let harness = StoreHarness(.sqlite)
         defer { harness.tearDown() }

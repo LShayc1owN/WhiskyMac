@@ -1,0 +1,4 @@
+memory: text("after audit edit") rtf: false
+reloaded: text("before audit edit") rtf: true
+edit survives reload: false
+duplicate preserves old RTF: true

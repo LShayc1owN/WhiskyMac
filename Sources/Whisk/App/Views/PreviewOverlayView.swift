@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import AppKit
 import SwiftUI
 
@@ -7,9 +12,13 @@ import SwiftUI
 struct PreviewOverlayView: View {
     @ObservedObject var store: HistoryViewStateStore
 
+    var actions: PanelActions? = nil
+
     var body: some View {
         Group {
-            if let card = store.state.selectedCard {
+            if store.isProtected {
+                PrivacyPlaceholder()
+            } else if let card = store.previewCard {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack(spacing: 8) {
                         if let icon = SourceAppStyle.resolve(bundleID: card.sourceBundleID).icon {
@@ -27,8 +36,14 @@ struct PreviewOverlayView: View {
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                     }
-                    content(for: card)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    Group {
+                        if store.previewItems.contains(where: { $0.rtf != nil }) {
+                            richVersions
+                        } else {
+                            content(for: card)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 }
                 .padding(20)
             } else {
@@ -41,19 +56,57 @@ struct PreviewOverlayView: View {
         .liquidGlass(in: RoundedRectangle(cornerRadius: 24, style: .continuous), cornerRadius: 24)
     }
 
+    private var richVersions: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            if store.pendingAction != nil {
+                Text(localized("Choose a format to continue"))
+            }
+            GeometryReader { geometry in
+                ScrollView(.horizontal) {
+                    LazyHStack(alignment: .top, spacing: 16) {
+                        ForEach(Array(store.previewItems.prefix(store.expandedVersions ? store.previewItems.count : 2)))
+                        { item in
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text(item.source?.name ?? localized("Rich text"))
+                                    .font(.caption).foregroundStyle(.secondary)
+                                RichTextPreviewPane(item: item)
+                                if let actions {
+                                    Button(store.pendingAction?.label ?? localized("Copy")) {
+                                        store.chooseVersion(item.id, actions: actions)
+                                    }
+                                }
+                            }
+                            .frame(
+                                width: min(340, max(240, (geometry.size.width - 16) / 2)),
+                                height: max(100, geometry.size.height))
+                        }
+                    }
+                }
+            }
+            if store.previewItems.count > 2 {
+                Button(store.expandedVersions ? localized("Show fewer formats") : "+\(store.previewItems.count - 2)") {
+                    store.expandedVersions.toggle()
+                }
+            }
+        }
+    }
+
     @ViewBuilder private func content(for card: CardViewState) -> some View {
         switch card.preview {
         case .text(let value):
             ScrollView {
-                Text(value)
+                Text(store.previewItems.first?.payload.transformableText ?? value)
                     .font(.body)
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .topLeading)
             }
         case .code(let text, let tokens):
             ScrollView([.vertical, .horizontal]) {
-                CodeTextView(text: text, tokens: tokens, lineLimit: nil)
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
+                let full = store.previewItems.first?.payload.transformableText ?? text
+                CodeTextView(
+                    text: full, tokens: full == text ? tokens : CodeHighlighter.tokens(in: full), lineLimit: nil
+                )
+                .frame(maxWidth: .infinity, alignment: .topLeading)
             }
         case .color(let code, let rgb):
             VStack(spacing: 12) {

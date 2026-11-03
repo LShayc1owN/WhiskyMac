@@ -1,0 +1,16 @@
+Localizations: check passed.
+[0/1] Planning build
+Building for production...
+[0/4] Write sources
+[1/4] Copying Localizable.strings
+[2/9] Copying Localizable.stringsdict
+[5/9] Copying Localizable.strings
+[6/9] Copying Localizable.stringsdict
+[7/9] Write swift-version--58304C5D6DBC2206.txt
+[9/10] Compiling Whisk ClipboardController.swift
+[9/11] Write Objects.LinkFileList
+[10/11] Linking Whisk
+Build complete! (20.35s)
+File Doesn't Exist, Will Create: dist/0.0.5/WhiskyMac.app/Contents/Resources/Whisk_Whisk.bundle/Contents/Info.plist
+/private/tmp/whisky-mac-sign.VexeZb/WhiskyMac.app: replacing existing signature
+built dist/0.0.5/WhiskyMac.app and dist/0.0.5/WhiskyMac.zip (version 0.0.5, build 0.0.5, native, identity: -, app store: 0)

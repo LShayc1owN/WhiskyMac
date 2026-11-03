@@ -1,3 +1,9 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
+import AppKit
 import ApplicationServices
 import Carbon.HIToolbox
 import Foundation
@@ -8,9 +14,20 @@ import Foundation
 enum PasteSimulator {
     private static var didPromptForAccess = false
 
-    static func paste() {
-        guard trusted() else { return }
+    static func paste(to target: NSRunningApplication? = nil, allowed: @escaping () -> Bool = { true }) {
+        guard allowed(), trusted() else { return }
+        if let target {
+            guard !target.isTerminated else { return }
+            target.activate()
+        }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            guard allowed() else { return }
+            if let target, NSWorkspace.shared.frontmostApplication?.processIdentifier != target.processIdentifier {
+                return
+            }
+            guard NSWorkspace.shared.frontmostApplication?.bundleIdentifier != AppIdentity.bundleIdentifier else {
+                return
+            }
             postCommandV()
         }
     }

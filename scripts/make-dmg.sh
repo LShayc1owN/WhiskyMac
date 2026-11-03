@@ -1,27 +1,27 @@
 #!/usr/bin/env bash
-# Packages dist/Whisk.app into dist/Whisk.dmg with an /Applications
+# Packages dist/WhiskyMac.app into dist/WhiskyMac.dmg with an /Applications
 # shortcut. The asset name stays version-less so the GitHub
 # releases/latest/download URL is permanent.
 set -euo pipefail
 
-APP="dist/Whisk.app"
+APP="dist/WhiskyMac.app"
 if [ ! -d "$APP" ]; then
   echo "error: $APP not found — run scripts/build-app.sh first" >&2
   exit 1
 fi
 
 STAGE="dist/dmg-stage"
-rm -rf "$STAGE" dist/Whisk.dmg
+rm -rf "$STAGE" dist/WhiskyMac.dmg
 mkdir -p "$STAGE"
 cp -R "$APP" "$STAGE/"
 ln -s /Applications "$STAGE/Applications"
 
 hdiutil create \
-  -volname "Whisk" \
+  -volname "WhiskyMac" \
   -srcfolder "$STAGE" \
   -format UDZO \
   -ov \
-  "dist/Whisk.dmg" \
+  "dist/WhiskyMac.dmg" \
   -quiet
 
 rm -rf "$STAGE"
@@ -30,6 +30,6 @@ rm -rf "$STAGE"
 # hand, so Gatekeeper can vouch for the download as a whole.
 IDENTITY="${CODESIGN_IDENTITY:--}"
 if [ "$IDENTITY" != "-" ]; then
-  codesign --force --timestamp --sign "$IDENTITY" dist/Whisk.dmg
+  codesign --force --timestamp --sign "$IDENTITY" dist/WhiskyMac.dmg
 fi
-echo "built dist/Whisk.dmg (identity: $IDENTITY)"
+echo "built dist/WhiskyMac.dmg (identity: $IDENTITY)"

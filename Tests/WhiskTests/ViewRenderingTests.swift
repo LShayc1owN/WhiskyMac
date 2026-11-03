@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import AppKit
 import Carbon.HIToolbox
 import SwiftUI
@@ -207,6 +212,11 @@ enum ViewFixtures {
             filters: filters, cursorSuppressed: true, onToggleApp: { _ in }, onToggleKind: { _ in },
             onFocusApp: { _ in }, onFocusKind: { _ in })
 
+        let hover = FilterBarView(
+            filters: filters, appTrigger: .hover,
+            onSelectApp: { _ in }, onToggleApp: { _ in }, onToggleKind: { _ in },
+            onFocusApp: { _ in }, onFocusKind: { _ in })
+        #expect(render(hover, 900, 44) != nil)
         #expect(render(bar, 900, 44) != nil)
         #expect(render(suppressed, 900, 44) != nil)
         #expect(hostOffscreen(bar, 900, 44).contentView != nil)
@@ -282,7 +292,7 @@ enum ViewFixtures {
         let hosting = try #require(window.contentView)
         pump(hosting)
 
-        #expect(store.state.accessPrompt?.buttonTitle == "Allow Clipboard Access")
+        #expect(store.state.accessPrompt?.buttonTitle == localized("Allow Clipboard Access"))
         #expect(store.state.emptyMessage == nil)
         #expect(hosting.frame.width == 1200)
     }
@@ -508,10 +518,12 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
     @Test func the_onboarding_renders() {
         _ = NSApplication.shared
 
-        #expect(render(OnboardingView(toggleShortcut: "⇧⌘V", onContinue: {}), 440, 420) != nil)
+        #expect(render(OnboardingView(toggleShortcut: "⇧⌘V", shortcutEnabled: false, onContinue: {}), 440, 420) != nil)
         #expect(
             render(
-                OnboardingView(toggleShortcut: "⇧⌘V", clipboardAccess: .requiresConsent, onContinue: {}), 440, 460)
+                OnboardingView(
+                    toggleShortcut: "⇧⌘V", shortcutEnabled: false, clipboardAccess: .requiresConsent,
+                    onContinue: {}), 440, 460)
                 != nil)
     }
 
@@ -546,11 +558,44 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
         let glass = hostOffscreen(
             Text("glass").padding().liquidGlass(in: Capsule()).padding().liquidGlass(
                 in: RoundedRectangle(cornerRadius: 12), cornerRadius: 12, tint: .red), 300, 120)
+        let settingsGlass = hostOffscreen(
+            Text("Settings").padding().settingsGlass(
+                in: RoundedRectangle(cornerRadius: SettingsGlass.groupCornerRadius, style: .continuous)),
+            300, 120)
+        let reducedGlass = hostOffscreen(
+            Text("Reduced transparency").padding().settingsGlass(in: Capsule())
+                .environment(\.settingsAccessibilityOverride, SettingsAccessibilityValues(reduceTransparency: true)),
+            300, 120)
 
         #expect(veil.contentView != nil)
         #expect(glass.contentView != nil)
-        #expect(BackdropBlurTuner.backdropLayer(in: CALayer()) == nil)
-        #expect(!BackdropBlurTuner.tune(nil, radius: 3))
+        #expect(settingsGlass.contentView != nil)
+        #expect(reducedGlass.contentView != nil)
+        #expect(BackdropView().material == .appearanceBased)
+    }
+
+    @Test func the_settings_window_is_transparent_with_full_size_glass_content() {
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: SettingsWindowSize.width, height: 720),
+            styleMask: [.titled, .closable], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        SettingsWindowConfiguration.apply(to: window)
+        window.title = localized("WhiskyMac Settings")
+
+        #expect(!window.isOpaque)
+        #expect(window.backgroundColor == .clear)
+        #expect(window.styleMask.contains(.fullSizeContentView))
+        #expect(window.titlebarAppearsTransparent)
+        #expect(window.titleVisibility == .hidden)
+        #expect(window.title == localized("WhiskyMac Settings"))
+
+        let backdrop = hostOffscreen(SettingsWindowBackdrop(), 840, 720)
+        let reducedBackdrop = hostOffscreen(
+            SettingsWindowBackdrop().environment(
+                \.settingsAccessibilityOverride, SettingsAccessibilityValues(reduceTransparency: true)), 840, 720)
+        #expect(backdrop.contentView != nil)
+        #expect(reducedBackdrop.contentView != nil)
+        window.close()
     }
 }
 
@@ -589,7 +634,7 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
         let bindings = KeyBindingsStore(defaults: sandbox.defaults)
         bindings.set(KeyBinding(keyCode: 0xFF, modifiers: []), for: .pinSelection)
         bindings.set(KeyBinding(keyCode: 1, modifiers: []), for: .deleteSelection)
-        #expect(bindings.label(for: .pinSelection) == "key 255")
+        #expect(bindings.label(for: .pinSelection) == localized("key \(255)"))
         bindings.resetAll()
         #expect(!bindings.isCustomized(.pinSelection) && !bindings.isCustomized(.deleteSelection))
     }

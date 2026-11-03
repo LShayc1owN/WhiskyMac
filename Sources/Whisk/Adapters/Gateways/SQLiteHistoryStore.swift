@@ -1,13 +1,17 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import Foundation
 import SQLite3
 
 private let sqliteTransient = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
 
 /// SQLite-backed history store using the system library — no package
-/// dependency. Immutable content (including image and RTF blobs) is
-/// inserted once per item; only the small ordering table is rewritten on
-/// each save, all inside one transaction. The JSON store rewrote every
-/// blob on every copy, which stopped scaling with an unlimited history.
+/// dependency. Content (including image and RTF blobs) is updated only
+/// when it changes; the small ordering table is rewritten on each save,
+/// all inside one transaction.
 final class SQLiteHistoryStore: HistoryStore {
     private var db: OpaquePointer?
 
@@ -32,7 +36,8 @@ final class SQLiteHistoryStore: HistoryStore {
                 rtf BLOB,
                 files TEXT,
                 source_app TEXT,
-                source_bundle TEXT
+                source_bundle TEXT,
+                source_origin TEXT
             )
             """)
         try execute(
@@ -44,6 +49,16 @@ final class SQLiteHistoryStore: HistoryStore {
                 is_pinned INTEGER NOT NULL
             )
             """)
+        var schema: OpaquePointer?
+        guard sqlite3_prepare_v2(db, "PRAGMA table_info(content)", -1, &schema, nil) == SQLITE_OK else {
+            throw HistoryStoreError.unreadable(lastMessage())
+        }
+        var hasOrigin = false
+        while sqlite3_step(schema) == SQLITE_ROW {
+            if columnText(schema, 1) == "source_origin" { hasOrigin = true }
+        }
+        sqlite3_finalize(schema)
+        if !hasOrigin { try execute("ALTER TABLE content ADD COLUMN source_origin TEXT") }
     }
 
     deinit {
@@ -56,7 +71,7 @@ final class SQLiteHistoryStore: HistoryStore {
     func load() throws -> [ClipboardItem] {
         let sql = """
             SELECT c.id, c.kind, c.text, c.link, c.image, c.rtf, c.files, c.source_app, c.source_bundle,
-                   o.copied_at_ms, o.is_pinned
+                   o.copied_at_ms, o.is_pinned, c.source_origin
             FROM ordering o JOIN content c ON c.id = o.id
             ORDER BY o.position ASC
             """
@@ -85,7 +100,7 @@ final class SQLiteHistoryStore: HistoryStore {
     func save(_ items: [ClipboardItem]) throws {
         try execute("BEGIN IMMEDIATE")
         do {
-            try insertMissingContent(items)
+            try saveContent(items)
             try execute("DELETE FROM ordering")
             try insertOrdering(items)
             try execute("DELETE FROM content WHERE id NOT IN (SELECT id FROM ordering)")
@@ -98,15 +113,24 @@ final class SQLiteHistoryStore: HistoryStore {
 
     // MARK: - Rows
 
-    // One statement prepared for the whole batch and reset per item: the
-    // insert is a no-op for content already stored, but compiling it once
-    // per item on every copy was not. Bindings are cleared between items
-    // because most columns are optional.
-    private func insertMissingContent(_ items: [ClipboardItem]) throws {
+    // One statement per batch. The NULL-safe comparison allows edits and
+    // RTF removal without rewriting unchanged blobs on reorder/pin saves.
+    private func saveContent(_ items: [ClipboardItem]) throws {
         let sql = """
-            INSERT OR IGNORE INTO content
-            (id, kind, text, link, image, rtf, files, source_app, source_bundle)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO content
+            (id, kind, text, link, image, rtf, files, source_app, source_bundle, source_origin)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                kind = excluded.kind, text = excluded.text, link = excluded.link,
+                image = excluded.image, rtf = excluded.rtf, files = excluded.files,
+                source_app = excluded.source_app, source_bundle = excluded.source_bundle,
+                source_origin = excluded.source_origin
+            WHERE content.kind IS NOT excluded.kind
+                OR content.text IS NOT excluded.text OR content.link IS NOT excluded.link
+                OR content.image IS NOT excluded.image OR content.rtf IS NOT excluded.rtf
+                OR content.files IS NOT excluded.files OR content.source_app IS NOT excluded.source_app
+                OR content.source_bundle IS NOT excluded.source_bundle
+                OR content.source_origin IS NOT excluded.source_origin
             """
         var statement: OpaquePointer?
         guard sqlite3_prepare_v2(db, sql, -1, &statement, nil) == SQLITE_OK else {
@@ -150,6 +174,7 @@ final class SQLiteHistoryStore: HistoryStore {
         if let bundleID = item.source?.bundleID {
             bindText(statement, 9, bundleID)
         }
+        if item.source?.origin == .handoffMarker { bindText(statement, 10, SourceApp.Origin.handoffMarker.rawValue) }
     }
 
     private func insertOrdering(_ items: [ClipboardItem]) throws {
@@ -197,7 +222,9 @@ final class SQLiteHistoryStore: HistoryStore {
         return ClipboardItem(
             id: id,
             payload: payload,
-            source: SourceApp(name: columnText(statement, 7), bundleID: columnText(statement, 8)),
+            source: SourceApp(
+                name: columnText(statement, 7), bundleID: columnText(statement, 8),
+                origin: SourceApp.Origin(rawValue: columnText(statement, 11) ?? "") ?? .observedApplication),
             copiedAt: Date(timeIntervalSince1970: Double(sqlite3_column_int64(statement, 9)) / 1000),
             isPinned: sqlite3_column_int64(statement, 10) == 1,
             rtf: columnBlob(statement, 5)
@@ -217,6 +244,10 @@ final class SQLiteHistoryStore: HistoryStore {
     }
 
     private func bindBlob(_ statement: OpaquePointer?, _ index: Int32, _ data: Data) {
+        guard !data.isEmpty else {
+            sqlite3_bind_zeroblob(statement, index, 0)
+            return
+        }
         data.withUnsafeBytes { buffer in
             _ = sqlite3_bind_blob(statement, index, buffer.baseAddress, Int32(buffer.count), sqliteTransient)
         }
@@ -228,6 +259,8 @@ final class SQLiteHistoryStore: HistoryStore {
     }
 
     private func columnBlob(_ statement: OpaquePointer?, _ index: Int32) -> Data? {
+        guard sqlite3_column_type(statement, index) != SQLITE_NULL else { return nil }
+        guard sqlite3_column_bytes(statement, index) > 0 else { return Data() }
         guard let pointer = sqlite3_column_blob(statement, index) else { return nil }
         return Data(bytes: pointer, count: Int(sqlite3_column_bytes(statement, index)))
     }

@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import SwiftUI
 
 /// The card indices the scroll position keeps on screen, quantized to
@@ -52,11 +57,38 @@ struct HistoryPanelView: View {
     }
 
     var body: some View {
+        Group {
+            if store.isProtected {
+                if store.privacyAllowsSearch || store.privacyShowsSourceApps
+                    || (store.allowsSpotlight && store.panelVisible && store.interactions.hover == .preview)
+                {
+                    PrivacySpotlightView(store: store)
+                } else {
+                    PrivacyPlaceholder()
+                }
+            } else {
+                historyBody
+            }
+        }
+        .id(store.appearanceRevision)
+        .overlay(alignment: .topLeading) {
+            AppSymbolView()
+                .foregroundStyle(.secondary)
+                .frame(width: 28, height: 28)
+                .padding(.leading, 20)
+                .padding(.top, 15)
+                .allowsHitTesting(false)
+        }
+        .tint(Color.matcha)
+        .onChange(of: store.isProtected) { _, _ in searchText = "" }
+    }
+
+    private var historyBody: some View {
         VStack(alignment: .leading, spacing: 12) {
             // The landing page's layout, mirrored: a centered search capsule
             // of bounded width, the filter chips centered right below it.
             toolbar
-                .frame(maxWidth: searchExpanded ? 680 : 320)
+                .frame(maxWidth: searchExpanded ? 680 : 480)
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 16)
                 .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.8), value: searchExpanded)
@@ -64,17 +96,27 @@ struct HistoryPanelView: View {
                 FilterBarView(
                     filters: store.state.filters,
                     cursorSuppressed: cursorOnSearch,
+                    appTrigger: store.appFilterTrigger,
+                    hoverEnabled: store.panelVisible,
+                    onSelectApp: { key in
+                        guard store.panelVisible, !store.isProtected, store.appFilterTrigger == .hover else { return }
+                        actions.selectSourceFilter(key)
+                    },
                     onToggleApp: actions.toggleSourceFilter,
                     onToggleKind: actions.toggleCategoryFilter,
                     onFocusApp: actions.focusSourceChip,
                     onFocusKind: actions.focusCategoryChip
                 )
             }
+            SensitiveSessionView(session: store.sensitiveSession)
             content
         }
         .padding(.top, PanelLayout.panelTopBand)
         .padding(.bottom, 18)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+        .onAppear {
+            searchText = store.state.query; searchFocused = store.searchActive
+        }
         .onChange(of: store.focusRevision) {
             searchFocused = store.searchActive
             searchText = store.state.query
@@ -93,12 +135,7 @@ struct HistoryPanelView: View {
                 searchText = query
             }
         }
-        .onAppear {
-            ItemCardView.prewarm(store.state.cards)
-        }
-        .onChange(of: store.state.cards) { _, cards in
-            ItemCardView.prewarm(cards)
-        }
+
     }
 
     private var toolbar: some View {
@@ -139,10 +176,7 @@ struct HistoryPanelView: View {
                 .font(.caption.monospacedDigit())
                 .foregroundStyle(.secondary)
             if store.vimEnabled {
-                // Vim's own vocabulary, untranslated on purpose: the modes
-                // carry the editor's names everywhere; VoiceOver gets the
-                // localized name below.
-                Text(store.searchActive ? "SEARCH" : "NORMAL")
+                Text(store.searchActive ? localized("SEARCH") : localized("NORMAL"))
                     .font(.system(size: 9, weight: .bold))
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 6)
@@ -177,8 +211,7 @@ struct HistoryPanelView: View {
                 store: store,
                 card: editing,
                 onSave: { text in
-                    actions.edit(editing.id, text)
-                    store.endEditing()
+                    store.saveEditing(actions: actions)
                 },
                 onCancel: { store.endEditing() }
             )
@@ -237,7 +270,12 @@ struct HistoryPanelView: View {
                                 card: card,
                                 actions: actions,
                                 showsSelection: !cursorOnSearch,
-                                side: store.cardSide
+                                side: store.cardSide,
+                                interactions: store.interactions,
+                                canExport: { !store.isProtected },
+                                onInteraction: { action in store.interact(card, action: action, actions: actions) },
+                                onHoverPreview: { store.hoverPreview(card, actions: actions) },
+                                onHoverChanged: { inside in store.cardHoverChanged(card.id, inside: inside) }
                             )
                             .equatable()
                         } else {

@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import AppKit
 import Carbon.HIToolbox
 import Combine
@@ -5,6 +10,7 @@ import Combine
 /// Everything the keyboard can do, each rebindable from Settings.
 enum KeyAction: String, CaseIterable, Identifiable {
     case togglePanel
+    case togglePrivacy
     case pasteSelection
     case pastePlain
     case stackSelection
@@ -30,6 +36,7 @@ enum KeyAction: String, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
+        case .togglePrivacy: localized("Toggle manual Privacy Mode")
         case .togglePanel: localized("Show / hide the panel")
         case .pasteSelection: localized("Paste the selection")
         case .pastePlain: localized("Paste as plain text")
@@ -56,7 +63,7 @@ enum KeyAction: String, CaseIterable, Identifiable {
 
     /// Global shortcuts work everywhere; the rest act inside the panel.
     var isGlobal: Bool {
-        self == .togglePanel || self == .pasteNextFromStack
+        self == .togglePanel || self == .pasteNextFromStack || self == .togglePrivacy
     }
 }
 
@@ -100,16 +107,22 @@ struct KeyBinding: Equatable, Codable {
 /// the user records something explicit.
 final class KeyBindingsStore: ObservableObject {
     @Published private(set) var overrides: [String: KeyBinding] = [:]
+    @Published private(set) var enabledGlobalActions: Set<KeyAction> = []
+    @Published var registrationFailures: Set<KeyAction> = []
     @Published private(set) var recordingAction: KeyAction?
 
     private var recordingMonitor: Any?
     private let defaults: UserDefaults
     private let logger: any Logger
     private static let storageKey = "keyBindings"
+    private static let enabledGlobalKey = "enabledGlobalShortcuts"
 
-    init(defaults: UserDefaults = .standard, logger: any Logger = ConsoleLogger()) {
+    init(defaults: UserDefaults = AppIdentity.defaults, logger: any Logger = ConsoleLogger()) {
         self.defaults = defaults
         self.logger = logger
+        enabledGlobalActions = Set(
+            (defaults.stringArray(forKey: Self.enabledGlobalKey) ?? []).compactMap(KeyAction.init(rawValue:))
+                .filter(\.isGlobal))
         if let data = defaults.data(forKey: Self.storageKey) {
             do {
                 overrides = try JSONDecoder().decode([String: KeyBinding].self, from: data)
@@ -130,6 +143,23 @@ final class KeyBindingsStore: ObservableObject {
     func set(_ binding: KeyBinding, for action: KeyAction) {
         overrides[action.rawValue] = binding
         persist()
+        if action.isGlobal {
+            setGlobalEnabled(true, for: action)
+        }
+    }
+
+    func isGlobalEnabled(_ action: KeyAction) -> Bool {
+        enabledGlobalActions.contains(action)
+    }
+
+    func setGlobalEnabled(_ enabled: Bool, for action: KeyAction) {
+        guard action.isGlobal else { return }
+        if enabled {
+            enabledGlobalActions.insert(action)
+        } else {
+            enabledGlobalActions.remove(action)
+        }
+        defaults.set(enabledGlobalActions.map(\.rawValue).sorted(), forKey: Self.enabledGlobalKey)
     }
 
     /// One recorder at most: arming an action disarms any other, so a
@@ -171,6 +201,8 @@ final class KeyBindingsStore: ObservableObject {
     func resetAll() {
         overrides = [:]
         persist()
+        enabledGlobalActions = []
+        defaults.set([String](), forKey: Self.enabledGlobalKey)
     }
 
     /// Actions whose effective bindings collide with another action's.
@@ -201,6 +233,8 @@ final class KeyBindingsStore: ObservableObject {
 
     private static func defaultBinding(for action: KeyAction) -> KeyBinding {
         switch action {
+        case .togglePrivacy:
+            return KeyBinding(keyCode: UInt16(kVK_ANSI_P), modifiers: [.control, .option, .command])
         case .togglePanel:
             return KeyBinding(
                 keyCode: KeyboardLayout.keyCode(for: "v", orANSI: kVK_ANSI_V), modifiers: [.command, .shift])
@@ -276,6 +310,7 @@ final class KeyBindingsStore: ObservableObject {
         if let character = KeyboardLayout.character(for: keyCode) {
             return String(character).uppercased()
         }
-        return "key \(keyCode)"
+        let code = Int(keyCode)
+        return localized("key \(code)")
     }
 }

@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import AppKit
 import Carbon.HIToolbox
 import Foundation
@@ -117,12 +122,12 @@ final class IsolatedDefaults {
         #expect(store.recordingAction == nil)
     }
 
-    @Test func every_action_has_a_name_and_only_two_reach_outside_the_panel() {
+    @Test func every_action_has_a_name_and_only_three_reach_outside_the_panel() {
         let names = KeyAction.allCases.map(\.displayName)
 
         #expect(names.allSatisfy { !$0.isEmpty })
         #expect(Set(names).count == names.count)
-        #expect(KeyAction.allCases.filter(\.isGlobal) == [.togglePanel, .pasteNextFromStack])
+        #expect(KeyAction.allCases.filter(\.isGlobal) == [.togglePanel, .togglePrivacy, .pasteNextFromStack])
         #expect(KeyAction.allCases.map(\.id) == KeyAction.allCases.map(\.rawValue))
     }
 
@@ -225,9 +230,9 @@ final class IsolatedDefaults {
 
         #expect(store.retentionPeriod == .forever)
         #expect(store.capacity == 500)
-        #expect(store.checkForUpdates)
+        #expect(!store.checkForUpdates)
         #expect(!store.vimNavigation)
-        #expect(store.linkPreviews)
+        #expect(!store.linkPreviews)
         #expect(store.cardSize == .medium)
         #expect(store.excludedApps.isEmpty)
         #expect(store.policy == .standard)
@@ -308,6 +313,6 @@ final class IsolatedDefaults {
 
     @Test func capacity_labels_read_naturally() {
         #expect(GeneralSettingsStore.capacityLabel(0) == localized("Unlimited"))
-        #expect(["500 items", "500 éléments"].contains(GeneralSettingsStore.capacityLabel(500)))
+        #expect(GeneralSettingsStore.capacityLabel(500) == localized("\(500) items"))
     }
 }

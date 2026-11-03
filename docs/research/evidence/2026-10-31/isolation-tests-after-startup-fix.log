@@ -1,0 +1,125 @@
+warning: /Users/LShayc1owN/Library/org.swift.swiftpm/configuration is not accessible or not writable, disabling user-level cache features.
+warning: /Users/LShayc1owN/Library/org.swift.swiftpm/security is not accessible or not writable, disabling user-level cache features.
+warning: /Users/LShayc1owN/Library/Caches/org.swift.swiftpm is not accessible or not writable, disabling user-level cache features.
+warning: 'whiskmay': failed storing manifest for 'whiskmay' in cache: attempt to write a readonly database
+[0/1] Planning build
+Building for debugging...
+[0/5] Write sources
+[1/5] Write swift-version--58304C5D6DBC2206.txt
+[3/8] Compiling Whisk AppDelegate.swift
+[4/8] Emitting module Whisk
+[5/8] Compiling Whisk AppIdentity.swift
+[5/10] Write Objects.LinkFileList
+[6/10] Linking Whisk
+[7/10] Applying Whisk
+[9/11] Emitting module WhiskTests
+[9/11] Write Objects.LinkFileList
+[10/11] Linking WhiskPackageTests
+Build complete! (4.91s)
+Test Suite 'Selected tests' started at 2026-10-31 11:46:00.657.
+Test Suite 'WhiskPackageTests.xctest' started at 2026-10-31 11:46:00.658.
+Test Suite 'WhiskPackageTests.xctest' passed at 2026-10-31 11:46:00.658.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-10-31 11:46:00.658.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.002) seconds
+􀟈  Test run started.
+􀄵  Testing Library Version: 1501
+􀄵  Target Platform: arm64e-apple-macos14.0
+􀟈  Suite MayIsolation started.
+􀟈  Suite KeyBindingsPersistence started.
+􀟈  Suite DistributionRules started.
+􀟈  Suite GeneralSettingsPersistence started.
+􀟈  Suite HistoryStorageBootstrap started.
+􀟈  Test resetting_returns_an_action_to_its_default() started.
+􀟈  Test a_binding_keeps_only_the_four_modifier_keys() started.
+􀟈  Test a_recorded_shortcut_persists_and_reloads() started.
+􀟈  Test every_action_has_a_name_and_only_two_reach_outside_the_panel() started.
+􀟈  Test original_environment_and_files_are_untouched_by_may_launch() started.
+􀟈  Test stored_bindings_that_will_not_decode_fall_back_to_defaults_and_say_so() started.
+􀟈  Test recording_enables_only_the_recorded_global_shortcut() started.
+􀟈  Test two_actions_on_one_shortcut_are_both_reported() started.
+􀟈  Test recording_takes_the_next_key_and_escape_cancels() started.
+􀟈  Test card_sizes_grow_in_order_and_label_themselves() started.
+􀟈  Test labels_spell_modifiers_in_the_standard_order() started.
+􀟈  Test only_the_developer_id_build_checks_for_updates() started.
+􀟈  Test original_settings_domain_does_not_seed_may_settings() started.
+􀟈  Test the_test_build_is_the_may_development_one() started.
+􀟈  Test capacity_labels_read_naturally() started.
+􀟈  Test stored_exclusions_that_will_not_decode_fall_back_to_none_and_say_so() started.
+􀟈  Test a_fresh_install_starts_from_the_documented_defaults() started.
+􀟈  Test settings_persist_across_instances() started.
+􀟈  Test a_legacy_json_history_is_imported_once_and_its_files_retired() started.
+􀟈  Test a_database_that_opens_but_will_not_load_is_set_aside_too() started.
+􀟈  Test the_login_item_reports_its_current_status_without_touching_it() started.
+􀟈  Test the_environment_can_point_the_data_directory_elsewhere() started.
+􀟈  Test a_legacy_import_that_cannot_be_retired_is_logged_and_the_index_stays() started.
+􀟈  Test the_default_directory_is_may_under_application_support() started.
+􀟈  Test retention_periods_and_excluded_apps_identify_and_label_themselves() started.
+􀟈  Test the_policy_follows_the_capacity_and_the_period() started.
+􀟈  Test a_binding_is_read_off_a_key_event_and_matches_it_back() started.
+􀟈  Test a_fresh_directory_gets_a_database_that_persists_across_opens() started.
+􀟈  Test an_unreadable_database_is_set_aside_and_a_fresh_one_takes_its_place() started.
+􀟈  Test when_no_database_can_be_created_the_session_runs_in_memory() started.
+􀟈  Test a_legacy_import_merges_behind_what_the_database_already_holds() started.
+􀟈  Test without_a_log_of_its_own_the_bootstrap_still_recovers_and_writes_to_the_console() started.
+􀟈  Test an_unreadable_legacy_history_stays_in_place_for_the_next_launch() started.
+2026-10-31 11:46:00.731 swiftpm-testing-helper[18875:2454373] Whisk: cannot read history.sqlite — unwritable("file is not a database"); setting it aside
+􁁛  Test only_the_developer_id_build_checks_for_updates() passed after 0.033 seconds.
+􁁛  Test the_test_build_is_the_may_development_one() passed after 0.033 seconds.
+􁁛  Test the_login_item_reports_its_current_status_without_touching_it() passed after 0.033 seconds.
+􁁛  Test a_fresh_install_starts_from_the_documented_defaults() passed after 0.033 seconds.
+􁁛  Test the_environment_can_point_the_data_directory_elsewhere() passed after 0.033 seconds.
+􁁛  Test the_default_directory_is_may_under_application_support() passed after 0.033 seconds.
+􁁛  Test card_sizes_grow_in_order_and_label_themselves() passed after 0.033 seconds.
+􁁛  Test retention_periods_and_excluded_apps_identify_and_label_themselves() passed after 0.033 seconds.
+􁁛  Test capacity_labels_read_naturally() passed after 0.033 seconds.
+􁁛  Test stored_exclusions_that_will_not_decode_fall_back_to_none_and_say_so() passed after 0.033 seconds.
+􁁛  Test a_legacy_json_history_is_imported_once_and_its_files_retired() passed after 0.033 seconds.
+􁁛  Test a_fresh_directory_gets_a_database_that_persists_across_opens() passed after 0.033 seconds.
+􁁛  Test the_policy_follows_the_capacity_and_the_period() passed after 0.033 seconds.
+􁁛  Suite DistributionRules passed after 0.034 seconds.
+􁁛  Test an_unreadable_database_is_set_aside_and_a_fresh_one_takes_its_place() passed after 0.035 seconds.
+􁁛  Test recording_enables_only_the_recorded_global_shortcut() passed after 0.035 seconds.
+􁁛  Test original_environment_and_files_are_untouched_by_may_launch() passed after 0.038 seconds.
+􁁛  Test a_database_that_opens_but_will_not_load_is_set_aside_too() passed after 0.039 seconds.
+􁁛  Test without_a_log_of_its_own_the_bootstrap_still_recovers_and_writes_to_the_console() passed after 0.040 seconds.
+􁁛  Test settings_persist_across_instances() passed after 0.041 seconds.
+􁁛  Suite GeneralSettingsPersistence passed after 0.042 seconds.
+􁁛  Test an_unreadable_legacy_history_stays_in_place_for_the_next_launch() passed after 0.042 seconds.
+􁁛  Test original_settings_domain_does_not_seed_may_settings() passed after 0.043 seconds.
+􁁛  Suite MayIsolation passed after 0.043 seconds.
+􁁛  Test a_legacy_import_merges_behind_what_the_database_already_holds() passed after 0.043 seconds.
+2026-10-31 11:46:00.843 swiftpm-testing-helper[18875:2454364] TISFileInterrogator updateSystemInputSources false but old data invalid: currentCacheHeaderPtr nonNULL? 0, ->cacheFormatVersion 0, ->magicCookie 00000000, inputSourceTableCountSys 0
+2026-10-31 11:46:00.846 swiftpm-testing-helper[18875:2454364] Error received in message reply handler: Connection invalid
+2026-10-31 11:46:00.846 swiftpm-testing-helper[18875:2454374] Connection Invalid error for service com.apple.hiservices-xpcservice.
+2026-10-31 11:46:00.848 swiftpm-testing-helper[18875:2454364] Error received in message reply handler: Connection invalid
+Keyboard Layouts: duplicate keyboard layout identifier -17410.
+Keyboard Layouts: keyboard layout identifier -17410 has been replaced with -28673.
+2026-10-31 11:46:00.866 swiftpm-testing-helper[18875:2454364] Error received in message reply handler: Connection invalid
+2026-10-31 11:46:00.867 swiftpm-testing-helper[18875:2454364] Error received in message reply handler: Connection invalid
+􁁛  Test when_no_database_can_be_created_the_session_runs_in_memory() passed after 0.164 seconds.
+􁁛  Test a_legacy_import_that_cannot_be_retired_is_logged_and_the_index_stays() passed after 0.166 seconds.
+􁁛  Suite HistoryStorageBootstrap passed after 0.166 seconds.
+2026-10-31 11:46:00.881 swiftpm-testing-helper[18875:2454364] Error received in message reply handler: Connection invalid
+2026-10-31 11:46:00.887 swiftpm-testing-helper[18875:2454364] Error received in message reply handler: Connection invalid
+2026-10-31 11:46:00.889 swiftpm-testing-helper[18875:2454364] Error received in message reply handler: Connection invalid
+2026-10-31 11:46:00.896 swiftpm-testing-helper[18875:2454364] Error received in message reply handler: Connection invalid
+2026-10-31 11:46:00.898 swiftpm-testing-helper[18875:2454364] Error received in message reply handler: Connection invalid
+2026-10-31 11:46:00.905 swiftpm-testing-helper[18875:2454364] Error received in message reply handler: Connection invalid
+Keyboard Layouts: duplicate keyboard layout identifier -30769.
+Keyboard Layouts: keyboard layout identifier -30769 has been replaced with -28674.
+Keyboard Layouts: duplicate keyboard layout identifier -14934.
+Keyboard Layouts: keyboard layout identifier -14934 has been replaced with -28675.
+2026-10-31 11:46:00.928 swiftpm-testing-helper[18875:2454364] Error received in message reply handler: Connection invalid
+2026-10-31 11:46:00.928 swiftpm-testing-helper[18875:2454364] Error received in message reply handler: Connection invalid
+􁁛  Test resetting_returns_an_action_to_its_default() passed after 0.242 seconds.
+􁁛  Test a_binding_keeps_only_the_four_modifier_keys() passed after 0.242 seconds.
+􁁛  Test stored_bindings_that_will_not_decode_fall_back_to_defaults_and_say_so() passed after 0.243 seconds.
+􁁛  Test two_actions_on_one_shortcut_are_both_reported() passed after 0.243 seconds.
+􁁛  Test recording_takes_the_next_key_and_escape_cancels() passed after 0.244 seconds.
+􁁛  Test a_recorded_shortcut_persists_and_reloads() passed after 0.244 seconds.
+􁁛  Test every_action_has_a_name_and_only_two_reach_outside_the_panel() passed after 0.244 seconds.
+􁁛  Test a_binding_is_read_off_a_key_event_and_matches_it_back() passed after 0.243 seconds.
+􁁛  Test labels_spell_modifiers_in_the_standard_order() passed after 0.243 seconds.
+􁁛  Suite KeyBindingsPersistence passed after 0.244 seconds.
+􁁛  Test run with 33 tests in 5 suites passed after 0.244 seconds.

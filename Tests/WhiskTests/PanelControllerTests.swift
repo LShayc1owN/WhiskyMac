@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import AppKit
 import Carbon.HIToolbox
 import Testing
@@ -8,6 +13,36 @@ import Testing
 /// anything on screen.
 @MainActor
 @Suite struct PanelWindowing {
+    @Test func action_popover_stays_above_preview_when_attached_or_reused_without_taking_focus() {
+        _ = NSApplication.shared
+        let layer = CardActionPopoverLayer.LayerView()
+        let first = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 200, height: 300),
+            styleMask: .borderless, backing: .buffered, defer: false)
+        let second = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 200, height: 300),
+            styleMask: .borderless, backing: .buffered, defer: false)
+        first.isReleasedWhenClosed = false
+        second.isReleasedWhenClosed = false
+        defer { first.close(); second.close() }
+
+        first.contentView = layer
+        #expect(first.level.rawValue > NSWindow.Level.statusBar.rawValue)
+        #expect(!first.isVisible && !first.isKeyWindow)
+        #expect(layer.hitTest(.zero) == nil)
+
+        // Moving between popover windows must apply the same policy again.
+        first.contentView = nil
+        layer.updateWindowLevel()
+        second.contentView = layer
+        #expect(second.level.rawValue > NSWindow.Level.statusBar.rawValue)
+
+        second.level = .popUpMenu
+        layer.updateWindowLevel()
+        #expect(second.level == .popUpMenu)
+        #expect(!second.isVisible && !second.isKeyWindow)
+    }
+
     @Test func the_floating_panel_hands_keys_to_its_handler_and_closes_on_the_second_cancel() throws {
         _ = NSApplication.shared
         let panel = FloatingPanel()

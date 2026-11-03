@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import CoreGraphics
 import Testing
 
@@ -12,8 +17,8 @@ import Testing
         let onBuiltIn = SettingsWindowSize.content(visibleHeight: 1084, chromeHeight: titleBar)
         let onUltraWide = SettingsWindowSize.content(visibleHeight: 1440, chromeHeight: titleBar)
 
-        #expect(onBuiltIn == CGSize(width: 560, height: 720))
-        #expect(onUltraWide == CGSize(width: 560, height: 720))
+        #expect(onBuiltIn == CGSize(width: 840, height: 720))
+        #expect(onUltraWide == CGSize(width: 840, height: 720))
     }
 
     @Test func a_short_screen_trims_the_settings_window_to_what_it_can_show() {
@@ -21,7 +26,7 @@ import Testing
         // 755 points less a 22-point menu bar and a 70-point Dock.
         let size = SettingsWindowSize.content(visibleHeight: 663, chromeHeight: titleBar)
 
-        #expect(size.width == 560)
+        #expect(size.width == 840)
         #expect(size.height == 663 - titleBar - 2 * SettingsWindowSize.margin)
         #expect(size.height + titleBar + 2 * SettingsWindowSize.margin <= 663)
     }

@@ -1,0 +1,544 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>%@, application filter</key>
+	<string>%@，应用筛选</string>
+	<key>%@, kind filter</key>
+	<string>%@，类型筛选</string>
+	<key>+ %lld more</key>
+	<string>另有 %lld 项</string>
+	<key>24 hours</key>
+	<string>24 小时</string>
+	<key>30 days</key>
+	<string>30 天</string>
+	<key>7 days</key>
+	<string>7 天</string>
+	<key>A Handoff marker was observed. The device and source app are unknown.</key>
+	<string>检测到接力标记，具体设备与来源应用未知。</string>
+	<key>A copied link is looked up once for its title and image. Off, nothing leaves this Mac.</key>
+	<string>拷贝链接后，会访问一次该链接以获取标题和图像。关闭后，任何内容都不会离开这台 Mac。</string>
+	<key>A panel slides up with everything you copied — search it, filter it, arrow through it.</key>
+	<string>面板会弹出并展示你拷贝的全部内容，可搜索、筛选或用方向键浏览。</string>
+	<key>Accent color</key>
+	<string>强调色</string>
+	<key>Accessibility access is needed to check sharing toolbars. Content is hidden as a precaution.</key>
+	<string>检测共享工具栏需要辅助功能权限。当前已预防性遮盖内容。</string>
+	<key>Actions</key>
+	<string>操作</string>
+	<key>Add App…</key>
+	<string>添加应用…</string>
+	<key>Add sensitive app…</key>
+	<string>添加敏感应用…</string>
+	<key>Add to Paste Stack</key>
+	<string>加入粘贴队列</string>
+	<key>All</key>
+	<string>全部</string>
+	<key>All items, clear filters</key>
+	<string>全部记录，清除筛选</string>
+	<key>Allow Accessibility for toolbar detection…</key>
+	<string>为工具栏检测授予辅助功能权限…</string>
+	<key>Allow Clipboard Access</key>
+	<string>允许访问剪贴板</string>
+	<key>Allow Clipboard Access…</key>
+	<string>允许访问剪贴板…</string>
+	<key>Allow search in Privacy Mode</key>
+	<string>隐私模式下允许搜索</string>
+	<key>Always show</key>
+	<string>始终显示</string>
+	<key>Appearance</key>
+	<string>外观</string>
+	<key>Application filter trigger</key>
+	<string>APP 筛选触发方式</string>
+	<key>Application filters</key>
+	<string>APP 筛选</string>
+	<key>Application observed on this Mac at capture time; source is not verified.</key>
+	<string>捕获时此 Mac 上的前台应用，实际来源未经验证。</string>
+	<key>Applies to manual and automatic protection. Search terms and enabled app names are visible on screen and in accessibility. Clipboard content stays hidden; automatic protection still blocks hover reveals.</key>
+	<string>适用于手动和自动保护。搜索词与已允许的来源应用名会显示在屏幕上，并可由辅助功能读取。剪贴板内容仍被遮盖；自动保护仍禁止悬停显现。</string>
+	<key>Automatic detection is limited. Use manual protection before important sharing.</key>
+	<string>自动检测的覆盖范围有限。重要共享前，请开启手动隐私保护。</string>
+	<key>Automatic detection is off. Use manual protection before sharing.</key>
+	<string>自动检测已关闭。共享前请手动开启保护。</string>
+	<key>Automatic protection (limited detection)</key>
+	<string>自动保护（有限检测）</string>
+	<key>Base64-decoded</key>
+	<string>Base64 解码</string>
+	<key>Base64-encoded</key>
+	<string>Base64 编码</string>
+	<key>Cancel</key>
+	<string>取消</string>
+	<key>Card size</key>
+	<string>卡片大小</string>
+	<key>Check for updates at launch</key>
+	<string>启动时检查更新</string>
+	<key>Checks Zoom and Teams sharing toolbar titles using Accessibility. Client versions and languages may not match. System sharing, remote desktop, recording and browser tabs are not covered. Enable manual protection before important sharing.</key>
+	<string>通过辅助功能检查 Zoom 和 Teams 的共享工具栏标题。客户端版本和语言可能导致不匹配；不覆盖系统共享、远程桌面、录屏和浏览器标签页。重要共享前请手动开启保护。</string>
+	<key>Choose a format to continue</key>
+	<string>选择一种格式以继续</string>
+	<key>Choose how WhiskyMac starts and where you open it.</key>
+	<string>设置启动方式、菜单栏入口与显示语言。</string>
+	<key>Choose how much clipboard history to keep and for how long.</key>
+	<string>选择历史记录的保留时长与容量。</string>
+	<key>Choose what clicking or hovering over a clipboard card does.</key>
+	<string>定义单击、双击、右键和悬停卡片时的行为。</string>
+	<key>Clear Unpinned Items</key>
+	<string>清除未置顶项目</string>
+	<key>Clear the search</key>
+	<string>清除搜索</string>
+	<key>Click a shortcut to record a new one — press Escape to cancel recording.</key>
+	<string>点按快捷键重新录制，按 Esc 取消。</string>
+	<key>Click actions</key>
+	<string>点击操作</string>
+	<key>Click to filter</key>
+	<string>点按筛选</string>
+	<key>Clipboard cards</key>
+	<string>剪贴板卡片</string>
+	<key>Close the panel</key>
+	<string>关闭面板</string>
+	<key>Colors</key>
+	<string>颜色</string>
+	<key>Content hidden by Privacy Mode</key>
+	<string>隐私模式已遮盖内容</string>
+	<key>Control what is recorded, displayed and fetched online.</key>
+	<string>管理记录范围、屏幕保护与联网预览。</string>
+	<key>Copies from excluded apps are never recorded.</key>
+	<string>已排除应用中的拷贝内容不会被记录。</string>
+	<key>Copies from these apps are ignored unless temporary memory sessions are enabled.</key>
+	<string>默认忽略这些应用的复制内容；开启下方选项后，可在内存中临时保留。</string>
+	<key>Copy</key>
+	<string>拷贝</string>
+	<key>Copy something to get started</key>
+	<string>拷贝任意内容，即可开始使用</string>
+	<key>Copy sound</key>
+	<string>拷贝音效</string>
+	<key>Copy the selection without pasting</key>
+	<string>拷贝所选项目</string>
+	<key>Custom color</key>
+	<string>自选颜色</string>
+	<key>Delete</key>
+	<string>删除</string>
+	<key>Delete All from %@</key>
+	<string>删除来自 %@ 的所有项目</string>
+	<key>Delete everything from the selection's application</key>
+	<string>删除来自所选项目来源应用的所有内容</string>
+	<key>Delete the selection</key>
+	<string>删除所选项目</string>
+	<key>Detection coverage</key>
+	<string>检测范围与限制</string>
+	<key>Detection is uncertain. Content is hidden as a precaution.</key>
+	<string>检测状态不确定。当前已预防性遮盖内容。</string>
+	<key>Do nothing</key>
+	<string>不执行操作</string>
+	<key>Dock icon</key>
+	<string>程序坞图标</string>
+	<key>Double click</key>
+	<string>连按两次</string>
+	<key>Edit the selection</key>
+	<string>编辑所选项目</string>
+	<key>Editing %@</key>
+	<string>正在编辑 %@</string>
+	<key>Editor</key>
+	<string>编辑器</string>
+	<key>Edit…</key>
+	<string>编辑…</string>
+	<key>Enable</key>
+	<string>启用</string>
+	<key>Enable the global shortcut in Settings whenever you want it.</key>
+	<string>你可以随时在设置中启用全局快捷键。</string>
+	<key>Enable this global shortcut</key>
+	<string>启用此全局快捷键</string>
+	<key>Everything stays local</key>
+	<string>所有内容只保存在本机</string>
+	<key>Exclude %@</key>
+	<string>排除 %@</string>
+	<key>Exclude the selection's application</key>
+	<string>排除所选项目的来源应用</string>
+	<key>Excluded apps</key>
+	<string>已排除的应用</string>
+	<key>Fetch link previews</key>
+	<string>获取链接预览</string>
+	<key>First card</key>
+	<string>第一张卡片</string>
+	<key>Focus the row above</key>
+	<string>移至上一行</string>
+	<key>Focus the row below</key>
+	<string>移至下一行</string>
+	<key>Follow System</key>
+	<string>跟随系统</string>
+	<key>Follow windows</key>
+	<string>跟随窗口</string>
+	<key>Forever</key>
+	<string>永久</string>
+	<key>Formatted JSON</key>
+	<string>格式化 JSON</string>
+	<key>General</key>
+	<string>常规</string>
+	<key>Get Started</key>
+	<string>开始使用</string>
+	<key>Global shortcuts</key>
+	<string>全局快捷键</string>
+	<key>Global shortcuts are off until enabled here or recorded.</key>
+	<string>全局快捷键默认关闭，在此启用或录制后即可使用。</string>
+	<key>Handoff (system marker)</key>
+	<string>接力内容（系统标记）</string>
+	<key>Handoff labels use a system pasteboard marker. Missing markers do not prove a local copy; existing history cannot be reclassified.</key>
+	<string>接力标签依据剪贴板系统标记；缺少标记不能证明来自本机，已有历史无法追溯分类。</string>
+	<key>Hidden — right-click to show temporarily</key>
+	<string>已隐藏，右键可临时显示</string>
+	<key>Hide</key>
+	<string>隐藏</string>
+	<key>History</key>
+	<string>历史记录</string>
+	<key>History capacity</key>
+	<string>历史记录容量</string>
+	<key>History lives on this Mac. Concealed content from password managers is never recorded.</key>
+	<string>历史记录只保存在这台 Mac 上；密码管理器标记为隐藏的内容不会被记录。</string>
+	<key>Hover after a short delay</key>
+	<string>悬停片刻后</string>
+	<key>Hover delay (seconds)</key>
+	<string>悬停等待时间（秒）</string>
+	<key>Hover preview</key>
+	<string>悬停预览</string>
+	<key>Hover switches to one app after a brief pause. Click still toggles filters; All clears app, type and pinned filters without clearing search.</key>
+	<string>悬浮片刻切换至单个 APP。点按仍可切换筛选；“全部”清除 APP、类型和置顶筛选，保留搜索词。</string>
+	<key>Hover to filter</key>
+	<string>悬浮筛选</string>
+	<key>How temporary sessions work</key>
+	<string>临时会话如何工作</string>
+	<key>Image</key>
+	<string>图像</string>
+	<key>Image retained in memory. Copy to view in another app.</key>
+	<string>图片仅保留在内存中，可拷贝到其他应用查看。</string>
+	<key>Inside the clipboard panel</key>
+	<string>剪贴板面板内</string>
+	<key>Interactions</key>
+	<string>交互</string>
+	<key>Keep history for</key>
+	<string>历史记录保留时间</string>
+	<key>Keep unmarked sensitive copies in memory for 2 minutes</key>
+	<string>将未标记为不可记录的敏感副本在内存中保留 2 分钟</string>
+	<key>Language</key>
+	<string>语言</string>
+	<key>Large</key>
+	<string>大</string>
+	<key>Last card</key>
+	<string>最后一张卡片</string>
+	<key>Launch WhiskyMac at login</key>
+	<string>登录时启动 WhiskyMac</string>
+	<key>Launch at login needs the installed WhiskyMac.app: %@</key>
+	<string>登录时启动需要先安装 WhiskyMac.app：%@</string>
+	<key>Let WhiskyMac read what you copy</key>
+	<string>允许 WhiskyMac 读取你拷贝的内容</string>
+	<key>Licenses and notices…</key>
+	<string>许可证与声明…</string>
+	<key>Lowercase</key>
+	<string>小写</string>
+	<key>Make the settings and clipboard cards feel at home.</key>
+	<string>调整导航布局、强调色与卡片大小。</string>
+	<key>Manage manual and automatic protection in Settings.</key>
+	<string>可在设置中管理手动保护与自动保护。</string>
+	<key>Manual Privacy Mode</key>
+	<string>手动隐私模式</string>
+	<key>Manual privacy: hover to reveal a small area</key>
+	<string>手动隐私：悬停可局部显现</string>
+	<key>Medium</key>
+	<string>中</string>
+	<key>Menu bar and Dock</key>
+	<string>菜单栏与程序坞</string>
+	<key>Menu bar icon click</key>
+	<string>单击菜单栏图标</string>
+	<key>NORMAL</key>
+	<string>普通</string>
+	<key>Never show</key>
+	<string>不显示</string>
+	<key>Next card or chip</key>
+	<string>下一张卡片或筛选项</string>
+	<key>No excluded apps added.</key>
+	<string>尚未添加排除应用。</string>
+	<key>No matches</key>
+	<string>无匹配结果</string>
+	<key>No sensitive apps added.</key>
+	<string>尚未添加敏感应用。</string>
+	<key>No supported toolbar detected. Other sharing or recording may still be active.</key>
+	<string>未检测到支持的共享工具栏。其他共享或录屏仍可能正在进行。</string>
+	<key>Normal mode</key>
+	<string>普通模式</string>
+	<key>Nothing selected</key>
+	<string>未选择任何项目</string>
+	<key>One or two characters — a two-character binding like gg runs on the double tap. Esc, Tab, / and 1–9 are fixed.</key>
+	<string>可设置一个或两个字符。像 gg 这样的双字符绑定需连续按两次。Esc、Tab、/ 和 1–9 为固定按键。</string>
+	<key>Online content</key>
+	<string>联网内容</string>
+	<key>Open Link</key>
+	<string>打开链接</string>
+	<key>Open Pasteboard Settings</key>
+	<string>打开剪贴板设置</string>
+	<key>Open history from the menu bar</key>
+	<string>从菜单栏打开历史记录</string>
+	<key>Open the selected link</key>
+	<string>打开所选链接</string>
+	<key>Paste actions stay silent. Automatic sounds are muted during Privacy Mode; sensitive and excluded copies stay silent.</key>
+	<string>粘贴操作不播放音效。隐私模式下自动音效静音；敏感及被排除的拷贝保持静音。</string>
+	<key>Paste as Plain Text</key>
+	<string>粘贴为纯文本</string>
+	<key>Paste as plain text</key>
+	<string>粘贴为纯文本</string>
+	<key>Paste as…</key>
+	<string>粘贴为…</string>
+	<key>Paste next from the stack</key>
+	<string>粘贴队列中的下一项</string>
+	<key>Paste stack position %lld</key>
+	<string>粘贴队列第 %lld 项</string>
+	<key>Paste stack — pop with the global shortcut</key>
+	<string>粘贴队列：使用全局快捷键依次粘贴</string>
+	<key>Paste the selection</key>
+	<string>粘贴所选项目</string>
+	<key>Paste to previous app</key>
+	<string>粘贴到上一个应用</string>
+	<key>Pasting needs Accessibility permission. Without it, use Command-V after copying.</key>
+	<string>粘贴需要辅助功能权限。未授权时，可先拷贝，再按 Command-V 粘贴。</string>
+	<key>Pause Capture</key>
+	<string>暂停记录</string>
+	<key>Pause over a card to preview it without clicking.</key>
+	<string>将指针停留在卡片上，无需点击即可预览。</string>
+	<key>Pin</key>
+	<string>置顶</string>
+	<key>Pin / unpin the selection</key>
+	<string>置顶或取消置顶所选项目</string>
+	<key>Pin what you always need</key>
+	<string>置顶你常用的内容</string>
+	<key>Pin, delete and stack actions apply to the newest format.</key>
+	<string>置顶、删除和粘贴队列操作均应用于最新格式。</string>
+	<key>Pinned</key>
+	<string>已置顶</string>
+	<key>Pinned card</key>
+	<string>已置顶卡片</string>
+	<key>Pinned cards survive Clear and retention, and one chip shows only them.</key>
+	<string>置顶卡片不会被清除或自动过期，还可通过筛选只看置顶内容。</string>
+	<key>Pinned items are never expired or evicted.</key>
+	<string>置顶项目不会自动过期，也不会因容量不足而被移除。</string>
+	<key>Pinned items, filter</key>
+	<string>置顶项目筛选</string>
+	<key>Play a sound when a new copy is recorded</key>
+	<string>记录新拷贝时播放音效</string>
+	<key>Play a sound when copying from history</key>
+	<string>从历史记录拷贝时播放音效</string>
+	<key>Press %@</key>
+	<string>按 %@</string>
+	<key>Press %@ to search</key>
+	<string>按 %@ 搜索</string>
+	<key>Preview</key>
+	<string>预览</string>
+	<key>Preview sound</key>
+	<string>试听</string>
+	<key>Preview the selection</key>
+	<string>预览所选项目</string>
+	<key>Previous card or chip</key>
+	<string>上一张卡片或筛选项</string>
+	<key>Privacy</key>
+	<string>隐私</string>
+	<key>Privacy Mode is on (manual)</key>
+	<string>隐私模式已开启（手动）</string>
+	<key>Quit WhiskyMac</key>
+	<string>退出 WhiskyMac</string>
+	<key>Remove</key>
+	<string>移除</string>
+	<key>Remove from Paste Stack</key>
+	<string>移出粘贴队列</string>
+	<key>Reset</key>
+	<string>重置</string>
+	<key>Reset keyboard shortcuts</key>
+	<string>重置键盘快捷键</string>
+	<key>Reset keyboard shortcuts?</key>
+	<string>重置键盘快捷键？</string>
+	<key>Reset to default</key>
+	<string>恢复默认值</string>
+	<key>Resets all keyboard shortcuts and Vim bindings.</key>
+	<string>恢复所有键盘快捷键和 Vim 按键绑定的默认配置。</string>
+	<key>Reset…</key>
+	<string>重置…</string>
+	<key>Restore Defaults</key>
+	<string>恢复默认设置</string>
+	<key>Resume Capture</key>
+	<string>继续记录</string>
+	<key>Return saves, Shift-Return breaks the line, Escape cancels.</key>
+	<string>按 Return 存储，Shift-Return 换行，Esc 取消。</string>
+	<key>Reveal in Finder</key>
+	<string>在访达中显示</string>
+	<key>Reveal the selected files in Finder</key>
+	<string>在访达中显示所选文件</string>
+	<key>Rich text</key>
+	<string>富文本</string>
+	<key>Right click</key>
+	<string>右键点按</string>
+	<key>Right-click always opens the menu. Follow windows shows the Dock icon for Settings and welcome windows only.</key>
+	<string>右键始终打开菜单。“跟随窗口”仅在设置、欢迎等普通窗口打开时显示程序坞图标。</string>
+	<key>SEARCH</key>
+	<string>搜索</string>
+	<key>Save</key>
+	<string>存储</string>
+	<key>Save As…</key>
+	<string>存储为…</string>
+	<key>Save the selection as a file</key>
+	<string>将所选项目存储为文件</string>
+	<key>Screen privacy</key>
+	<string>屏幕隐私保护</string>
+	<key>Search</key>
+	<string>搜索</string>
+	<key>Search clipboard history</key>
+	<string>搜索剪贴板历史记录</string>
+	<key>Search mode</key>
+	<string>搜索模式</string>
+	<key>Selected</key>
+	<string>已选中</string>
+	<key>Selected apps are ignored by default. Optional sessions expire after 2 minutes and reveal for 10 seconds. Rich text is previewed as plain text; images can only be copied. No search, editing, disk history or preview cache. Source attribution is best effort. Explicit no-record markers and excluded apps always win. Existing history is not reclassified.</key>
+	<string>默认忽略所选应用。可选内存会话在 2 分钟后过期，每次临时显示 10 秒。富文本按纯文本预览，图片仅可拷贝；不进入搜索、编辑、磁盘历史或预览缓存。来源识别尽力而为。明确的不可记录标记与排除应用始终优先；不重新分类已有历史。</string>
+	<key>Sensitive apps</key>
+	<string>敏感应用</string>
+	<key>Sensitive session</key>
+	<string>敏感会话</string>
+	<key>Sensitive session actions</key>
+	<string>敏感会话操作</string>
+	<key>Set up shortcuts for quick access and keyboard navigation.</key>
+	<string>设置全局唤起快捷键与面板内的键盘操作。</string>
+	<key>Settings</key>
+	<string>设置</string>
+	<key>Settings layout</key>
+	<string>设置布局</string>
+	<key>Settings navigation</key>
+	<string>设置导航</string>
+	<key>Settings…</key>
+	<string>设置…</string>
+	<key>Sharing toolbar detected. Content is hidden.</key>
+	<string>检测到共享工具栏，内容已遮盖。</string>
+	<key>Shortcuts</key>
+	<string>快捷键</string>
+	<key>Show / hide the panel</key>
+	<string>显示或隐藏面板</string>
+	<key>Show History</key>
+	<string>显示历史记录</string>
+	<key>Show History (%@)</key>
+	<string>显示历史记录（%@）</string>
+	<key>Show clipboard cards</key>
+	<string>显示剪贴板卡片</string>
+	<key>Show fewer formats</key>
+	<string>收起其他格式</string>
+	<key>Show for 10 seconds</key>
+	<string>临时显示 10 秒</string>
+	<key>Show menu</key>
+	<string>显示菜单</string>
+	<key>Show source apps in Privacy Mode</key>
+	<string>隐私模式下显示来源应用</string>
+	<key>Sidebar tabs</key>
+	<string>侧边标签栏</string>
+	<key>Single click</key>
+	<string>点按</string>
+	<key>Single line</key>
+	<string>合并为单行</string>
+	<key>Small</key>
+	<string>小</string>
+	<key>Sound volume</key>
+	<string>音效音量</string>
+	<key>Start a search</key>
+	<string>开始搜索</string>
+	<key>Startup</key>
+	<string>启动</string>
+	<key>Switch filter group</key>
+	<string>切换筛选分组</string>
+	<key>The accent color also highlights the selected clipboard card.</key>
+	<string>强调色也用于当前选中剪贴板卡片的边框。</string>
+	<key>The panel opens with letters as commands: %@ to search, %@ to move, %@ to paste, %@ to preview, %@ to close.</key>
+	<string>面板打开后，字母键用于执行命令：%@ 搜索，%@ 移动，%@ 粘贴，%@ 预览，%@ 关闭。</string>
+	<key>The rich text could not be saved.</key>
+	<string>无法存储富文本。</string>
+	<key>This global shortcut could not be registered. Choose another binding.</key>
+	<string>无法注册此全局快捷键，请更换按键组合。</string>
+	<key>This shortcut is used by another action</key>
+	<string>此快捷键已用于其他操作</string>
+	<key>Toggle manual Privacy Mode</key>
+	<string>切换手动隐私模式</string>
+	<key>Toggle the selection in the paste stack</key>
+	<string>将所选项目加入或移出粘贴队列</string>
+	<key>Top tabs</key>
+	<string>顶部标签栏</string>
+	<key>Trimmed</key>
+	<string>移除首尾空白</string>
+	<key>Turn off manual protection</key>
+	<string>关闭手动保护</string>
+	<key>Turn on manual protection</key>
+	<string>开启手动保护</string>
+	<key>Two actions share the same shortcut.</key>
+	<string>两个操作使用了相同的快捷键。</string>
+	<key>Type shortcut…</key>
+	<string>输入快捷键…</string>
+	<key>URL-decoded</key>
+	<string>URL 解码</string>
+	<key>URL-encoded</key>
+	<string>URL 编码</string>
+	<key>Undo Last Change</key>
+	<string>撤销上次更改</string>
+	<key>Undo the last deletion or edit</key>
+	<string>撤销上次删除或编辑</string>
+	<key>Unknown</key>
+	<string>未知</string>
+	<key>Unlimited</key>
+	<string>不限</string>
+	<key>Unpin</key>
+	<string>取消置顶</string>
+	<key>Update Available (v%@)…</key>
+	<string>有可用更新（v%@）…</string>
+	<key>Uppercase</key>
+	<string>大写</string>
+	<key>Use sidebar navigation</key>
+	<string>使用侧边标签栏</string>
+	<key>Use top navigation</key>
+	<string>使用顶部标签栏</string>
+	<key>Uses the configured card action</key>
+	<string>使用已配置的卡片操作</string>
+	<key>Vim Keybindings</key>
+	<string>Vim 按键绑定</string>
+	<key>Vim navigation in the panel</key>
+	<string>在面板中使用 Vim 导航</string>
+	<key>Visible during protection</key>
+	<string>保护期间可见内容</string>
+	<key>Waiting for a stable end. Content remains hidden.</key>
+	<string>正在等待共享结束状态稳定，内容继续遮盖。</string>
+	<key>Welcome</key>
+	<string>欢迎</string>
+	<key>Welcome to WhiskyMac</key>
+	<string>欢迎使用 WhiskyMac</string>
+	<key>WhiskyMac Settings</key>
+	<string>WhiskyMac 设置</string>
+	<key>WhiskyMac is not allowed to read the clipboard.</key>
+	<string>WhiskyMac 尚未获准读取剪贴板。</string>
+	<key>WhiskyMac needs your permission to read what you copy.</key>
+	<string>WhiskyMac 需要你的许可才能读取你拷贝的内容。</string>
+	<key>Without accents</key>
+	<string>移除重音符号</string>
+	<key>Your clipboard, remembered.</key>
+	<string>记住你的每次拷贝。</string>
+	<key>code</key>
+	<string>代码</string>
+	<key>color</key>
+	<string>颜色</string>
+	<key>files</key>
+	<string>文件</string>
+	<key>global</key>
+	<string>全局</string>
+	<key>image</key>
+	<string>图像</string>
+	<key>key %lld</key>
+	<string>按键 %lld</string>
+	<key>link</key>
+	<string>链接</string>
+	<key>macOS asks before an app reads the clipboard. Click Allow Clipboard Access, choose Allow Paste, then set WhiskyMac to Allow under Paste from Other Apps.</key>
+	<string>应用读取剪贴板前，macOS 会请求许可。点按“允许访问剪贴板”，选择“允许粘贴”，然后在“从其他 App 粘贴”中将 WhiskyMac 设为“允许”。</string>
+	<key>now</key>
+	<string>刚刚</string>
+	<key>text</key>
+	<string>文本</string>
+	<key>⌘1…⌘9 paste the matching card directly.</key>
+	<string>按 ⌘1 至 ⌘9 可直接粘贴对应卡片。</string>
+</dict>
+</plist>

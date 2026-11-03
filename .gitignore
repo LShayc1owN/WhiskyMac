@@ -4,3 +4,8 @@ DerivedData/
 xcuserdata/
 .DS_Store
 dist/
+disc/
+private_keys/
+*.p8
+*.p12
+*.provisionprofile

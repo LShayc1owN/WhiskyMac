@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import Foundation
 import Testing
 @testable import Whisk
@@ -40,6 +45,47 @@ import Testing
             .recording(.text("newest"), from: nil, at: clock.now())
 
         #expect(history.items.map(\.payload) == [.text("newest"), .text("middle")])
+    }
+
+    @Test func distinct_rtf_and_plain_copies_of_the_same_text_are_all_preserved() {
+        let history = History()
+            .recording(.text("hello"), from: nil, rtf: Data("format A".utf8), at: clock.now())
+            .recording(.text("hello"), from: nil, rtf: Data("format B".utf8), at: clock.now())
+            .recording(.text("hello"), from: nil, at: clock.now())
+
+        #expect(history.items.map(\.rtf) == [nil, Data("format B".utf8), Data("format A".utf8)])
+        #expect(Set(history.items.map(\.id)).count == 3)
+    }
+
+    @Test func recopying_an_exact_rtf_version_refreshes_only_that_version() {
+        let rtf = Data("format A".utf8)
+        var history = History().recording(.text("hello"), from: SourceApp(name: "Notes"), rtf: rtf, at: clock.now())
+        let first = history.items[0]
+        history = history.togglingPin(first.id)
+        history = history.recording(.text("hello"), from: nil, rtf: Data("format B".utf8), at: clock.now())
+        let other = history.items[0]
+        clock.advance(by: 60)
+
+        history = history.recording(.text("hello"), from: SourceApp(name: "Mail"), rtf: rtf, at: clock.now())
+
+        #expect(history.items.count == 2)
+        #expect(history.items[0].id == first.id)
+        #expect(history.items[0].isPinned)
+        #expect(history.items[0].rtf == rtf)
+        #expect(history.items[0].source == first.source)
+        #expect(history.items[0].copiedAt == clock.now())
+        #expect(history.items[1] == other)
+    }
+
+    @Test func format_versions_follow_capacity_and_keep_pinned_versions() throws {
+        var history = History(capacity: try #require(HistoryCapacity(1)))
+            .recording(.text("hello"), from: nil, rtf: Data("A".utf8), at: clock.now())
+        history = history.togglingPin(history.items[0].id)
+        history = history.recording(.text("hello"), from: nil, rtf: Data("B".utf8), at: clock.now())
+        history = history.recording(.text("hello"), from: nil, rtf: Data("C".utf8), at: clock.now())
+
+        #expect(history.items.map(\.rtf) == [Data("C".utf8), Data("A".utf8)])
+        #expect(history.items[1].isPinned)
     }
 
     @Test func pinned_items_do_not_count_toward_capacity() throws {

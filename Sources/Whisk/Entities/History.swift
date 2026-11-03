@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import Foundation
 
 /// Ordered clipboard history, newest first. Pinned items are exempt from
@@ -12,14 +17,18 @@ struct History: Equatable {
         evictOverflow()
     }
 
-    /// Records a captured payload. A payload already present keeps its
-    /// identity and pin, and moves to the front with a refreshed date.
+    /// Records a captured payload and its original formatting. Only an
+    /// exact payload + RTF match reuses an entry's identity and pin.
     func recording(
         _ payload: Payload, from source: SourceApp?, rtf: Data? = nil, at date: Date, id: UUID = UUID()
     ) -> History {
         var next = self
-        if let index = next.items.firstIndex(where: { $0.payload == payload }) {
-            let refreshed = next.items.remove(at: index).copied(at: date)
+        if let index = next.items.firstIndex(where: { $0.payload == payload && $0.rtf == rtf }) {
+            let previous = next.items.remove(at: index)
+            let refreshed = ClipboardItem(
+                id: previous.id, payload: payload,
+                source: previous.source?.origin == source?.origin ? previous.source : source,
+                copiedAt: date, isPinned: previous.isPinned, rtf: rtf)
             next.items.insert(refreshed, at: 0)
             return next
         }

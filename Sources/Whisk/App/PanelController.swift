@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import AppKit
 import Carbon.HIToolbox
 import SwiftUI
@@ -9,6 +14,7 @@ final class PanelController {
     private let stateStore: HistoryViewStateStore
     private let actions: PanelActions
     private let keyBindings: KeyBindingsStore
+    private var pasteTarget: NSRunningApplication?
     private var previewPanel: NSPanel?
     /// Where the panel and its preview go on the screen they rose on.
     private var layout: PanelLayout?
@@ -51,12 +57,12 @@ final class PanelController {
         self.vimBindings = vimBindings
         self.vimMode = vimMode
         panel = FloatingPanel()
-        panel.contentView = NSHostingView(
-            rootView: HistoryPanelView(store: stateStore, actions: actions)
-        )
+        panel.contentView = HistoryPanelHosting.make(store: stateStore, actions: actions)
         panel.keyHandler = { [weak self] event in
             self?.router.handle(event) ?? false
         }
+        stateStore.hidePreview = { [weak self] in self?.hidePreview() }
+        stateStore.showPreview = { [weak self] in self?.showPreview() }
         // The panel also closes behind the controller's back — Esc and
         // resignKey order it out directly — and the preview must never
         // outlive it.
@@ -71,6 +77,11 @@ final class PanelController {
         // out, exactly like Esc during a / search.
         panel.onCancel = { [weak self] in
             guard let self else { return false }
+            if self.stateStore.pendingAction != nil {
+                self.stateStore.pendingAction = nil
+                self.hidePreview()
+                return true
+            }
             if self.stateStore.editing != nil {
                 self.stateStore.endEditing()
                 return true
@@ -98,6 +109,9 @@ final class PanelController {
     }
 
     deinit {
+        if let mouseMonitor { NSEvent.removeMonitor(mouseMonitor) }
+        ghostFadeTimer?.invalidate()
+        dragEndWatcher?.invalidate()
         if let screenObserver {
             NotificationCenter.default.removeObserver(screenObserver)
         }
@@ -147,6 +161,9 @@ final class PanelController {
     }
 
     func show() {
+        if let app = NSWorkspace.shared.frontmostApplication, app.bundleIdentifier != AppIdentity.bundleIdentifier {
+            pasteTarget = app
+        }
         let screens = NSScreen.screens
         guard let index = Self.screenIndex(under: NSEvent.mouseLocation, frames: screens.map(\.frame)) else {
             return
@@ -158,6 +175,8 @@ final class PanelController {
         stateStore.configureInput(vim: vimMode(), searchKey: vimBindings.key(for: .search))
         stateStore.requestSearchFocus()
         panel.makeKeyAndOrderFront(nil)
+        stateStore.setPanelVisible(panel.isVisible)
+        stateStore.sensitiveSession.setPanelVisible(panel.isVisible)
         // The veil is something to see through; Reduce Transparency asks
         // for exactly the opposite.
         guard !NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency else { return }
@@ -267,10 +286,12 @@ final class PanelController {
     /// Quick-Look-style preview of the selected card, floating between
     /// the panel and the top of the screen.
     private func togglePreview() {
-        if previewPanel?.isVisible == true {
-            hidePreview()
-            return
-        }
+        stateStore.toggleExplicitPreview()
+    }
+
+    private func showPreview() {
+        guard panel.isVisible, !stateStore.isProtected else { stateStore.closePreview(); return }
+        stateStore.preparePreview()
         if previewPanel == nil {
             let preview = NSPanel(
                 contentRect: .zero,
@@ -284,7 +305,7 @@ final class PanelController {
             preview.backgroundColor = .clear
             preview.isOpaque = false
             preview.hasShadow = false
-            let hosting = NSHostingView(rootView: PreviewOverlayView(store: stateStore))
+            let hosting = NSHostingView(rootView: PreviewOverlayView(store: stateStore, actions: actions))
             // The window's frame is the one measure of the preview; the
             // view fills it rather than asking for a size of its own.
             hosting.sizingOptions = []
@@ -296,8 +317,25 @@ final class PanelController {
         preview.orderFront(nil)
     }
 
+    func pasteToPreviousApplication() {
+        PasteSimulator.paste(to: pasteTarget, allowed: { [weak stateStore] in stateStore?.isProtected == false })
+    }
+
+    func appearanceDidChange() {
+        hidePreview()
+        panel.contentView = HistoryPanelHosting.make(store: stateStore, actions: actions)
+    }
+
+    func privacyDidChange() {
+        hidePreview()
+        panel.contentView = HistoryPanelHosting.make(store: stateStore, actions: actions)
+    }
+
     private func hidePreview() {
         previewPanel?.orderOut(nil)
+        previewPanel?.contentView = nil
+        previewPanel = nil
+        stateStore.closePreview()
     }
 }
 

@@ -1,0 +1,15 @@
+warning: /Users/LShayc1owN/Library/org.swift.swiftpm/configuration is not accessible or not writable, disabling user-level cache features.
+warning: /Users/LShayc1owN/Library/org.swift.swiftpm/security is not accessible or not writable, disabling user-level cache features.
+warning: /Users/LShayc1owN/Library/Caches/org.swift.swiftpm is not accessible or not writable, disabling user-level cache features.
+warning: 'whiskmay': failed storing manifest for 'whiskmay' in cache: attempt to write a readonly database
+[0/1] Planning build
+Building for production...
+[0/3] Write sources
+[1/3] Write swift-version--58304C5D6DBC2206.txt
+[3/4] Compiling Whisk ClipboardController.swift
+[3/5] Write Objects.LinkFileList
+[4/5] Linking Whisk
+Build complete! (19.27s)
+File Doesn't Exist, Will Create: dist/WhiskyMac.app/Contents/Resources/Whisk_Whisk.bundle/Contents/Info.plist
+/private/tmp/whisky-mac-sign.2PeT5h/WhiskyMac.app: replacing existing signature
+built dist/WhiskyMac.app and dist/WhiskyMac.zip (version 0.0.3, build 0.0.3, native, identity: -, app store: 0)

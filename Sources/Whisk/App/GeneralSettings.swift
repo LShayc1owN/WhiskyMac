@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import Combine
 import Foundation
 import ServiceManagement
@@ -76,6 +81,22 @@ final class GeneralSettingsStore: ObservableObject {
         choice == 0 ? localized("Unlimited") : localized("\(choice) items")
     }
 
+    @Published var appFilterTrigger: AppFilterTrigger {
+        didSet { defaults.set(appFilterTrigger.rawValue, forKey: "appFilterTrigger") }
+    }
+
+    @Published var copySound: CopySoundPreferences {
+        didSet {
+            if let data = try? JSONEncoder().encode(copySound) { defaults.set(data, forKey: "copySound") }
+        }
+    }
+
+    @Published var interactions: InteractionBindings {
+        didSet {
+            if let data = try? JSONEncoder().encode(interactions) { defaults.set(data, forKey: "cardInteractions") }
+        }
+    }
+
     @Published var retentionPeriod: RetentionPeriodOption {
         didSet { defaults.set(retentionPeriod.rawValue, forKey: "retentionPeriod") }
     }
@@ -112,20 +133,46 @@ final class GeneralSettingsStore: ObservableObject {
         }
     }
 
+    @Published var sensitiveApps: [ExcludedApp] {
+        didSet {
+            if let data = try? JSONEncoder().encode(sensitiveApps) { defaults.set(data, forKey: "sensitiveApps") }
+        }
+    }
+
+    @Published var retainSensitiveCopies: Bool {
+        didSet { defaults.set(retainSensitiveCopies, forKey: "retainSensitiveCopies") }
+    }
+
+    var sensitiveBundleIDs: Set<String> { Set(sensitiveApps.map(\.bundleID)) }
+
     private let defaults: UserDefaults
     private let logger: any Logger
 
-    init(defaults: UserDefaults = .standard, logger: any Logger = ConsoleLogger()) {
+    init(defaults: UserDefaults = AppIdentity.defaults, logger: any Logger = ConsoleLogger()) {
         self.defaults = defaults
+        appFilterTrigger = AppFilterTrigger(rawValue: defaults.string(forKey: "appFilterTrigger") ?? "") ?? .click
+        copySound =
+            defaults.data(forKey: "copySound").flatMap {
+                try? JSONDecoder().decode(CopySoundPreferences.self, from: $0)
+            } ?? CopySoundPreferences()
         self.logger = logger
+        interactions =
+            (defaults.data(forKey: "cardInteractions").flatMap {
+                try? JSONDecoder().decode(InteractionBindings.self, from: $0)
+            }) ?? InteractionBindings()
         retentionPeriod = RetentionPeriodOption(rawValue: defaults.string(forKey: "retentionPeriod") ?? "") ?? .forever
         capacity =
             defaults.object(forKey: "historyCapacity") == nil ? 500 : defaults.integer(forKey: "historyCapacity")
         checkForUpdates =
-            defaults.object(forKey: "checkForUpdates") == nil ? true : defaults.bool(forKey: "checkForUpdates")
+            defaults.object(forKey: "checkForUpdates") == nil ? false : defaults.bool(forKey: "checkForUpdates")
         vimNavigation = defaults.bool(forKey: "vimNavigation")
-        linkPreviews = defaults.object(forKey: "linkPreviews") == nil ? true : defaults.bool(forKey: "linkPreviews")
+        linkPreviews = defaults.object(forKey: "linkPreviews") == nil ? false : defaults.bool(forKey: "linkPreviews")
         cardSize = CardSize(rawValue: defaults.string(forKey: "cardSize") ?? "") ?? .medium
+        sensitiveApps =
+            defaults.data(forKey: "sensitiveApps").flatMap {
+                try? JSONDecoder().decode([ExcludedApp].self, from: $0)
+            } ?? []
+        retainSensitiveCopies = defaults.bool(forKey: "retainSensitiveCopies")
         excludedApps = []
         if let data = defaults.data(forKey: "excludedApps") {
             do {
@@ -168,7 +215,8 @@ final class LoginItemManager: ObservableObject {
             lastError = nil
         } catch {
             lastError = String(
-                format: localized("Launch at login needs the installed Whisk.app: %@"), error.localizedDescription)
+                format: localized("Launch at login needs the installed WhiskyMac.app: %@"),
+                error.localizedDescription)
         }
         isEnabled = SMAppService.mainApp.status == .enabled
     }

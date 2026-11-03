@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import AppKit
 import Carbon.HIToolbox
 
@@ -40,16 +45,23 @@ final class PanelKeyRouter {
     /// Routes panel keys through the user's bindings, intercepted ahead of
     /// the search field's caret. True when the key was consumed.
     func handle(_ event: NSEvent) -> Bool {
+        if stateStore.isProtected {
+            if event.keyCode == UInt16(kVK_Escape) { return false }
+            if stateStore.privacyAllowsSearch {
+                // Let the protected search field edit text, never run card commands.
+                return event.specialKey == .carriageReturn || event.specialKey == .enter
+            }
+            return true
+        }
         // While the editor is open the keys are the editor's, but for one:
         // Return saves, Shift-Return breaks the line — before either input
         // mode gets a say. Escape takes the panel's own cancel path.
-        if let editing = stateStore.editing {
+        if stateStore.editing != nil {
             let isReturn = event.specialKey == .carriageReturn || event.specialKey == .enter
             guard isReturn, !event.modifierFlags.contains(.shift) else { return false }
             let text = stateStore.editingText
             guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return true }
-            stateStore.endEditing()
-            actions.edit(editing.id, text)
+            stateStore.saveEditing(actions: actions)
             return true
         }
         // Vim's search commits like /: Return keeps the query and filter

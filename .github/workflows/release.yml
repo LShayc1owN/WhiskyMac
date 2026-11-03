@@ -11,7 +11,6 @@ jobs:
   release:
     runs-on: macos-26
     env:
-      TAP_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
       SIGN_P12: ${{ secrets.DEVELOPER_ID_P12 }}
       SIGN_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
       NOTARY_KEY: ${{ secrets.NOTARY_API_KEY_P8 }}
@@ -29,6 +28,9 @@ jobs:
       - name: Test
         run: swift test
 
+      - name: Check localizations
+        run: ./scripts/localizations.sh check
+
       # A release is signed and notarized or it does not ship: a missing
       # secret fails the job rather than shipping an ad-hoc build.
       - name: Keep crash reports
@@ -39,6 +41,9 @@ jobs:
           path: ~/Library/Logs/DiagnosticReports/
           if-no-files-found: ignore
 
+      - name: Check release locations
+        run: python3 scripts/check-release-config.py
+
       - name: Import signing identity
         run: ./scripts/ci-import-signing-identity.sh
 
@@ -47,24 +52,27 @@ jobs:
 
       - name: Smoke test the packaged app
         run: |
-          codesign --verify --strict --verbose=2 dist/Whisk.app
-          ./dist/Whisk.app/Contents/MacOS/Whisk --smoke-test | grep -q "smoke test passed"
+          codesign --verify --strict --verbose=2 dist/WhiskyMac.app
+          ./dist/WhiskyMac.app/Contents/MacOS/Whisk --smoke-test | grep -q "smoke test passed"
 
       - name: Notarize and staple the app
         run: |
           set -euo pipefail
           test -n "$NOTARY_KEY" || { echo "NOTARY_API_KEY_P8 secret missing" >&2; exit 1; }
           echo "$NOTARY_KEY" | base64 --decode > notary.p8
-          ditto -c -k --keepParent dist/Whisk.app notarize-app.zip
+          ditto -c -k --keepParent dist/WhiskyMac.app notarize-app.zip
           xcrun notarytool submit notarize-app.zip \
             --key notary.p8 --key-id "$NOTARY_KEY_ID" --issuer "$NOTARY_ISSUER_ID" \
             --wait
-          xcrun stapler staple dist/Whisk.app
-          spctl -a -vv -t exec dist/Whisk.app
+          xcrun stapler staple dist/WhiskyMac.app
+          spctl -a -vv -t exec dist/WhiskyMac.app
           rm notarize-app.zip
 
+      - name: Archive corresponding source
+        run: git archive --format=tar.gz --prefix=WhiskyMac/ -o dist/WhiskyMac-source.tar.gz "$GITHUB_SHA"
+
       - name: Zip app
-        run: ditto -c -k --keepParent dist/Whisk.app "dist/Whisk-${GITHUB_REF_NAME}.zip"
+        run: ditto -c -k --keepParent dist/WhiskyMac.app "dist/WhiskyMac-${GITHUB_REF_NAME}.zip"
 
       - name: Build DMG
         run: ./scripts/make-dmg.sh
@@ -72,10 +80,10 @@ jobs:
       - name: Notarize and staple the DMG
         run: |
           set -euo pipefail
-          xcrun notarytool submit dist/Whisk.dmg \
+          xcrun notarytool submit dist/WhiskyMac.dmg \
             --key notary.p8 --key-id "$NOTARY_KEY_ID" --issuer "$NOTARY_ISSUER_ID" \
             --wait
-          xcrun stapler staple dist/Whisk.dmg
+          xcrun stapler staple dist/WhiskyMac.dmg
           rm notary.p8
 
       - name: Create GitHub release
@@ -90,24 +98,8 @@ jobs:
             notes=(--generate-notes)
           fi
           gh release create "$GITHUB_REF_NAME" \
-            "dist/Whisk-${GITHUB_REF_NAME}.zip" \
-            "dist/Whisk.dmg" \
+            "dist/WhiskyMac-${GITHUB_REF_NAME}.zip" \
+            "dist/WhiskyMac.dmg" \
+            "dist/WhiskyMac-source.tar.gz" \
             --title "$GITHUB_REF_NAME" \
             "${notes[@]}"
-
-      - name: Bump Homebrew cask
-        if: env.TAP_TOKEN != ''
-        run: |
-          set -euo pipefail
-          VERSION="${GITHUB_REF_NAME#v}"
-          SHA=$(shasum -a 256 dist/Whisk.dmg | cut -d' ' -f1)
-          git clone "https://x-access-token:${TAP_TOKEN}@github.com/nathan-poncet/homebrew-tap.git" tap
-          cd tap
-          sed -i '' \
-            -e "s|^  version .*|  version \"${VERSION}\"|" \
-            -e "s|^  sha256 .*|  sha256 \"${SHA}\"|" \
-            Casks/whisk.rb
-          git config user.name "Nathan Poncet"
-          git config user.email "112613712+nathan-poncet@users.noreply.github.com"
-          git commit -am "whisk ${VERSION}"
-          git push

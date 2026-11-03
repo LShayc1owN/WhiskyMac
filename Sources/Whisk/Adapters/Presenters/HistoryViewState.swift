@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import Foundation
 
 /// Display-ready state for the history panel. Views render this verbatim;
@@ -57,22 +62,24 @@ struct AccessPromptViewState: Equatable {
     let buttonTitle: String
 }
 
-/// The chip bar, three groups in display order: the pinned toggle, one
+/// The chip bar, in display order: All, the pinned toggle, one
 /// chip per source application, one per content category — all adapted to
 /// what the current selection can still match.
 struct FilterBarViewState: Equatable {
+    let all: [FilterChip]
     let pinned: [FilterChip]
     let apps: [FilterChip]
     let kinds: [FilterChip]
 
-    init(pinned: [FilterChip] = [], apps: [FilterChip], kinds: [FilterChip]) {
+    init(all: [FilterChip] = [], pinned: [FilterChip] = [], apps: [FilterChip], kinds: [FilterChip]) {
+        self.all = all
         self.pinned = pinned
         self.apps = apps
         self.kinds = kinds
     }
 
     var isEmpty: Bool {
-        pinned.isEmpty && apps.isEmpty && kinds.isEmpty
+        all.isEmpty && pinned.isEmpty && apps.isEmpty && kinds.isEmpty
     }
 
     var hasActiveChip: Bool {
@@ -80,7 +87,7 @@ struct FilterBarViewState: Equatable {
     }
 
     var focusedChipID: String? {
-        (pinned + apps + kinds).first(where: \.isFocused)?.id
+        (all + pinned + apps + kinds).first(where: \.isFocused)?.id
     }
 
     static let empty = FilterBarViewState(apps: [], kinds: [])
@@ -150,6 +157,7 @@ struct CardViewState: Equatable, Identifiable {
     /// to underline; empty without a live query.
     let matches: [MatchSpan]
     let preview: CardPreview
+    var variantIDs: [UUID] = []
 
     init(
         id: UUID,

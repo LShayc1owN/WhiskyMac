@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import AppKit
 import LinkPresentation
 import SwiftUI
@@ -25,27 +30,50 @@ final class LinkPreviewStore: ObservableObject {
     /// Off, no request leaves the machine and cards show the bare address,
     /// including for links already looked up.
     @Published private(set) var isEnabled = true
+    private var providers: [String: LPMetadataProvider] = [:]
+    private var generation = 0
+    private var isPrivate = false
     private var inFlight: Set<String> = []
 
     func setEnabled(_ enabled: Bool) {
         isEnabled = enabled
+        if !enabled { cancelRequests() }
+    }
+
+    func setPrivacy(_ protected: Bool) {
+        isPrivate = protected
+        if protected {
+            cancelRequests()
+            previews.removeAll()
+        }
+    }
+
+    private func cancelRequests() {
+        generation += 1
+        providers.values.forEach { $0.cancel() }
+        providers.removeAll()
+        inFlight.removeAll()
     }
 
     func preview(for address: String) -> LinkPreview? {
-        isEnabled ? previews[address] : nil
+        isEnabled && !isPrivate ? previews[address] : nil
     }
 
     func load(_ address: String) {
-        guard isEnabled, previews[address] == nil, !inFlight.contains(address),
+        guard isEnabled, !isPrivate, previews[address] == nil, !inFlight.contains(address),
             let url = URL(string: address)
         else { return }
         inFlight.insert(address)
+        let generation = generation
         let provider = LPMetadataProvider()
+        providers[address] = provider
         provider.timeout = 6
-        provider.startFetchingMetadata(for: url) { metadata, _ in
+        provider.startFetchingMetadata(for: url) { [weak self] metadata, _ in
             Self.assemble(metadata: metadata, host: url.host) { preview in
                 DispatchQueue.main.async {
-                    LinkPreviewStore.shared.store(preview, for: address)
+                    guard let self, self.generation == generation, !self.isPrivate, self.isEnabled else { return }
+                    self.providers[address] = nil
+                    self.store(preview, for: address)
                 }
             }
         }
@@ -54,6 +82,7 @@ final class LinkPreviewStore: ObservableObject {
     /// Keeps a preview for an address — fetched in production, canned in
     /// tests — and lets the address be fetched again later.
     func store(_ preview: LinkPreview, for address: String) {
+        guard !isPrivate else { return }
         if previews.count >= Self.limit {
             previews.removeAll()
         }

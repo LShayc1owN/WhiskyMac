@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import Foundation
 
 /// What the system pasteboard held when a change was observed. Rich text
@@ -33,7 +38,13 @@ protocol Pasteboard {
     /// the app may read it, nil otherwise.
     func readIfChanged() -> PasteboardSnapshot?
     func write(_ payload: Payload, rtf: Data?)
+    /// Stages a paste without copy-only feedback.
+    func writeForPaste(_ payload: Payload, rtf: Data?)
     /// The one deliberate read that makes the system ask the user, after
     /// which the app is listed in the pasteboard settings.
     func requestAccess()
+}
+
+extension Pasteboard {
+    func writeForPaste(_ payload: Payload, rtf: Data?) { write(payload, rtf: rtf) }
 }

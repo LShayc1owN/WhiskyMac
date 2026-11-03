@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import Carbon.HIToolbox
 
 /// System-wide hot key backed by Carbon, the only registration path that
@@ -63,6 +68,7 @@ final class HotKey {
         guard registerStatus == noErr else {
             if let eventHandler {
                 RemoveEventHandler(eventHandler)
+                self.eventHandler = nil
             }
             return nil
         }

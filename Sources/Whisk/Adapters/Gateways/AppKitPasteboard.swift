@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import AppKit
 
 /// Reads and writes the system pasteboard. Change detection relies on
@@ -12,9 +17,11 @@ final class AppKitPasteboard: Whisk.Pasteboard {
 
     private let board: NSPasteboard
     private var lastChangeCount: Int
+    private let didWrite: () -> Void
 
-    init(board: NSPasteboard = .general) {
+    init(board: NSPasteboard = .general, didWrite: @escaping () -> Void = {}) {
         self.board = board
+        self.didWrite = didWrite
         lastChangeCount = board.changeCount
     }
 
@@ -52,33 +59,64 @@ final class AppKitPasteboard: Whisk.Pasteboard {
         guard count != lastChangeCount else { return nil }
         lastChangeCount = count
         guard !holdsConcealedContent(), let payload = readPayload() else { return nil }
+        let types = board.types ?? []
         let app = Self.sourceApplication()
         var rtf: Data?
         if case .text = payload {
             rtf = board.data(forType: .rtf)
         }
+        guard board.changeCount == count else { return nil }
         return PasteboardSnapshot(
             payload: payload,
-            source: SourceApp(name: app?.localizedName, bundleID: app?.bundleIdentifier),
+            source: Self.source(types: types, appName: app?.localizedName, bundleID: app?.bundleIdentifier),
             rtf: rtf
         )
     }
 
+    /// Public pasteboard metadata access, with an undocumented hint. Presence
+    /// is not authenticated; absence does not prove a local copy or reveal a
+    /// device/app identity. Never call Continuity's private frameworks.
+    static func source(types: [NSPasteboard.PasteboardType], appName: String?, bundleID: String?) -> SourceApp? {
+        if types.contains(NSPasteboard.PasteboardType("com.apple.is-remote-clipboard")) {
+            return SourceApp(name: nil, origin: .handoffMarker)
+        }
+        return SourceApp(name: appName, bundleID: bundleID)
+    }
+
     func write(_ payload: Payload, rtf: Data?) {
+        write(payload, rtf: rtf, notify: true)
+    }
+
+    func writeForPaste(_ payload: Payload, rtf: Data?) {
+        write(payload, rtf: rtf, notify: false)
+    }
+
+    private func write(_ payload: Payload, rtf: Data?, notify: Bool) {
         board.clearContents()
+        let succeeded: Bool
         switch payload {
         case .text(let value):
-            board.setString(value, forType: .string)
+            succeeded = board.setString(value, forType: .string)
             if let rtf {
                 board.setData(rtf, forType: .rtf)
             }
         case .link(let url):
-            board.setString(url.absoluteString, forType: .string)
+            succeeded = board.setString(url.absoluteString, forType: .string)
         case .image(let data):
-            board.setData(data, forType: .png)
+            succeeded = board.setData(data, forType: .png)
         case .fileReferences(let paths):
-            board.writeObjects(paths.map { NSURL(fileURLWithPath: $0) })
+            succeeded = board.writeObjects(paths.map { NSURL(fileURLWithPath: $0) })
         }
+        lastChangeCount = board.changeCount
+        if succeeded, notify { didWrite() }
+    }
+
+    /// Explicit export only. Mark again so cooperating clipboard managers do
+    /// not persist a session entry; this is not a system-wide guarantee.
+    func writeSensitive(_ payload: Payload, rtf: Data?) {
+        write(payload, rtf: rtf, notify: false)
+        board.setData(Data(), forType: NSPasteboard.PasteboardType("org.nspasteboard.ConcealedType"))
+        board.setData(Data(), forType: NSPasteboard.PasteboardType("org.nspasteboard.TransientType"))
         lastChangeCount = board.changeCount
     }
 

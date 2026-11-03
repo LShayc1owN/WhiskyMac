@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import Foundation
 
 /// Builds the panel's actions around the controller. Search keystrokes
@@ -38,12 +43,12 @@ enum PanelWiring {
             },
             select: { id in
                 searchDebounce.flush()
-                clipboard.select(id)
+                clipboard.select(id, forPaste: true)
                 consume(true)
             },
             selectPlain: { id in
                 searchDebounce.flush()
-                clipboard.select(id, plain: true)
+                clipboard.select(id, plain: true, forPaste: true)
                 consume(true)
             },
             copy: { id in
@@ -133,6 +138,10 @@ enum PanelWiring {
             requestClipboardAccess: {
                 clipboard.requestClipboardAccess()
                 system.openPasteboardSettings()
+            },
+            selectSourceFilter: { key in
+                searchDebounce.flush()
+                clipboard.selectSourceFilter(key)
             }
         )
     }

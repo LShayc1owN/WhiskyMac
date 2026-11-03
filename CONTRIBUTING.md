@@ -1,13 +1,12 @@
-# Contributing to Whisk
+# Contributing to WhiskyMac
 
-Thanks for helping! Whisk is a small codebase with strict rules — this page
+Thanks for helping! WhiskyMac is based on Whisk — this page
 is everything you need to get a green PR on the first try.
 
 ## Setup
 
 ```sh
-git clone https://github.com/nathan-poncet/whisk.git
-cd whisk
+# From your local WhiskyMac checkout:
 swift run Whisk
 ```
 
@@ -31,6 +30,7 @@ CI runs exactly these, in this order — run them locally first:
 ```sh
 ./scripts/check-dependency-rule.sh
 swift format lint --strict --recursive Sources Tests Package.swift
+./scripts/localizations.sh check
 swift build
 swift test        # needs Xcode; otherwise let CI run it
 ```
@@ -86,12 +86,31 @@ TDD is the house style: write the failing test first. Conventions:
 
 ## User-facing strings
 
-Every user-visible string goes through the `localized()` helper and needs
-an entry in **both** `Sources/Whisk/Resources/en.lproj/Localizable.strings`
-and `fr.lproj/Localizable.strings` (the key is the English text). Counts
-that change with a number go in `Localizable.stringsdict` instead, one
-plural rule per language. `LocalizationTests` fails on a key missing from
-either language, missing from the catalogs, or no longer used.
+Every user-visible string goes through the `localized()` helper. Open
+`Package.swift` in Xcode, then open
+`Sources/Whisk/Resources/Localizable.xcstrings` in its String Catalog editor.
+This catalog is the only translation source, with English keys and complete
+English, French, German and Simplified Chinese translations. Entries are managed
+manually because Xcode does not extract literals passed to our custom helper.
+For counts, use the editor's **Vary by Plural** action: English, French and German
+need One and Other; Chinese only needs Other. Keep format placeholders intact.
+
+After changing the catalog, run:
+
+```sh
+./scripts/localizations.sh generate
+./scripts/localizations.sh check
+swift test
+```
+
+Commit the catalog and the generated `*.lproj/Localizable.strings` and
+`.stringsdict` files together. Never edit those generated files by hand.
+Generation and checking require full Xcode and its `xcstringstool`; regular
+`swift build` uses the committed resources and needs no catalog compiler.
+CI and app packaging reject stale generated resources. `LocalizationTests`
+checks source coverage, translation states, placeholders, plural rules and
+the compiled resources in all four languages. The interface follows macOS
+language preferences unless overridden in Settings; unsupported languages fall back to English.
 
 ## Commits & PRs
 
@@ -117,7 +136,14 @@ layout matter more often than you'd think (shortcuts are layout-aware).
 
 ## Licensing of contributions
 
-Whisk is GPL-3.0-or-later with an
-[additional permission](LICENSE-EXCEPTION-APP-STORE.md) for distribution
-through Apple's App Store. By opening a pull request you agree that your
-contribution is licensed under the same terms, permission included.
+Contributions to WhiskyMac are licensed under GPL-3.0-or-later. By submitting
+a contribution, you grant the same App Store/TestFlight additional permission
+for your contribution as set out in
+[LICENSE-EXCEPTION-WHISKYMAC.md](LICENSE-EXCEPTION-WHISKYMAC.md), to the extent
+you hold or can grant the relevant rights. You retain your copyright.
+
+Confirm in your pull request that you have the right to submit the material
+on these terms. Identify all third-party code and assets, their source and
+licenses; do not represent third-party work as your own. Employer-owned work
+requires the appropriate authorization. Upstream Whisk's original permission
+is preserved separately in [LICENSE-EXCEPTION-APP-STORE.md](LICENSE-EXCEPTION-APP-STORE.md).

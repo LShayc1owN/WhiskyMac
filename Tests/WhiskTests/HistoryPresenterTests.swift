@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import Foundation
 import Testing
 @testable import Whisk
@@ -54,7 +59,7 @@ import Testing
         #expect(kinds.contains(.keyword))
         #expect(kinds.contains(.comment))
         #expect(kinds.contains(.string))
-        #expect(state.cards.first?.kindLabel == "code")
+        #expect(state.cards.first?.kindLabel == localized("code"))
     }
 
     @Test func a_single_line_of_code_is_still_detected() {
@@ -72,7 +77,7 @@ import Testing
         let state = presenter.present(items: [anItem(.text(prose))], query: "", now: now)
 
         #expect(state.cards.first?.preview == .text(prose))
-        #expect(state.cards.first?.kindLabel == "text")
+        #expect(state.cards.first?.kindLabel == localized("text"))
     }
 
     @Test func keywords_inside_strings_and_comments_stay_claimed_by_them() {
@@ -98,8 +103,8 @@ import Testing
     @Test func an_item_without_a_source_falls_back_to_its_kind() {
         let state = presenter.present(items: [anItem(.text("hello"), from: nil)], query: "", now: now)
 
-        #expect(state.cards.first?.sourceLabel == "Text")
-        #expect(state.cards.first?.kindLabel == "text")
+        #expect(state.cards.first?.sourceLabel == localized("text").capitalized)
+        #expect(state.cards.first?.kindLabel == localized("text"))
     }
 
     @Test func a_link_presents_its_full_address() throws {
@@ -107,7 +112,7 @@ import Testing
         let state = presenter.present(items: [anItem(.link(url))], query: "", now: now)
 
         #expect(state.cards.first?.preview == .link("https://example.com/path?q=1"))
-        #expect(state.cards.first?.kindLabel == "link")
+        #expect(state.cards.first?.kindLabel == localized("link"))
     }
 
     @Test func the_chip_row_renders_in_the_order_it_is_steered() throws {
@@ -119,7 +124,7 @@ import Testing
             filters: FilterContext(chips: row, activeCategories: [.code], focusedChipID: "com.slack")
         )
 
-        #expect(row.map(\.id) == ["pinned", "com.slack", "code", "text"])
+        #expect(row.map(\.id) == ["all-filters", "pinned", "com.slack", "code", "text"])
         #expect(state.filters.pinned.map(\.id) == ["pinned"])
         #expect(state.filters.apps.map(\.label) == ["Slack"])
         #expect(state.filters.apps.first?.isFocused == true)
@@ -148,9 +153,9 @@ import Testing
             items: [], query: "", now: now, filters: FilterContext(chips: [.pinned], pinnedOnly: true))
         let populated = presenter.present(items: [anItem(.text("a"))], query: "", now: now)
 
-        #expect(untouched.emptyMessage == "Copy something to get started")
-        #expect(searched.emptyMessage == "No matches")
-        #expect(narrowed.emptyMessage == "No matches")
+        #expect(untouched.emptyMessage == localized("Copy something to get started"))
+        #expect(searched.emptyMessage == localized("No matches"))
+        #expect(narrowed.emptyMessage == localized("No matches"))
         #expect(populated.emptyMessage == nil)
     }
 
@@ -161,10 +166,10 @@ import Testing
             items: [anItem(.text("a"))], query: "", now: now, clipboardAccess: .requiresConsent)
 
         #expect(asking.emptyMessage == nil)
-        #expect(asking.accessPrompt?.message == "Whisk needs your permission to read what you copy.")
-        #expect(asking.accessPrompt?.buttonTitle == "Allow Clipboard Access")
-        #expect(refused.accessPrompt?.message == "Whisk is not allowed to read the clipboard.")
-        #expect(refused.accessPrompt?.buttonTitle == "Open Pasteboard Settings")
+        #expect(asking.accessPrompt?.message == localized("WhiskyMac needs your permission to read what you copy."))
+        #expect(asking.accessPrompt?.buttonTitle == localized("Allow Clipboard Access"))
+        #expect(refused.accessPrompt?.message == localized("WhiskyMac is not allowed to read the clipboard."))
+        #expect(refused.accessPrompt?.buttonTitle == localized("Open Pasteboard Settings"))
         #expect(populated.cards.count == 1)
         #expect(populated.accessPrompt != nil)
     }
@@ -186,12 +191,12 @@ import Testing
 
         let state = presenter.present(items: [pinned, files, picture], query: "", now: now, stack: [files.id])
 
-        #expect(state.cards[0].accessibilityLabel == "Safari, text, hello world")
-        #expect(state.cards[0].accessibilityValue == "Pinned card, now")
-        #expect(state.cards[1].accessibilityLabel == "Finder, files, a.txt, b.txt")
-        #expect(state.cards[1].accessibilityValue == "Paste stack position 1, now")
-        #expect(state.cards[2].accessibilityLabel == "Preview, image")
-        #expect(state.cards[2].accessibilityValue == "now")
+        #expect(state.cards[0].accessibilityLabel == "Safari, \(localized("text")), hello world")
+        #expect(state.cards[0].accessibilityValue == "\(localized("Pinned card")), \(localized("now"))")
+        #expect(state.cards[1].accessibilityLabel == "Finder, \(localized("files")), a.txt, b.txt")
+        #expect(state.cards[1].accessibilityValue == "\(localized("Paste stack position \(1)")), \(localized("now"))")
+        #expect(state.cards[2].accessibilityLabel == "Preview, \(localized("image"))")
+        #expect(state.cards[2].accessibilityValue == localized("now"))
     }
 
     @Test func a_long_text_is_cut_short_for_voiceover() {
@@ -200,7 +205,7 @@ import Testing
         let state = presenter.present(items: [anItem(.text(long), from: "Notes", at: now)], query: "", now: now)
 
         let label = state.cards[0].accessibilityLabel
-        #expect(label.hasPrefix("Notes, text, word word"))
+        #expect(label.hasPrefix("Notes, \(localized("text")), word word"))
         #expect(label.hasSuffix("…"))
         #expect(label.count < 170)
     }
@@ -211,9 +216,10 @@ import Testing
 
         let state = presenter.present(items: [], query: "", now: now, filters: FilterContext(chips: row))
 
-        #expect(state.filters.pinned.first?.accessibilityLabel == "Pinned items, filter")
-        #expect(state.filters.apps.first?.accessibilityLabel == "Slack, application filter")
-        #expect(state.filters.kinds.first?.accessibilityLabel == "Code, kind filter")
+        #expect(state.filters.pinned.first?.accessibilityLabel == localized("Pinned items, filter"))
+        #expect(state.filters.apps.first?.accessibilityLabel == localized("\("Slack"), application filter"))
+        #expect(
+            state.filters.kinds.first?.accessibilityLabel == localized("\(localized("code").capitalized), kind filter"))
     }
 
     @Test func what_leaves_on_a_drag_is_the_item_not_the_drawing() throws {
@@ -311,7 +317,7 @@ import Testing
 
         #expect(before.cards[0].preview == .text("plain words"))
         #expect(after.cards[0].id == item.id)
-        #expect(after.cards[0].kindLabel == "code")
+        #expect(after.cards[0].kindLabel == localized("code"))
         guard case .code(let text, _) = after.cards[0].preview else {
             Issue.record("expected a code preview after the edit")
             return
@@ -331,8 +337,8 @@ import Testing
         let one = presenter.present(items: [anItem(.text("a"))], query: "", now: now)
         let two = presenter.present(items: [anItem(.text("a")), anItem(.text("b"))], query: "", now: now)
 
-        #expect(one.countLabel == "1 item")
-        #expect(two.countLabel == "2 items")
+        #expect(one.countLabel == localized("\(1) items"))
+        #expect(two.countLabel == localized("\(2) items"))
     }
 
     @Test func time_labels_are_present_for_every_card() {
@@ -354,7 +360,7 @@ import Testing
             now: now.addingTimeInterval(5)
         )
 
-        #expect(first.cards.first?.timeLabel == "now")
+        #expect(first.cards.first?.timeLabel == localized("now"))
         #expect(first.cards.first?.timeLabel == second.cards.first?.timeLabel)
     }
 }

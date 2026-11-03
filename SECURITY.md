@@ -1,42 +1,24 @@
-# Security policy
+# WhiskyMac security policy
 
-Whisk reads everything that lands on the clipboard and keeps it on disk.
-A flaw in how it captures, stores or previews that content is worth a
-quiet report, not a public issue.
+WhiskyMac handles clipboard content and stores history locally. Avoid posting
+clipboard contents, database files or other sensitive information in public issues.
 
-## Supported versions
+## Reporting
 
-Only the latest release receives fixes. Homebrew users get them with
-`brew upgrade`; DMG users through the update check at launch.
+Use **Security → Report a vulnerability** in the WhiskyMac repository if its
+maintainer has enabled GitHub private vulnerability reporting. Otherwise ask the
+maintainer for a private contact without disclosing the vulnerability publicly.
+A private contact must be configured before a public release; do not send fork
+reports to the upstream Whisk maintainer as if they maintained WhiskyMac.
 
-## Reporting a vulnerability
+Include the build version, macOS version and minimal reproduction steps using
+synthetic content. No response-time or release-signing commitment is currently
+made for this development build.
 
-Use GitHub's private vulnerability reporting:
-**Security → Report a vulnerability** on
-[github.com/nathan-poncet/whisk](https://github.com/nathan-poncet/whisk/security/advisories/new).
-Nothing you write there is visible to anyone but the maintainer until a
-fix is out.
+## Scope
 
-Please include what you observed, how to reproduce it, and the Whisk and
-macOS versions. You will get an acknowledgement within seven days, and
-the fix ships in the next release with credit to you unless you prefer
-otherwise.
-
-## What counts
-
-- Content marked concealed or transient by a password manager, or
-  copied from an excluded application, ending up in the history.
-- History, previews or the paste stack readable by another user account
-  or leaving the machine other than through the two documented requests
-  (link metadata for a copied URL, the release check on GitHub).
-- A crafted clipboard payload that crashes the app or runs code.
-
-## What does not
-
-- Whisk asking for Accessibility access: it is needed to paste in place,
-  optional, and requested only at the first paste.
-- The history being readable by the same macOS user account that runs
-  Whisk, in `~/Library/Application Support/Whisk`. That is where it lives;
-  full-disk encryption is the protection for a lost machine.
-- Gatekeeper refusing a build that is not an official release: only the
-  releases on GitHub are signed with a Developer ID and notarized.
+Concealed clipboard data unexpectedly recorded, privacy-protected content
+exposed, unexpected network transfers, and unsafe handling of crafted clipboard
+data are relevant security reports. Accessibility permissions for direct paste
+and same-account access to unencrypted local history are documented behavior.
+See README.md and WHISK_MAY_DEV.md for development storage and privacy limits.

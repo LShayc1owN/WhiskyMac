@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import AppKit
 import SwiftUI
 import Testing
@@ -51,12 +56,13 @@ import Testing
         return try #require(result)
     }
 
-    @Test func matcha_glows_pale_on_dark_and_deepens_on_light() throws {
-        let dark = try resolved(.matcha, under: .darkAqua)
-        let light = try resolved(.matcha, under: .aqua)
-
-        #expect(dark.greenComponent > light.greenComponent)
-        #expect(dark.brightnessComponent > light.brightnessComponent)
+    @Test func default_accent_follows_the_system_in_both_appearances() throws {
+        for appearance: NSAppearance.Name in [.darkAqua, .aqua] {
+            let accent = try resolved(.matcha, under: appearance)
+            let system = try resolved(.controlAccentColor, under: appearance)
+            #expect(accent == system)
+            #expect(accent.alphaComponent == 1)
+        }
         #expect(Color.matcha == Color(nsColor: .matcha))
     }
 }

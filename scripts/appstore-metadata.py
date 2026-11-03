@@ -27,6 +27,20 @@ META = json.loads((ROOT / "docs/app-store/metadata.json").read_text())
 PLATFORM = "MAC_OS"
 
 
+def configure_publication():
+    import subprocess
+
+    result = subprocess.run([sys.executable, str(ROOT / "scripts/check-release-config.py")])
+    if result.returncode:
+        sys.exit(result.returncode)
+    config = json.loads((ROOT / "release-config.json").read_text())
+    META.update(
+        supportUrl=config["supportUrl"], marketingUrl=config["sourceRepositoryUrl"],
+        privacyPolicyUrl=config["privacyPolicyUrl"], copyright=config["copyright"])
+    if "DRAFT" in json.dumps(META) or "草稿" in json.dumps(META, ensure_ascii=False):
+        sys.exit("Replace draft App Store metadata with verified release information before publication.")
+
+
 def data(type_, id_=None, attributes=None, relationships=None):
     item = {"type": type_}
     if id_:
@@ -340,8 +354,10 @@ def submit():
 if __name__ == "__main__":
     command = sys.argv[1] if len(sys.argv) > 1 else ""
     if command == "push":
+        configure_publication()
         push()
     elif command == "submit":
+        configure_publication()
         submit()
     elif command == "status":
         status()

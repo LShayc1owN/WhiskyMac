@@ -1,8 +1,13 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import AppKit
 import SwiftUI
 
-/// One chip row above the search field, three groups separated by thin
-/// bars — the pinned toggle, then source applications, then content
+/// One chip row above the search field: All and the pinned toggle,
+/// then source applications and content
 /// categories. Several chips can be active at once; the focused chip is
 /// the keyboard cursor (↑/↓ reach the row, ←/→ move, Return toggles) and
 /// hovering moves that same focus with the mouse.
@@ -15,6 +20,9 @@ struct FilterBarView: View {
     let filters: FilterBarViewState
     /// One cursor at a time: vim's search mode swallows the chip focus.
     var cursorSuppressed = false
+    var appTrigger = AppFilterTrigger.click
+    var hoverEnabled = true
+    var onSelectApp: (String) -> Void = { _ in }
     let onToggleApp: (String) -> Void
     let onToggleKind: (String) -> Void
     let onFocusApp: (String) -> Void
@@ -24,6 +32,18 @@ struct FilterBarView: View {
         ScrollViewReader { proxy in
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
+                    ForEach(filters.all) { chip in
+                        ChipButton(
+                            chip: chip, focusVisible: !cursorSuppressed,
+                            onToggle: { onToggleKind(chip.id) }, onFocus: { onFocusKind(chip.id) }
+                        ) {
+                            HStack(spacing: 5) {
+                                chipIcon(chip.icon)
+                                Text(chip.label)
+                            }
+                        }
+                        .id(chip.id)
+                    }
                     ForEach(filters.pinned) { chip in
                         ChipButton(
                             chip: chip,
@@ -48,7 +68,8 @@ struct FilterBarView: View {
                                 .surfaceTint(dark: scheme == .dark),
                             focusVisible: !cursorSuppressed,
                             onToggle: { onToggleApp(chip.id) },
-                            onFocus: { onFocusApp(chip.id) }
+                            onFocus: { onFocusApp(chip.id) },
+                            onHoverSelect: appTrigger == .hover && hoverEnabled ? { onSelectApp(chip.id) } : nil
                         ) {
                             HStack(spacing: 5) {
                                 if let icon = SourceAppStyle.resolve(bundleID: chip.sourceBundleID).icon {
@@ -85,8 +106,10 @@ struct FilterBarView: View {
                 // the viewport, the stack centers its content; a wider row
                 // scrolls as before.
                 .frame(minWidth: max(0, rowWidth - 2 * Self.horizontalMargin))
+                // Keep insets inside the measured document: macOS 15's
+                // scroll contentMargins can expand the viewport unevenly.
+                .padding(.horizontal, Self.horizontalMargin)
             }
-            .contentMargins(.horizontal, Self.horizontalMargin, for: .scrollContent)
             .scrollClipDisabled()
             .defaultScrollAnchor(.center)
             .background {
@@ -145,6 +168,8 @@ private struct ChipButton<Label: View>: View {
     var focusVisible = true
     let onToggle: () -> Void
     let onFocus: () -> Void
+    var onHoverSelect: (() -> Void)?
+    @State private var hoverActivation = FilterHoverActivation()
     @ViewBuilder let label: () -> Label
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -157,7 +182,10 @@ private struct ChipButton<Label: View>: View {
     }
 
     var body: some View {
-        Button(action: onToggle) {
+        Button {
+            hoverActivation.cancel()
+            onToggle()
+        } label: {
             label()
         }
         .buttonStyle(FilterChipStyle(isActive: chip.isActive, isFocused: isFocused))
@@ -184,6 +212,14 @@ private struct ChipButton<Label: View>: View {
         }
         .animation(reduceMotion ? nil : .easeOut(duration: 0.14), value: isFocused)
         .animation(reduceMotion ? nil : .easeOut(duration: 0.14), value: chip.isActive)
+        .onHover { inside in
+            hoverActivation.cancel()
+            if inside, let onHoverSelect, MouseActivity.movedRecently {
+                hoverActivation.enter(onHoverSelect)
+            }
+        }
+        .onDisappear { hoverActivation.cancel() }
+        .onChange(of: onHoverSelect != nil) { _, _ in hoverActivation.cancel() }
         .onContinuousHover { phase in
             if case .active = phase, MouseActivity.movedRecently {
                 onFocus()

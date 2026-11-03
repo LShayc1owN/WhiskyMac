@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Packages the Mac App Store variant of Whisk as dist/Whisk.pkg and, on
+# Packages the Mac App Store variant of Whisk as dist/WhiskyMac.pkg and, on
 # request, validates it against App Store Connect or uploads it there,
 # where it lands in TestFlight until it is submitted for review.
 #   scripts/build-appstore-pkg.sh <version> [validate|upload]
@@ -20,22 +20,26 @@ VERSION="${1:?usage: build-appstore-pkg.sh <version> [validate|upload]}"
 ACTION="${2:-}"
 case "$ACTION" in validate|upload|"") ;; *) echo "unknown action: $ACTION" >&2; exit 2 ;; esac
 
+if [ -n "$ACTION" ]; then
+  python3 scripts/check-release-config.py
+fi
+
 APP_STORE=1 ./scripts/build-app.sh "$VERSION" "${ARCH:-universal}"
 
 # A store-signed app only launches with the receipt the store adds, so
 # the smoke test is for the ad-hoc local build alone.
 if [ "${CODESIGN_IDENTITY:--}" = "-" ]; then
-  ./dist/Whisk.app/Contents/MacOS/Whisk --smoke-test | grep -q "distribution: appStore"
+  ./dist/WhiskyMac.app/Contents/MacOS/Whisk --smoke-test | grep -q "distribution: appStore"
 fi
 
-rm -f dist/Whisk.pkg
+rm -f dist/WhiskyMac.pkg
 SIGN=()
 if [ -n "${PKG_SIGN_IDENTITY:-}" ]; then
   SIGN=(--sign "$PKG_SIGN_IDENTITY" --timestamp)
 fi
-productbuild --component dist/Whisk.app /Applications ${SIGN[@]+"${SIGN[@]}"} dist/Whisk.pkg
-pkgutil --check-signature dist/Whisk.pkg | head -3
-echo "built dist/Whisk.pkg (version $VERSION, build ${BUILD_NUMBER:-$VERSION})"
+productbuild --component dist/WhiskyMac.app /Applications ${SIGN[@]+"${SIGN[@]}"} dist/WhiskyMac.pkg
+pkgutil --check-signature dist/WhiskyMac.pkg | head -3
+echo "built dist/WhiskyMac.pkg (version $VERSION, build ${BUILD_NUMBER:-$VERSION})"
 
 if [ -z "$ACTION" ]; then
   exit 0
@@ -47,8 +51,8 @@ mkdir -p private_keys
 cp "$ASC_KEY_P8" "private_keys/AuthKey_${ASC_KEY_ID}.p8"
 trap 'rm -rf private_keys' EXIT
 
-xcrun altool --validate-app -f dist/Whisk.pkg -t macos --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
+xcrun altool --validate-app -f dist/WhiskyMac.pkg -t macos --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
 if [ "$ACTION" = "upload" ]; then
-  xcrun altool --upload-app -f dist/Whisk.pkg -t macos --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
+  xcrun altool --upload-app -f dist/WhiskyMac.pkg -t macos --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
   echo "uploaded: the build appears in App Store Connect once processed"
 fi

@@ -1,147 +1,544 @@
-"+ %lld more" = "+ %lld more";
-"24 hours" = "24 hours";
-"30 days" = "30 days";
-"7 days" = "7 days";
-"A panel slides up with everything you copied — search it, filter it, arrow through it." = "A panel slides up with everything you copied — search it, filter it, arrow through it.";
-"Add App…" = "Add App…";
-"Check for updates at launch" = "Check for updates at launch";
-"Clear Unpinned Items" = "Clear Unpinned Items";
-"Click a shortcut to record a new one — press Escape to cancel recording." = "Click a shortcut to record a new one — press Escape to cancel recording.";
-"Copies from excluded apps are never recorded." = "Copies from excluded apps are never recorded.";
-"Copy something to get started" = "Copy something to get started";
-"Delete the selection" = "Delete the selection";
-"Delete" = "Delete";
-"Everything stays local" = "Everything stays local";
-"Excluded apps" = "Excluded apps";
-"Focus the row above" = "Focus the row above";
-"Focus the row below" = "Focus the row below";
-"Forever" = "Forever";
-"Get Started" = "Get Started";
-"History capacity" = "History capacity";
-"History lives on this Mac. Concealed content from password managers is never recorded." = "History lives on this Mac. Concealed content from password managers is never recorded.";
-"Image" = "Image";
-"Keep history for" = "Keep history for";
-"Keyboard Shortcuts" = "Keyboard Shortcuts";
-"Launch Whisk at login" = "Launch Whisk at login";
-"Next card or chip" = "Next card or chip";
-"No matches" = "No matches";
-"Paste as plain text" = "Paste as plain text";
-"Paste next from the stack" = "Paste next from the stack";
-"Paste stack — pop with the global shortcut" = "Paste stack — pop with the global shortcut";
-"Paste the selection" = "Paste the selection";
-"Pause Capture" = "Pause Capture";
-"Pin what you always need" = "Pin what you always need";
-"Pin / unpin the selection" = "Pin / unpin the selection";
-"Pin" = "Pin";
-"Pinned cards survive Clear and retention, and one chip shows only them." = "Pinned cards survive Clear and retention, and one chip shows only them.";
-"Pinned items are never expired or evicted." = "Pinned items are never expired or evicted.";
-"Pinned" = "Pinned";
-"Preview the selection" = "Preview the selection";
-"Previous card or chip" = "Previous card or chip";
-"Quit Whisk" = "Quit Whisk";
-"Reset to default" = "Reset to default";
-"Restore Defaults" = "Restore Defaults";
-"Resume Capture" = "Resume Capture";
-"Search clipboard history" = "Search clipboard history";
-"Settings…" = "Settings…";
-"Show / hide the panel" = "Show / hide the panel";
-"Show History (%@)" = "Show History (%@)";
-"Switch filter group" = "Switch filter group";
-"This shortcut is used by another action" = "This shortcut is used by another action";
-"Toggle the selection in the paste stack" = "Toggle the selection in the paste stack";
-"Two actions share the same shortcut." = "Two actions share the same shortcut.";
-"Type shortcut…" = "Type shortcut…";
-"Unknown" = "Unknown";
-"Unlimited" = "Unlimited";
-"Unpin" = "Unpin";
-"Update Available (v%@)…" = "Update Available (v%@)…";
-"Welcome to Whisk" = "Welcome to Whisk";
-"Welcome" = "Welcome";
-"Whisk Settings" = "Whisk Settings";
-"Your clipboard, remembered." = "Your clipboard, remembered.";
-"code" = "code";
-"color" = "color";
-"files" = "files";
-"global" = "global";
-"image" = "image";
-"link" = "link";
-"now" = "now";
-"text" = "text";
-"⌘1…⌘9 paste the matching card directly." = "⌘1…⌘9 paste the matching card directly.";
-
-"Search" = "Search";
-"Vim navigation in the panel" = "Vim navigation in the panel";
-
-"First card" = "First card";
-"Last card" = "Last card";
-"Start a search" = "Start a search";
-"Clear the search" = "Clear the search";
-"Close the panel" = "Close the panel";
-"Vim Keybindings" = "Vim Keybindings";
-"One or two characters — a two-character binding like gg runs on the double tap. Esc, Tab, / and 1–9 are fixed." = "One or two characters — a two-character binding like gg runs on the double tap. Esc, Tab, / and 1–9 are fixed.";
-
-"Press %@ to search" = "Press %@ to search";
-"Press %@" = "Press %@";
-"The panel opens with letters as commands: %@ to search, %@ to move, %@ to paste, %@ to preview, %@ to close." = "The panel opens with letters as commands: %@ to search, %@ to move, %@ to paste, %@ to preview, %@ to close.";
-
-"Nothing selected" = "Nothing selected";
-"Launch at login needs the installed Whisk.app: %@" = "Launch at login needs the installed Whisk.app: %@";
-
-"Pastes this card" = "Pastes this card";
-"Pinned card" = "Pinned card";
-"Paste stack position %lld" = "Paste stack position %lld";
-"Pinned items, filter" = "Pinned items, filter";
-"%@, application filter" = "%@, application filter";
-"%@, kind filter" = "%@, kind filter";
-"Search mode" = "Search mode";
-"Normal mode" = "Normal mode";
-"Fetch link previews" = "Fetch link previews";
-"Privacy" = "Privacy";
-"A copied link is looked up once for its title and image. Off, nothing leaves this Mac." = "A copied link is looked up once for its title and image. Off, nothing leaves this Mac.";
-"Card size" = "Card size";
-"Small" = "Small";
-"Medium" = "Medium";
-"Large" = "Large";
-"Paste as…" = "Paste as…";
-"Uppercase" = "Uppercase";
-"Lowercase" = "Lowercase";
-"Trimmed" = "Trimmed";
-"Single line" = "Single line";
-"Without accents" = "Without accents";
-"URL-encoded" = "URL-encoded";
-"URL-decoded" = "URL-decoded";
-"Base64-encoded" = "Base64-encoded";
-"Base64-decoded" = "Base64-decoded";
-"Formatted JSON" = "Formatted JSON";
-"Copy" = "Copy";
-"Paste as Plain Text" = "Paste as Plain Text";
-"Open Link" = "Open Link";
-"Reveal in Finder" = "Reveal in Finder";
-"Save As…" = "Save As…";
-"Add to Paste Stack" = "Add to Paste Stack";
-"Remove from Paste Stack" = "Remove from Paste Stack";
-"Exclude %@" = "Exclude %@";
-"Delete All from %@" = "Delete All from %@";
-"Copy the selection without pasting" = "Copy the selection without pasting";
-"Open the selected link" = "Open the selected link";
-"Reveal the selected files in Finder" = "Reveal the selected files in Finder";
-"Save the selection as a file" = "Save the selection as a file";
-"Exclude the selection's application" = "Exclude the selection's application";
-"Delete everything from the selection's application" = "Delete everything from the selection's application";
-"Edit…" = "Edit…";
-"Edit the selection" = "Edit the selection";
-"Editing %@" = "Editing %@";
-"Editor" = "Editor";
-"Save" = "Save";
-"Cancel" = "Cancel";
-"Undo Last Change" = "Undo Last Change";
-"Undo the last deletion or edit" = "Undo the last deletion or edit";
-"Return saves, Shift-Return breaks the line, Escape cancels." = "Return saves, Shift-Return breaks the line, Escape cancels.";
-
-"Allow Clipboard Access" = "Allow Clipboard Access";
-"Allow Clipboard Access…" = "Allow Clipboard Access…";
-"Let Whisk read what you copy" = "Let Whisk read what you copy";
-"Open Pasteboard Settings" = "Open Pasteboard Settings";
-"Whisk is not allowed to read the clipboard." = "Whisk is not allowed to read the clipboard.";
-"Whisk needs your permission to read what you copy." = "Whisk needs your permission to read what you copy.";
-"macOS asks before an app reads the clipboard. Click Allow Clipboard Access, choose Allow Paste, then set Whisk to Allow under Paste from Other Apps." = "macOS asks before an app reads the clipboard. Click Allow Clipboard Access, choose Allow Paste, then set Whisk to Allow under Paste from Other Apps.";
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>%@, application filter</key>
+	<string>%@, application filter</string>
+	<key>%@, kind filter</key>
+	<string>%@, kind filter</string>
+	<key>+ %lld more</key>
+	<string>+ %lld more</string>
+	<key>24 hours</key>
+	<string>24 hours</string>
+	<key>30 days</key>
+	<string>30 days</string>
+	<key>7 days</key>
+	<string>7 days</string>
+	<key>A Handoff marker was observed. The device and source app are unknown.</key>
+	<string>A Handoff marker was observed. The device and source app are unknown.</string>
+	<key>A copied link is looked up once for its title and image. Off, nothing leaves this Mac.</key>
+	<string>A copied link is looked up once for its title and image. Off, nothing leaves this Mac.</string>
+	<key>A panel slides up with everything you copied — search it, filter it, arrow through it.</key>
+	<string>A panel slides up with everything you copied — search it, filter it, arrow through it.</string>
+	<key>Accent color</key>
+	<string>Accent color</string>
+	<key>Accessibility access is needed to check sharing toolbars. Content is hidden as a precaution.</key>
+	<string>Accessibility access is needed to check sharing toolbars. Content is hidden as a precaution.</string>
+	<key>Actions</key>
+	<string>Actions</string>
+	<key>Add App…</key>
+	<string>Add App…</string>
+	<key>Add sensitive app…</key>
+	<string>Add sensitive app…</string>
+	<key>Add to Paste Stack</key>
+	<string>Add to Paste Stack</string>
+	<key>All</key>
+	<string>All</string>
+	<key>All items, clear filters</key>
+	<string>All items, clear filters</string>
+	<key>Allow Accessibility for toolbar detection…</key>
+	<string>Allow Accessibility for toolbar detection…</string>
+	<key>Allow Clipboard Access</key>
+	<string>Allow Clipboard Access</string>
+	<key>Allow Clipboard Access…</key>
+	<string>Allow Clipboard Access…</string>
+	<key>Allow search in Privacy Mode</key>
+	<string>Allow search in Privacy Mode</string>
+	<key>Always show</key>
+	<string>Always show</string>
+	<key>Appearance</key>
+	<string>Appearance</string>
+	<key>Application filter trigger</key>
+	<string>Application filter trigger</string>
+	<key>Application filters</key>
+	<string>Application filters</string>
+	<key>Application observed on this Mac at capture time; source is not verified.</key>
+	<string>Application observed on this Mac at capture time; source is not verified.</string>
+	<key>Applies to manual and automatic protection. Search terms and enabled app names are visible on screen and in accessibility. Clipboard content stays hidden; automatic protection still blocks hover reveals.</key>
+	<string>Applies to manual and automatic protection. Search terms and enabled app names are visible on screen and in accessibility. Clipboard content stays hidden; automatic protection still blocks hover reveals.</string>
+	<key>Automatic detection is limited. Use manual protection before important sharing.</key>
+	<string>Automatic detection is limited. Use manual protection before important sharing.</string>
+	<key>Automatic detection is off. Use manual protection before sharing.</key>
+	<string>Automatic detection is off. Use manual protection before sharing.</string>
+	<key>Automatic protection (limited detection)</key>
+	<string>Automatic protection (limited detection)</string>
+	<key>Base64-decoded</key>
+	<string>Base64-decoded</string>
+	<key>Base64-encoded</key>
+	<string>Base64-encoded</string>
+	<key>Cancel</key>
+	<string>Cancel</string>
+	<key>Card size</key>
+	<string>Card size</string>
+	<key>Check for updates at launch</key>
+	<string>Check for updates at launch</string>
+	<key>Checks Zoom and Teams sharing toolbar titles using Accessibility. Client versions and languages may not match. System sharing, remote desktop, recording and browser tabs are not covered. Enable manual protection before important sharing.</key>
+	<string>Checks Zoom and Teams sharing toolbar titles using Accessibility. Client versions and languages may not match. System sharing, remote desktop, recording and browser tabs are not covered. Enable manual protection before important sharing.</string>
+	<key>Choose a format to continue</key>
+	<string>Choose a format to continue</string>
+	<key>Choose how WhiskyMac starts and where you open it.</key>
+	<string>Choose how WhiskyMac starts and where you open it.</string>
+	<key>Choose how much clipboard history to keep and for how long.</key>
+	<string>Choose how much clipboard history to keep and for how long.</string>
+	<key>Choose what clicking or hovering over a clipboard card does.</key>
+	<string>Choose what clicking or hovering over a clipboard card does.</string>
+	<key>Clear Unpinned Items</key>
+	<string>Clear Unpinned Items</string>
+	<key>Clear the search</key>
+	<string>Clear the search</string>
+	<key>Click a shortcut to record a new one — press Escape to cancel recording.</key>
+	<string>Click a shortcut to record a new one — press Escape to cancel recording.</string>
+	<key>Click actions</key>
+	<string>Click actions</string>
+	<key>Click to filter</key>
+	<string>Click to filter</string>
+	<key>Clipboard cards</key>
+	<string>Clipboard cards</string>
+	<key>Close the panel</key>
+	<string>Close the panel</string>
+	<key>Colors</key>
+	<string>Colors</string>
+	<key>Content hidden by Privacy Mode</key>
+	<string>Content hidden by Privacy Mode</string>
+	<key>Control what is recorded, displayed and fetched online.</key>
+	<string>Control what is recorded, displayed and fetched online.</string>
+	<key>Copies from excluded apps are never recorded.</key>
+	<string>Copies from excluded apps are never recorded.</string>
+	<key>Copies from these apps are ignored unless temporary memory sessions are enabled.</key>
+	<string>Copies from these apps are ignored unless temporary memory sessions are enabled.</string>
+	<key>Copy</key>
+	<string>Copy</string>
+	<key>Copy something to get started</key>
+	<string>Copy something to get started</string>
+	<key>Copy sound</key>
+	<string>Copy sound</string>
+	<key>Copy the selection without pasting</key>
+	<string>Copy the selection without pasting</string>
+	<key>Custom color</key>
+	<string>Custom color</string>
+	<key>Delete</key>
+	<string>Delete</string>
+	<key>Delete All from %@</key>
+	<string>Delete All from %@</string>
+	<key>Delete everything from the selection's application</key>
+	<string>Delete everything from the selection's application</string>
+	<key>Delete the selection</key>
+	<string>Delete the selection</string>
+	<key>Detection coverage</key>
+	<string>Detection coverage</string>
+	<key>Detection is uncertain. Content is hidden as a precaution.</key>
+	<string>Detection is uncertain. Content is hidden as a precaution.</string>
+	<key>Do nothing</key>
+	<string>Do nothing</string>
+	<key>Dock icon</key>
+	<string>Dock icon</string>
+	<key>Double click</key>
+	<string>Double click</string>
+	<key>Edit the selection</key>
+	<string>Edit the selection</string>
+	<key>Editing %@</key>
+	<string>Editing %@</string>
+	<key>Editor</key>
+	<string>Editor</string>
+	<key>Edit…</key>
+	<string>Edit…</string>
+	<key>Enable</key>
+	<string>Enable</string>
+	<key>Enable the global shortcut in Settings whenever you want it.</key>
+	<string>Enable the global shortcut in Settings whenever you want it.</string>
+	<key>Enable this global shortcut</key>
+	<string>Enable this global shortcut</string>
+	<key>Everything stays local</key>
+	<string>Everything stays local</string>
+	<key>Exclude %@</key>
+	<string>Exclude %@</string>
+	<key>Exclude the selection's application</key>
+	<string>Exclude the selection's application</string>
+	<key>Excluded apps</key>
+	<string>Excluded apps</string>
+	<key>Fetch link previews</key>
+	<string>Fetch link previews</string>
+	<key>First card</key>
+	<string>First card</string>
+	<key>Focus the row above</key>
+	<string>Focus the row above</string>
+	<key>Focus the row below</key>
+	<string>Focus the row below</string>
+	<key>Follow System</key>
+	<string>Follow System</string>
+	<key>Follow windows</key>
+	<string>Follow windows</string>
+	<key>Forever</key>
+	<string>Forever</string>
+	<key>Formatted JSON</key>
+	<string>Formatted JSON</string>
+	<key>General</key>
+	<string>General</string>
+	<key>Get Started</key>
+	<string>Get Started</string>
+	<key>Global shortcuts</key>
+	<string>Global shortcuts</string>
+	<key>Global shortcuts are off until enabled here or recorded.</key>
+	<string>Global shortcuts are off until enabled here or recorded.</string>
+	<key>Handoff (system marker)</key>
+	<string>Handoff (system marker)</string>
+	<key>Handoff labels use a system pasteboard marker. Missing markers do not prove a local copy; existing history cannot be reclassified.</key>
+	<string>Handoff labels use a system pasteboard marker. Missing markers do not prove a local copy; existing history cannot be reclassified.</string>
+	<key>Hidden — right-click to show temporarily</key>
+	<string>Hidden — right-click to show temporarily</string>
+	<key>Hide</key>
+	<string>Hide</string>
+	<key>History</key>
+	<string>History</string>
+	<key>History capacity</key>
+	<string>History capacity</string>
+	<key>History lives on this Mac. Concealed content from password managers is never recorded.</key>
+	<string>History lives on this Mac. Concealed content from password managers is never recorded.</string>
+	<key>Hover after a short delay</key>
+	<string>Hover after a short delay</string>
+	<key>Hover delay (seconds)</key>
+	<string>Hover delay (seconds)</string>
+	<key>Hover preview</key>
+	<string>Hover preview</string>
+	<key>Hover switches to one app after a brief pause. Click still toggles filters; All clears app, type and pinned filters without clearing search.</key>
+	<string>Hover switches to one app after a brief pause. Click still toggles filters; All clears app, type and pinned filters without clearing search.</string>
+	<key>Hover to filter</key>
+	<string>Hover to filter</string>
+	<key>How temporary sessions work</key>
+	<string>How temporary sessions work</string>
+	<key>Image</key>
+	<string>Image</string>
+	<key>Image retained in memory. Copy to view in another app.</key>
+	<string>Image retained in memory. Copy to view in another app.</string>
+	<key>Inside the clipboard panel</key>
+	<string>Inside the clipboard panel</string>
+	<key>Interactions</key>
+	<string>Interactions</string>
+	<key>Keep history for</key>
+	<string>Keep history for</string>
+	<key>Keep unmarked sensitive copies in memory for 2 minutes</key>
+	<string>Keep unmarked sensitive copies in memory for 2 minutes</string>
+	<key>Language</key>
+	<string>Language</string>
+	<key>Large</key>
+	<string>Large</string>
+	<key>Last card</key>
+	<string>Last card</string>
+	<key>Launch WhiskyMac at login</key>
+	<string>Launch WhiskyMac at login</string>
+	<key>Launch at login needs the installed WhiskyMac.app: %@</key>
+	<string>Launch at login needs the installed WhiskyMac.app: %@</string>
+	<key>Let WhiskyMac read what you copy</key>
+	<string>Let WhiskyMac read what you copy</string>
+	<key>Licenses and notices…</key>
+	<string>Licenses and notices…</string>
+	<key>Lowercase</key>
+	<string>Lowercase</string>
+	<key>Make the settings and clipboard cards feel at home.</key>
+	<string>Make the settings and clipboard cards feel at home.</string>
+	<key>Manage manual and automatic protection in Settings.</key>
+	<string>Manage manual and automatic protection in Settings.</string>
+	<key>Manual Privacy Mode</key>
+	<string>Manual Privacy Mode</string>
+	<key>Manual privacy: hover to reveal a small area</key>
+	<string>Manual privacy: hover to reveal a small area</string>
+	<key>Medium</key>
+	<string>Medium</string>
+	<key>Menu bar and Dock</key>
+	<string>Menu bar and Dock</string>
+	<key>Menu bar icon click</key>
+	<string>Menu bar icon click</string>
+	<key>NORMAL</key>
+	<string>NORMAL</string>
+	<key>Never show</key>
+	<string>Never show</string>
+	<key>Next card or chip</key>
+	<string>Next card or chip</string>
+	<key>No excluded apps added.</key>
+	<string>No excluded apps added.</string>
+	<key>No matches</key>
+	<string>No matches</string>
+	<key>No sensitive apps added.</key>
+	<string>No sensitive apps added.</string>
+	<key>No supported toolbar detected. Other sharing or recording may still be active.</key>
+	<string>No supported toolbar detected. Other sharing or recording may still be active.</string>
+	<key>Normal mode</key>
+	<string>Normal mode</string>
+	<key>Nothing selected</key>
+	<string>Nothing selected</string>
+	<key>One or two characters — a two-character binding like gg runs on the double tap. Esc, Tab, / and 1–9 are fixed.</key>
+	<string>One or two characters — a two-character binding like gg runs on the double tap. Esc, Tab, / and 1–9 are fixed.</string>
+	<key>Online content</key>
+	<string>Online content</string>
+	<key>Open Link</key>
+	<string>Open Link</string>
+	<key>Open Pasteboard Settings</key>
+	<string>Open Pasteboard Settings</string>
+	<key>Open history from the menu bar</key>
+	<string>Open history from the menu bar</string>
+	<key>Open the selected link</key>
+	<string>Open the selected link</string>
+	<key>Paste actions stay silent. Automatic sounds are muted during Privacy Mode; sensitive and excluded copies stay silent.</key>
+	<string>Paste actions stay silent. Automatic sounds are muted during Privacy Mode; sensitive and excluded copies stay silent.</string>
+	<key>Paste as Plain Text</key>
+	<string>Paste as Plain Text</string>
+	<key>Paste as plain text</key>
+	<string>Paste as plain text</string>
+	<key>Paste as…</key>
+	<string>Paste as…</string>
+	<key>Paste next from the stack</key>
+	<string>Paste next from the stack</string>
+	<key>Paste stack position %lld</key>
+	<string>Paste stack position %lld</string>
+	<key>Paste stack — pop with the global shortcut</key>
+	<string>Paste stack — pop with the global shortcut</string>
+	<key>Paste the selection</key>
+	<string>Paste the selection</string>
+	<key>Paste to previous app</key>
+	<string>Paste to previous app</string>
+	<key>Pasting needs Accessibility permission. Without it, use Command-V after copying.</key>
+	<string>Pasting needs Accessibility permission. Without it, use Command-V after copying.</string>
+	<key>Pause Capture</key>
+	<string>Pause Capture</string>
+	<key>Pause over a card to preview it without clicking.</key>
+	<string>Pause over a card to preview it without clicking.</string>
+	<key>Pin</key>
+	<string>Pin</string>
+	<key>Pin / unpin the selection</key>
+	<string>Pin / unpin the selection</string>
+	<key>Pin what you always need</key>
+	<string>Pin what you always need</string>
+	<key>Pin, delete and stack actions apply to the newest format.</key>
+	<string>Pin, delete and stack actions apply to the newest format.</string>
+	<key>Pinned</key>
+	<string>Pinned</string>
+	<key>Pinned card</key>
+	<string>Pinned card</string>
+	<key>Pinned cards survive Clear and retention, and one chip shows only them.</key>
+	<string>Pinned cards survive Clear and retention, and one chip shows only them.</string>
+	<key>Pinned items are never expired or evicted.</key>
+	<string>Pinned items are never expired or evicted.</string>
+	<key>Pinned items, filter</key>
+	<string>Pinned items, filter</string>
+	<key>Play a sound when a new copy is recorded</key>
+	<string>Play a sound when a new copy is recorded</string>
+	<key>Play a sound when copying from history</key>
+	<string>Play a sound when copying from history</string>
+	<key>Press %@</key>
+	<string>Press %@</string>
+	<key>Press %@ to search</key>
+	<string>Press %@ to search</string>
+	<key>Preview</key>
+	<string>Preview</string>
+	<key>Preview sound</key>
+	<string>Preview sound</string>
+	<key>Preview the selection</key>
+	<string>Preview the selection</string>
+	<key>Previous card or chip</key>
+	<string>Previous card or chip</string>
+	<key>Privacy</key>
+	<string>Privacy</string>
+	<key>Privacy Mode is on (manual)</key>
+	<string>Privacy Mode is on (manual)</string>
+	<key>Quit WhiskyMac</key>
+	<string>Quit WhiskyMac</string>
+	<key>Remove</key>
+	<string>Remove</string>
+	<key>Remove from Paste Stack</key>
+	<string>Remove from Paste Stack</string>
+	<key>Reset</key>
+	<string>Reset</string>
+	<key>Reset keyboard shortcuts</key>
+	<string>Reset keyboard shortcuts</string>
+	<key>Reset keyboard shortcuts?</key>
+	<string>Reset keyboard shortcuts?</string>
+	<key>Reset to default</key>
+	<string>Reset to default</string>
+	<key>Resets all keyboard shortcuts and Vim bindings.</key>
+	<string>Resets all keyboard shortcuts and Vim bindings.</string>
+	<key>Reset…</key>
+	<string>Reset…</string>
+	<key>Restore Defaults</key>
+	<string>Restore Defaults</string>
+	<key>Resume Capture</key>
+	<string>Resume Capture</string>
+	<key>Return saves, Shift-Return breaks the line, Escape cancels.</key>
+	<string>Return saves, Shift-Return breaks the line, Escape cancels.</string>
+	<key>Reveal in Finder</key>
+	<string>Reveal in Finder</string>
+	<key>Reveal the selected files in Finder</key>
+	<string>Reveal the selected files in Finder</string>
+	<key>Rich text</key>
+	<string>Rich text</string>
+	<key>Right click</key>
+	<string>Right click</string>
+	<key>Right-click always opens the menu. Follow windows shows the Dock icon for Settings and welcome windows only.</key>
+	<string>Right-click always opens the menu. Follow windows shows the Dock icon for Settings and welcome windows only.</string>
+	<key>SEARCH</key>
+	<string>SEARCH</string>
+	<key>Save</key>
+	<string>Save</string>
+	<key>Save As…</key>
+	<string>Save As…</string>
+	<key>Save the selection as a file</key>
+	<string>Save the selection as a file</string>
+	<key>Screen privacy</key>
+	<string>Screen privacy</string>
+	<key>Search</key>
+	<string>Search</string>
+	<key>Search clipboard history</key>
+	<string>Search clipboard history</string>
+	<key>Search mode</key>
+	<string>Search mode</string>
+	<key>Selected</key>
+	<string>Selected</string>
+	<key>Selected apps are ignored by default. Optional sessions expire after 2 minutes and reveal for 10 seconds. Rich text is previewed as plain text; images can only be copied. No search, editing, disk history or preview cache. Source attribution is best effort. Explicit no-record markers and excluded apps always win. Existing history is not reclassified.</key>
+	<string>Selected apps are ignored by default. Optional sessions expire after 2 minutes and reveal for 10 seconds. Rich text is previewed as plain text; images can only be copied. No search, editing, disk history or preview cache. Source attribution is best effort. Explicit no-record markers and excluded apps always win. Existing history is not reclassified.</string>
+	<key>Sensitive apps</key>
+	<string>Sensitive apps</string>
+	<key>Sensitive session</key>
+	<string>Sensitive session</string>
+	<key>Sensitive session actions</key>
+	<string>Sensitive session actions</string>
+	<key>Set up shortcuts for quick access and keyboard navigation.</key>
+	<string>Set up shortcuts for quick access and keyboard navigation.</string>
+	<key>Settings</key>
+	<string>Settings</string>
+	<key>Settings layout</key>
+	<string>Settings layout</string>
+	<key>Settings navigation</key>
+	<string>Settings navigation</string>
+	<key>Settings…</key>
+	<string>Settings…</string>
+	<key>Sharing toolbar detected. Content is hidden.</key>
+	<string>Sharing toolbar detected. Content is hidden.</string>
+	<key>Shortcuts</key>
+	<string>Shortcuts</string>
+	<key>Show / hide the panel</key>
+	<string>Show / hide the panel</string>
+	<key>Show History</key>
+	<string>Show History</string>
+	<key>Show History (%@)</key>
+	<string>Show History (%@)</string>
+	<key>Show clipboard cards</key>
+	<string>Show clipboard cards</string>
+	<key>Show fewer formats</key>
+	<string>Show fewer formats</string>
+	<key>Show for 10 seconds</key>
+	<string>Show for 10 seconds</string>
+	<key>Show menu</key>
+	<string>Show menu</string>
+	<key>Show source apps in Privacy Mode</key>
+	<string>Show source apps in Privacy Mode</string>
+	<key>Sidebar tabs</key>
+	<string>Sidebar tabs</string>
+	<key>Single click</key>
+	<string>Single click</string>
+	<key>Single line</key>
+	<string>Single line</string>
+	<key>Small</key>
+	<string>Small</string>
+	<key>Sound volume</key>
+	<string>Sound volume</string>
+	<key>Start a search</key>
+	<string>Start a search</string>
+	<key>Startup</key>
+	<string>Startup</string>
+	<key>Switch filter group</key>
+	<string>Switch filter group</string>
+	<key>The accent color also highlights the selected clipboard card.</key>
+	<string>The accent color also highlights the selected clipboard card.</string>
+	<key>The panel opens with letters as commands: %@ to search, %@ to move, %@ to paste, %@ to preview, %@ to close.</key>
+	<string>The panel opens with letters as commands: %@ to search, %@ to move, %@ to paste, %@ to preview, %@ to close.</string>
+	<key>The rich text could not be saved.</key>
+	<string>The rich text could not be saved.</string>
+	<key>This global shortcut could not be registered. Choose another binding.</key>
+	<string>This global shortcut could not be registered. Choose another binding.</string>
+	<key>This shortcut is used by another action</key>
+	<string>This shortcut is used by another action</string>
+	<key>Toggle manual Privacy Mode</key>
+	<string>Toggle manual Privacy Mode</string>
+	<key>Toggle the selection in the paste stack</key>
+	<string>Toggle the selection in the paste stack</string>
+	<key>Top tabs</key>
+	<string>Top tabs</string>
+	<key>Trimmed</key>
+	<string>Trimmed</string>
+	<key>Turn off manual protection</key>
+	<string>Turn off manual protection</string>
+	<key>Turn on manual protection</key>
+	<string>Turn on manual protection</string>
+	<key>Two actions share the same shortcut.</key>
+	<string>Two actions share the same shortcut.</string>
+	<key>Type shortcut…</key>
+	<string>Type shortcut…</string>
+	<key>URL-decoded</key>
+	<string>URL-decoded</string>
+	<key>URL-encoded</key>
+	<string>URL-encoded</string>
+	<key>Undo Last Change</key>
+	<string>Undo Last Change</string>
+	<key>Undo the last deletion or edit</key>
+	<string>Undo the last deletion or edit</string>
+	<key>Unknown</key>
+	<string>Unknown</string>
+	<key>Unlimited</key>
+	<string>Unlimited</string>
+	<key>Unpin</key>
+	<string>Unpin</string>
+	<key>Update Available (v%@)…</key>
+	<string>Update Available (v%@)…</string>
+	<key>Uppercase</key>
+	<string>Uppercase</string>
+	<key>Use sidebar navigation</key>
+	<string>Use sidebar navigation</string>
+	<key>Use top navigation</key>
+	<string>Use top navigation</string>
+	<key>Uses the configured card action</key>
+	<string>Uses the configured card action</string>
+	<key>Vim Keybindings</key>
+	<string>Vim Keybindings</string>
+	<key>Vim navigation in the panel</key>
+	<string>Vim navigation in the panel</string>
+	<key>Visible during protection</key>
+	<string>Visible during protection</string>
+	<key>Waiting for a stable end. Content remains hidden.</key>
+	<string>Waiting for a stable end. Content remains hidden.</string>
+	<key>Welcome</key>
+	<string>Welcome</string>
+	<key>Welcome to WhiskyMac</key>
+	<string>Welcome to WhiskyMac</string>
+	<key>WhiskyMac Settings</key>
+	<string>WhiskyMac Settings</string>
+	<key>WhiskyMac is not allowed to read the clipboard.</key>
+	<string>WhiskyMac is not allowed to read the clipboard.</string>
+	<key>WhiskyMac needs your permission to read what you copy.</key>
+	<string>WhiskyMac needs your permission to read what you copy.</string>
+	<key>Without accents</key>
+	<string>Without accents</string>
+	<key>Your clipboard, remembered.</key>
+	<string>Your clipboard, remembered.</string>
+	<key>code</key>
+	<string>code</string>
+	<key>color</key>
+	<string>color</string>
+	<key>files</key>
+	<string>files</string>
+	<key>global</key>
+	<string>global</string>
+	<key>image</key>
+	<string>image</string>
+	<key>key %lld</key>
+	<string>key %lld</string>
+	<key>link</key>
+	<string>link</string>
+	<key>macOS asks before an app reads the clipboard. Click Allow Clipboard Access, choose Allow Paste, then set WhiskyMac to Allow under Paste from Other Apps.</key>
+	<string>macOS asks before an app reads the clipboard. Click Allow Clipboard Access, choose Allow Paste, then set WhiskyMac to Allow under Paste from Other Apps.</string>
+	<key>now</key>
+	<string>now</string>
+	<key>text</key>
+	<string>text</string>
+	<key>⌘1…⌘9 paste the matching card directly.</key>
+	<string>⌘1…⌘9 paste the matching card directly.</string>
+</dict>
+</plist>

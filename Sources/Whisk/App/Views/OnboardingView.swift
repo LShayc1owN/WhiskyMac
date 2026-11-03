@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import AppKit
 import SwiftUI
 
@@ -7,6 +12,7 @@ import SwiftUI
 /// system asks for it the first time a card is pasted.
 struct OnboardingView: View {
     let toggleShortcut: String
+    let shortcutEnabled: Bool
     var clipboardAccess: PasteboardAccess = .granted
     var onAllowClipboard: () -> Void = {}
     let onContinue: () -> Void
@@ -18,7 +24,7 @@ struct OnboardingView: View {
                     .resizable()
                     .frame(width: 48, height: 48)
                 VStack(alignment: .leading) {
-                    Text(localized("Welcome to Whisk"))
+                    Text(localized("Welcome to WhiskyMac"))
                         .font(.title2.weight(.semibold))
                     Text(localized("Your clipboard, remembered."))
                         .foregroundStyle(.secondary)
@@ -27,9 +33,13 @@ struct OnboardingView: View {
 
             step(
                 symbol: "keyboard",
-                title: String(format: localized("Press %@"), toggleShortcut),
-                text: localized(
-                    "A panel slides up with everything you copied — search it, filter it, arrow through it.")
+                title: shortcutEnabled
+                    ? String(format: localized("Press %@"), toggleShortcut)
+                    : localized("Open history from the menu bar"),
+                text: shortcutEnabled
+                    ? localized(
+                        "A panel slides up with everything you copied — search it, filter it, arrow through it.")
+                    : localized("Enable the global shortcut in Settings whenever you want it.")
             )
             step(
                 symbol: "hand.raised",
@@ -47,9 +57,9 @@ struct OnboardingView: View {
             } else {
                 step(
                     symbol: "hand.raised",
-                    title: localized("Let Whisk read what you copy"),
+                    title: localized("Let WhiskyMac read what you copy"),
                     text: localized(
-                        "macOS asks before an app reads the clipboard. Click Allow Clipboard Access, choose Allow Paste, then set Whisk to Allow under Paste from Other Apps."
+                        "macOS asks before an app reads the clipboard. Click Allow Clipboard Access, choose Allow Paste, then set WhiskyMac to Allow under Paste from Other Apps."
                     )
                 )
             }

@@ -95,3 +95,7 @@ The Support URL now points to a dedicated support page, https://nathan-poncet.gi
 Thank you,
 Nathan Poncet
 ```
+# Historical upstream material
+
+The replies below concern Nathan Poncet's Whisk submissions. They are not
+WhiskyMac submission history or reusable statements about its review status.

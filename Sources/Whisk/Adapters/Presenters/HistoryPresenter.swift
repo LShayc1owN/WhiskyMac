@@ -1,11 +1,17 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import Foundation
 
-/// The pinned filter leads the chip row as its own group — it is neither
-/// an application nor a content category.
+/// Stable identities for the row-wide reset and pinned filters.
 let pinnedChipID = "pinned"
+let allFiltersChipID = "all-filters"
 
-/// The three groups of the chip row, in display order.
+/// The groups of the chip row, in display order.
 enum ChipGroup: Equatable {
+    case all
     case pinned
     case apps
     case kinds
@@ -16,12 +22,14 @@ enum ChipGroup: Equatable {
 /// renders it, so an index can never land on a chip other than the one
 /// drawn.
 enum ChipEntry: Equatable {
+    case all
     case pinned
     case app(SourceApp)
     case category(ContentCategory)
 
     var id: String {
         switch self {
+        case .all: allFiltersChipID
         case .pinned: pinnedChipID
         case .app(let source): source.filterKey
         case .category(let category): category.rawValue
@@ -30,16 +38,19 @@ enum ChipEntry: Equatable {
 
     var group: ChipGroup {
         switch self {
+        case .all: .all
         case .pinned: .pinned
         case .app: .apps
         case .category: .kinds
         }
     }
 
-    /// The pinned toggle first, then one chip per source application,
+    /// All first, then pinned and one chip per source application,
     /// then one per content category.
     static func row(hasPinned: Bool, sources: [SourceApp], categories: [ContentCategory]) -> [ChipEntry] {
-        (hasPinned ? [ChipEntry.pinned] : []) + sources.map(ChipEntry.app) + categories.map(ChipEntry.category)
+        let entries =
+            (hasPinned ? [ChipEntry.pinned] : []) + sources.map(ChipEntry.app) + categories.map(ChipEntry.category)
+        return entries.isEmpty ? [] : [.all] + entries
     }
 }
 
@@ -93,6 +104,8 @@ final class HistoryPresenter {
 
     init() {}
 
+    func invalidateLocalizedLabels() { timeCache = [:] }
+
     /// How many previews are held back, for the tests that watch the purge.
     var cachedPreviewCount: Int {
         previewCache.count
@@ -111,16 +124,15 @@ final class HistoryPresenter {
         let accessPrompt = Self.accessPrompt(for: clipboardAccess)
         let words = ParsedQuery(query).words
         return HistoryViewState(
-            cards: items.map {
-                card(
-                    for: $0,
-                    now: now,
-                    isSelected: $0.id == selectedID,
-                    stackPosition: stack.firstIndex(of: $0.id).map { $0 + 1 },
-                    words: words
-                )
+            cards: RichTextGroups.groups(items).map { group in
+                let item = group[0]
+                var result = card(
+                    for: item, now: now, isSelected: group.contains { $0.id == selectedID },
+                    stackPosition: stack.firstIndex(of: item.id).map { $0 + 1 }, words: words)
+                result.variantIDs = group.map(\.id)
+                return result
             },
-            countLabel: countLabel(items.count),
+            countLabel: countLabel(RichTextGroups.groups(items).count),
             query: query,
             selectedID: selectedID,
             stackCount: stack.count,
@@ -140,11 +152,11 @@ final class HistoryPresenter {
             nil
         case .requiresConsent:
             AccessPromptViewState(
-                message: localized("Whisk needs your permission to read what you copy."),
+                message: localized("WhiskyMac needs your permission to read what you copy."),
                 buttonTitle: localized("Allow Clipboard Access"))
         case .denied:
             AccessPromptViewState(
-                message: localized("Whisk is not allowed to read the clipboard."),
+                message: localized("WhiskyMac is not allowed to read the clipboard."),
                 buttonTitle: localized("Open Pasteboard Settings"))
         }
     }
@@ -158,11 +170,17 @@ final class HistoryPresenter {
         return narrowed ? localized("No matches") : localized("Copy something to get started")
     }
 
+    static func sourceLabel(_ source: SourceApp?) -> String? {
+        guard let source else { return nil }
+        if source.origin == .handoffMarker { return localized("Handoff (system marker)") }
+        return source.name ?? source.bundleID
+    }
+
     private func card(
         for item: ClipboardItem, now: Date, isSelected: Bool, stackPosition: Int?, words: [String]
     ) -> CardViewState {
         let kind = Self.kindLabel(item.category)
-        let source = item.source?.name ?? item.source?.bundleID ?? kind.capitalized
+        let source = Self.sourceLabel(item.source) ?? kind.capitalized
         let time = timeLabel(for: item, now: now)
         let cardPreview = preview(for: item)
         return CardViewState(
@@ -362,12 +380,21 @@ final class HistoryPresenter {
 
     // The row arrives already ordered; each entry lands in its group.
     private func filterBar(from context: FilterContext) -> FilterBarViewState {
+        var all: [FilterChip] = []
         var pinned: [FilterChip] = []
         var apps: [FilterChip] = []
         var kinds: [FilterChip] = []
         for entry in context.chips {
             let isFocused = entry.id == context.focusedChipID
             switch entry {
+            case .all:
+                all.append(
+                    FilterChip(
+                        id: entry.id, label: localized("All"), sourceBundleID: nil,
+                        icon: .symbol("square.grid.2x2"), accessibilityLabel: localized("All items, clear filters"),
+                        isActive: context.activeSourceKeys.isEmpty && context.activeCategories.isEmpty
+                            && !context.pinnedOnly,
+                        isFocused: isFocused))
             case .pinned:
                 pinned.append(
                     FilterChip(
@@ -381,7 +408,7 @@ final class HistoryPresenter {
                     )
                 )
             case .app(let source):
-                let label = source.name ?? source.bundleID ?? localized("Unknown")
+                let label = Self.sourceLabel(source) ?? localized("Unknown")
                 apps.append(
                     FilterChip(
                         id: entry.id,
@@ -407,7 +434,7 @@ final class HistoryPresenter {
                 )
             }
         }
-        return FilterBarViewState(pinned: pinned, apps: apps, kinds: kinds)
+        return FilterBarViewState(all: all, pinned: pinned, apps: apps, kinds: kinds)
     }
 
     /// Sub-minute labels would churn every second and force every card to

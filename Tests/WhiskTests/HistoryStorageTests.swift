@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import Foundation
 import SQLite3
 import Testing
@@ -26,19 +31,21 @@ import Testing
         #expect(try silently(directory).load() == [item])
     }
 
-    @Test func the_default_directory_is_whisk_under_application_support() throws {
+    @Test func the_default_directory_is_may_under_application_support() throws {
         let directory = try HistoryStorage.defaultDirectory(environment: [:])
 
-        #expect(directory.lastPathComponent == "Whisk")
+        #expect(directory.lastPathComponent == AppIdentity.dataDirectoryName)
         #expect(directory.deletingLastPathComponent().lastPathComponent == "Application Support")
     }
 
     @Test func the_environment_can_point_the_data_directory_elsewhere() throws {
-        let elsewhere = try HistoryStorage.defaultDirectory(environment: ["WHISK_DATA_DIR": "/tmp/whisk-under-test"])
-        let blank = try HistoryStorage.defaultDirectory(environment: ["WHISK_DATA_DIR": ""])
+        let elsewhere = try HistoryStorage.defaultDirectory(environment: ["WHISK_MAY_DATA_DIR": "/tmp/may-under-test"])
+        let blank = try HistoryStorage.defaultDirectory(environment: ["WHISK_MAY_DATA_DIR": ""])
+        let oldOverride = try HistoryStorage.defaultDirectory(environment: ["WHISK_DATA_DIR": "/tmp/original-whisk"])
 
-        #expect(elsewhere.path == "/tmp/whisk-under-test")
-        #expect(blank.lastPathComponent == "Whisk")
+        #expect(elsewhere.path == "/tmp/may-under-test")
+        #expect(blank.lastPathComponent == AppIdentity.dataDirectoryName)
+        #expect(oldOverride == blank)
     }
 
     @Test func a_legacy_import_that_cannot_be_retired_is_logged_and_the_index_stays() throws {

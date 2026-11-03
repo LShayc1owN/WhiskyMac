@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import CoreGraphics
 
 /// The Settings window is never resized by hand, so its size is decided
@@ -5,7 +10,7 @@ import CoreGraphics
 /// where the screen has room, what the screen leaves otherwise — the
 /// grouped form scrolls.
 enum SettingsWindowSize {
-    static let width: CGFloat = 560
+    static let width: CGFloat = 840
     static let height: CGFloat = 720
     /// Below this the form would show little more than one section.
     static let minimumHeight: CGFloat = 360

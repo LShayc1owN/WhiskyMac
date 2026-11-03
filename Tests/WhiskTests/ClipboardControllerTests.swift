@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import Foundation
 import Testing
 @testable import Whisk
@@ -21,7 +26,7 @@ import Testing
 
         #expect(spy.last.cards.first?.preview == .text("fresh"))
         #expect(spy.last.cards.first?.sourceLabel == "Safari")
-        #expect(spy.last.countLabel == "1 item")
+        #expect(spy.last.countLabel == localized("\(1) items"))
     }
 
     @Test func a_poll_tick_presents_the_access_prompt_while_the_system_would_ask_at_every_read() {
@@ -37,7 +42,7 @@ import Testing
 
         #expect(spy.last.cards.isEmpty)
         #expect(spy.last.emptyMessage == nil)
-        #expect(spy.last.accessPrompt?.buttonTitle == "Allow Clipboard Access")
+        #expect(spy.last.accessPrompt?.buttonTitle == localized("Allow Clipboard Access"))
     }
 
     @Test func access_granted_in_system_settings_clears_the_prompt_on_the_next_tick() {
@@ -48,13 +53,13 @@ import Testing
             pasteboard: pasteboard, store: InMemoryHistoryStore(), clock: FakeClock(), present: spy.record
         )
         controller.pollTick()
-        #expect(spy.last.accessPrompt?.buttonTitle == "Open Pasteboard Settings")
+        #expect(spy.last.accessPrompt?.buttonTitle == localized("Open Pasteboard Settings"))
 
         pasteboard.access = .granted
         controller.pollTick()
 
         #expect(spy.last.accessPrompt == nil)
-        #expect(spy.last.emptyMessage == "Copy something to get started")
+        #expect(spy.last.emptyMessage == localized("Copy something to get started"))
     }
 
     @Test func requesting_access_asks_the_pasteboard_once_and_re_presents() {
@@ -190,7 +195,7 @@ import Testing
 
         controller.navigate(.up)
         #expect(spy.last.cards.map(\.isSelected) == [false, false])
-        #expect(spy.last.filters.apps.map(\.isFocused).contains(true))
+        #expect(spy.last.filters.all.first?.isFocused == true)
 
         controller.navigate(.down)
         #expect(spy.last.cards.map(\.isSelected) == [true, false])
@@ -315,7 +320,7 @@ import Testing
         )
 
         #expect(spy.last.cards.count == 70)
-        #expect(spy.last.countLabel == "70 items")
+        #expect(spy.last.countLabel == localized("\(70) items"))
 
         // Free words AND together: "item" and "7" both have to match.
         controller.search("item 7")
@@ -336,6 +341,8 @@ import Testing
         #expect(spy.last.filters.focusedChipID == nil)
 
         controller.navigate(.up)
+        #expect(spy.last.filters.all.first?.isFocused == true)
+        controller.navigate(.right)
         #expect(spy.last.filters.apps.map(\.isFocused) == [true, false])
 
         controller.navigate(.right)
@@ -363,13 +370,13 @@ import Testing
         )
 
         controller.switchChipGroup()
+        #expect(spy.last.filters.all.first?.isFocused == true)
+        controller.switchChipGroup()
         #expect(spy.last.filters.apps.map(\.isFocused) == [true, false])
-
         controller.switchChipGroup()
         #expect(spy.last.filters.kinds.first?.isFocused == true)
-
         controller.switchChipGroup()
-        #expect(spy.last.filters.apps.map(\.isFocused) == [true, false])
+        #expect(spy.last.filters.all.first?.isFocused == true)
     }
 
     @Test func hovering_a_chip_moves_the_shared_keyboard_focus() {
@@ -550,7 +557,7 @@ import Testing
         #expect(controller.activate(at: 9) == false)
     }
 
-    @Test func the_pinned_chip_leads_the_row_and_filters_the_rail() {
+    @Test func the_pinned_chip_follows_all_and_filters_the_rail() {
         let store = InMemoryHistoryStore()
         store.stored = [anItem(.text("loose")), anItem(.text("kept"), pinned: true)]
         let spy = StateSpy()
@@ -559,9 +566,10 @@ import Testing
         )
         #expect(spy.last.filters.pinned.map(\.id) == ["pinned"])
 
-        // Arrowing up lands on the pinned chip: it is the first of the row,
-        // before the applications.
+        // All leads the row, then pinned, then applications.
         controller.navigate(.up)
+        #expect(spy.last.filters.all.first?.isFocused == true)
+        controller.navigate(.right)
         #expect(spy.last.filters.pinned.first?.isFocused == true)
         #expect(spy.last.filters.apps.allSatisfy { !$0.isFocused })
 
@@ -625,7 +633,7 @@ import Testing
         #expect(spy.last.filters.kinds.last?.isFocused == true)
 
         controller.jumpSelection(to: .start)
-        #expect(spy.last.filters.apps.first?.isFocused == true)
+        #expect(spy.last.filters.all.first?.isFocused == true)
     }
 
     @Test func activating_a_focused_app_chip_toggles_that_application_filter() {

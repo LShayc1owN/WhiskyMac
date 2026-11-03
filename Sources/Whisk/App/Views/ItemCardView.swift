@@ -1,3 +1,8 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
 import ImageIO
 import SwiftUI
 
@@ -13,9 +18,30 @@ struct ItemCardView: View, Equatable {
     var showsSelection = true
     /// The card's side before the selection zoom; Settings offers three.
     var side: CGFloat = 200
+    var interactions = InteractionBindings()
+    var canExport: () -> Bool = { true }
+    var onInteraction: ((CardAction) -> Void)? = nil
+    var onHoverPreview: (() -> Void)? = nil
+    var onHoverChanged: ((Bool) -> Void)? = nil
+    @State private var showingMenu = false
+    @State private var hoverTask: Task<Void, Never>?
+
+    private func perform(_ action: CardAction) {
+        guard canExport() else { return }
+        if action == .menu {
+            showingMenu = true
+        } else if let onInteraction {
+            showingMenu = false; onInteraction(action)
+        } else if action == .paste {
+            actions.select(card.id)
+        } else if action == .copy {
+            actions.copy(card.id)
+        }
+    }
 
     static func == (lhs: ItemCardView, rhs: ItemCardView) -> Bool {
         lhs.card == rhs.card && lhs.showsSelection == rhs.showsSelection && lhs.side == rhs.side
+            && lhs.interactions == rhs.interactions
     }
 
     @Environment(\.colorScheme) private var scheme
@@ -63,10 +89,40 @@ struct ItemCardView: View, Equatable {
         .contentShape(Rectangle())
         .grabPointer()
         .onDrag {
+            guard canExport(), card.variantIDs.count <= 1 else { return NSItemProvider() }
             actions.dragBegan()
             return Self.dragProvider(for: card.dragPayload)
         }
-        .onTapGesture { actions.select(card.id) }
+        .gesture(
+            TapGesture(count: 2).exclusively(before: TapGesture(count: 1)).onEnded { value in
+                switch value {
+                case .first: perform(interactions.doubleClick)
+                case .second: perform(interactions.singleClick)
+                }
+            }
+        )
+        .background(CardRightClick { perform(interactions.rightClick) })
+        .onHover { inside in
+            onHoverChanged?(inside)
+            hoverTask?.cancel()
+            if inside, interactions.hover == .preview {
+                hoverTask = Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(interactions.hoverDelay))
+                    guard !Task.isCancelled else { return }
+                    if let onHoverPreview { onHoverPreview() } else { perform(.preview) }
+                }
+            }
+        }
+        .onAppear { Self.prewarm([card]) }
+        .onChange(of: interactions) { _, _ in hoverTask?.cancel() }
+        .onDisappear {
+            hoverTask?.cancel()
+            onHoverChanged?(false)
+        }
+        .popover(isPresented: $showingMenu) {
+            VStack(alignment: .leading, spacing: 10) { contextMenu }.padding()
+                .background(CardActionPopoverLayer())
+        }
         // Continuous, not enter/exit: after a keyboard scroll parks a card
         // under the pointer, the very first real movement inside it must
         // reclaim the selection — without crossing a card edge first.
@@ -75,16 +131,17 @@ struct ItemCardView: View, Equatable {
                 actions.highlight(card.id)
             }
         }
-        .contextMenu { contextMenu }
+
         // One VoiceOver element per card: the presenter's label and value
         // say it all, the icons and texts inside are decorative.
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(card.accessibilityLabel)
         .accessibilityValue(card.accessibilityValue)
-        .accessibilityHint(localized("Pastes this card"))
+        .accessibilityHint(localized("Uses the configured card action"))
         .accessibilityAddTraits(card.isSelected && showsSelection ? [.isButton, .isSelected] : [.isButton])
-        .accessibilityAction(.default) { actions.select(card.id) }
-        .accessibilityAction(named: Text(localized("Copy"))) { actions.copy(card.id) }
+        .accessibilityAction(.default) { perform(interactions.singleClick) }
+        .accessibilityAction(named: Text(localized("Actions"))) { perform(.menu) }
+        .accessibilityAction(named: Text(localized("Copy"))) { perform(.copy) }
         .accessibilityAction(named: Text(card.isPinned ? localized("Unpin") : localized("Pin"))) {
             actions.togglePin(card.id)
         }
@@ -94,7 +151,12 @@ struct ItemCardView: View, Equatable {
     /// Everything the card can do, in the order a hand reads it: put it
     /// somewhere, act on what it holds, keep it, take it away.
     @ViewBuilder private var contextMenu: some View {
-        Button(localized("Copy")) { actions.copy(card.id) }
+        if card.variantIDs.count > 1 {
+            Text(localized("Pin, delete and stack actions apply to the newest format."))
+                .font(.caption).foregroundStyle(.secondary)
+        }
+        Button(localized("Preview")) { perform(.preview) }
+        Button(localized("Copy")) { perform(.copy) }
         Button(localized("Paste as Plain Text")) { actions.selectPlain(card.id) }
         if card.transformable {
             Menu(localized("Paste as…")) {
@@ -115,7 +177,7 @@ struct ItemCardView: View, Equatable {
         }
         Divider()
         if card.transformable {
-            Button(localized("Edit…")) { actions.beginEditing(card) }
+            Button(localized("Edit…")) { perform(.edit) }
         }
         Button(card.isPinned ? localized("Unpin") : localized("Pin")) { actions.togglePin(card.id) }
         Button(card.stackPosition == nil ? localized("Add to Paste Stack") : localized("Remove from Paste Stack")) {
@@ -156,7 +218,22 @@ struct ItemCardView: View, Equatable {
             Text(card.sourceLabel)
                 .font(.system(size: 13, weight: .semibold))
                 .lineLimit(1)
+                .help(
+                    card.sourceKey == "origin:handoff-marker"
+                        ? localized("A Handoff marker was observed. The device and source app are unknown.")
+                        : localized("Application observed on this Mac at capture time; source is not verified."))
             Spacer()
+            if card.variantIDs.count > 1 {
+                Text("\(card.variantIDs.count)").font(.caption.monospacedDigit())
+            }
+            Menu {
+                contextMenu
+            } label: {
+                Image(systemName: "ellipsis.circle")
+            }
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+            .help(localized("Actions"))
             if let position = card.stackPosition {
                 HStack(spacing: 3) {
                     Image(systemName: "square.stack.3d.up.fill")
@@ -261,6 +338,7 @@ struct ItemCardView: View, Equatable {
         .font(.caption2)
         .foregroundStyle(.secondary)
         .lineLimit(1)
+        .minimumScaleFactor(0.75)
         .padding(.horizontal, 14)
         .padding(.top, 8)
         .padding(.bottom, 12)

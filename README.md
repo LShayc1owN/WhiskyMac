@@ -1,247 +1,105 @@
-# Whisk
+# WhiskyMac
 
-An open-source clipboard manager for macOS, inspired by
-[Paste](https://pasteapp.io/). A menu bar app that remembers everything you
-copy — text, links, images, files, colors — and brings it back through a
-Paste-style panel at the bottom of your screen.
+[English](README.md) | [简体中文](README.zh-CN.md)
 
-**Website: [nathan-poncet.github.io/whisk](https://nathan-poncet.github.io/whisk/)**
+Repository: [lshayc1own/WhiskyMac](https://github.com/lshayc1own/WhiskyMac).
+This checkout is being prepared for a private development repository; public
+binary distribution has not been configured.
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/S3V726AT7H)
+WhiskyMac is a clipboard manager for macOS, developed from
+[Whisk v1.0.3](https://github.com/nathan-poncet/whisk/tree/1ebcee1e0735e957777c599017ee411d8046c7e7)
+by Nathan Poncet and contributors. Upstream base:
+`1ebcee1e0735e957777c599017ee411d8046c7e7`.
 
-https://github.com/user-attachments/assets/25bc53ce-697b-4259-a951-a1324fcc205d
-
-*Whisk in 30 seconds — clipboard history, search, paste stack, preview, and drag & drop. 1080p with sound.*
-
-Built in Swift/SwiftUI following Clean Architecture: a pure, synchronous
-kernel behind ports, adapters at the edges, and a composition root that wires
-them together. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-([français](docs/fr/ARCHITECTURE.md)).
+This is an independent modified version maintained by **LinShay (琳曦)**.
+It is not an official Whisk release and does not imply upstream endorsement.
+Modifications are documented as of **2026-11-03**.
 
 ## Features
 
-- **Clipboard history** — every copy is captured and persisted locally,
-  newest first, deduplicated.
-- **Liquid Glass panel** — `⇧⌘V` opens a floating glass panel on the
-  screen where your pointer is (the macOS 26 look, translucent materials
-  on earlier systems); click a card to copy it
-  back (and paste it directly when Accessibility access is granted). The
-  shortcut follows your keyboard layout — `V` is wherever your layout
-  prints it (Dvorak, AZERTY, Colemak, …), re-resolved live when you switch
-  layouts.
-- **Per-app styling** — each card carries the icon of the application it
-  was copied from and takes its tint from that app's icon. Cards come in
-  three sizes (Settings).
-- **Search** — type to filter instantly by content **or by the app it came
-  from** (`slack invoice` finds "invoice" copied from Slack); operators
-  `app:safari`, `type:link` and `pinned` combine with free text; the
-  matched letters light up on the cards; `Return` selects the first match.
-- **Filters** — a chip bar narrows the rail by source application (one chip
-  per app, with its icon) and by content category (text, code, color, link,
-  image, files); chips combine with each other and with the search query.
-- **Pins** — pin a card (`⌘P` or right-click) and filter to pinned items
-  with one chip; pinned items survive *Clear*, eviction and retention.
-- **Undo** — `⌘Z` brings back what the last deletion, clear or edit took,
-  twenty steps deep within a session.
-- **Paste stack** — queue several cards with `⇧⏎` (press again to
-  unqueue; stacked cards wear a numbered badge showing their rank), then
-  pop them one by one anywhere with `⌥⌘V` (global, rebindable): collect
-  once, paste in order.
-- **Rich text** — formatting (RTF) is captured and pasted back; `⌥⏎`
-  pastes as plain text instead.
-- **Paste as…** — right-click a text or link card to paste it rewritten:
-  upper or lower case, trimmed, on one line, without accents, URL- or
-  base64-encoded or decoded, formatted JSON. The card itself stays as
-  copied.
-- **Quick Look-style preview** — `⌘Y` opens a large preview of the
-  selected card (full text, full-size image, file list).
-- **Drag & drop** — drag any card straight into another application.
-- **Retention** — keep history forever, or auto-expire after 24 hours,
-  7 days or 30 days; capacity is configurable up to unlimited (Settings).
-- **Pause & exclusions** — pause capture from the menu bar; exclude any
-  app permanently in Settings (its copies are never recorded).
-- **Launch at login** — one toggle in Settings; a short welcome window
-  on first run shows the shortcut, and Whisk can check GitHub for new
-  releases at launch (opt-out in Settings).
-- **Rich previews** — copied links show the page's title, favicon and lead
-  image; files show a QuickLook thumbnail; images render inline; hex codes
-  become color swatches.
-- **Syntax highlighting** — text that reads as code is detected and
-  highlighted (keywords, strings, comments, numbers), language-agnostic.
-- **Clipboard access under pasteboard privacy** — where macOS asks before
-  an app reads the clipboard on its own (Privacy & Security → Paste from
-  Other Apps, which recent macOS versions enforce), Whisk asks once, from
-  the welcome window or the panel, and you allow it for good there. Until
-  then nothing is recorded, and the panel says so.
-- **Privacy** — history stays on disk in
-  `~/Library/Application Support/Whisk` (SQLite); password managers marking
-  their content as concealed (`org.nspasteboard.ConcealedType`) are never
-  recorded. Two exceptions to "nothing leaves your machine", each with its
-  switch in Settings: link previews fetch metadata from the copied URL
-  (cached, once per link), and the update check queries the GitHub
-  releases API at launch.
-- **English & French** — the interface follows your system language.
+- Local clipboard history for text, rich text, links, images, files and colors.
+- Search, application/category filters, pins, retention rules and a paste stack.
+- Rich-text version grouping, configurable card interactions and previews.
+- Manual privacy protection, optional sharing detection and temporary sensitive sessions.
+- Configurable appearance, keyboard shortcuts and optional copy sounds.
+- English, French, German and Simplified Chinese interface.
 
-## Requirements
+See [development notes](WHISK_MAY_DEV.md) for implementation details and
+limitations. The software is currently a development build.
 
-- macOS 14 or later to run (Liquid Glass on macOS 26, material fallback
-  before that)
-- The macOS 26 SDK to build (Xcode 26+, or matching Command Line Tools —
-  running the test suite requires Xcode)
+## Build and verify
 
-## Install
+Requires macOS 15 or later and the macOS 26 SDK. Tests and resource generation
+require a full Xcode installation.
 
-**Homebrew** (recommended — installs the prebuilt app into /Applications):
+Run from this checkout:
 
 ```sh
-brew install --cask nathan-poncet/tap/whisk
-```
-
-**Direct download** — grab the latest DMG and drag Whisk into
-Applications:
-
-> [**Download Whisk.dmg (latest)**](https://github.com/nathan-poncet/whisk/releases/latest/download/Whisk.dmg)
-
-## Run it from source
-
-```sh
-git clone https://github.com/nathan-poncet/whisk.git
-cd whisk
 swift run Whisk
-```
-
-To build a proper app bundle (icon, Info.plist, menu-bar-only):
-
-```sh
-./scripts/build-app.sh 0.0.0 native   # → dist/Whisk.app
-```
-
-To try a build beside the Whisk you already run, give it a data
-directory of its own — two instances sharing `history.sqlite` would
-overwrite each other's history — and quit the installed one first, since
-only one of them can hold the global shortcut:
-
-```sh
-open -n dist/Whisk.app --env WHISK_DATA_DIR=/tmp/whisk-test
-```
-
-The clipboard icon appears in the menu bar. Copy a few things, then press
-`⇧⌘V`.
-
-- **Left-click** the menu bar icon (or `⇧⌘V`): toggle the panel.
-- **Right-click** the icon: menu (show, clear, quit).
-- **Arrow keys**: `←`/`→` move within the focused zone — the chip row is
-  one line (apps | categories) and arrows cross the separator; `↑`/`↓`
-  jump between the chip row and the card rail; `⌃⇥` jumps straight to the
-  other chip group. `Return` toggles the focused chip (the panel stays
-  open) or pastes the selected card.
-- **Return**: paste the selected card into the text field that had focus
-  before the panel opened. The panel never steals focus, so the caret is
-  exactly where you left it; the first use prompts for Accessibility
-  access (System Settings → Privacy & Security → Accessibility), and until
-  it is granted the card still lands on the clipboard for a manual `⌘V`.
-- **⌥⏎**: paste as plain text (formatting stripped).
-- **⇧⏎**: toggle the selected card in and out of the paste stack — queued
-  cards show a numbered badge; **⌥⌘V** (global) pops the next stacked card
-  wherever you are typing.
-- **⌘Y**: large preview of the selected card (Finder's Quick Look
-  shortcut); `⌘Y` again or `Esc` closes it.
-- **Click a card**: same as Return, for that card.
-- **⌘1…⌘9**: paste the card at that position directly — the digit you
-  actually type, so shifted-digit layouts (Programmer Dvorak, AZERTY) use
-  `⌘⇧digit`.
-- **⌘P / ⌘⌫**: pin or delete the selected card.
-- **⌘C**: copy the selected card without pasting; **⌘O** opens a link,
-  **⌘R** reveals files in Finder, **⌘S** saves the card as a file;
-  **⌃⌘X** excludes the card's application, **⌃⌘⌫** deletes everything
-  copied from it (pins survive).
-- **`⌘E`**: edit the selected card's text in place; `Return` saves, `⇧⏎`
-  breaks the line, `Esc` cancels. A rewrite that reads as a web address
-  becomes a link again.
-- **`⌘Z`**: undo the last deletion, clear or edit, up to twenty steps
-  back in the session (also in the menu bar menu).
-- **Right-click a card**: everything above, plus paste as plain text and
-  "Paste as…" rewrites, in one menu.
-- **Esc** or click outside: close the panel.
-
-Every shortcut — including the global one — is rebindable: right-click the
-menu bar icon → **Settings…**, then click a shortcut and type a new one.
-
-You can also open `Package.swift` in Xcode and run the `Whisk` scheme.
-
-## Tests
-
-```sh
 swift test
+./scripts/localizations.sh check
+./scripts/build-app.sh 0.0.0 native
 ```
 
-The suites cover history behaviour (dedup, capacity, pins, search),
-controller orchestration, and presenter formatting with deterministic
-fakes — frozen clock, scripted pasteboard, in-memory store, recording
-logger. One parameterized contract suite runs the `HistoryStore` port
-against every gateway (SQLite, in-memory) in temporary directories; the
-storage bootstrap, the legacy JSON import, the pasteboard gateway and the
-string catalogs have suites of their own. Views render off screen in
-every state, key routing runs on synthetic key presses, and no test ever
-shows a window; only the composition root, the global hot key and the
-paste simulation stay outside the suite. `./scripts/coverage.sh` runs
-the tests with coverage and prints the report. The Dependency Rule is
-linted by `./scripts/check-dependency-rule.sh`. CI runs everything on
-every push and archives the coverage report.
+The packaging script creates `dist/WhiskyMac.app` and `dist/WhiskyMac.zip`.
+The internal Swift target and executable remain `Whisk`; this preserves the
+existing module and resource layout. Without a signing identity the app is
+signed ad hoc; this does not establish notarization or App Store eligibility.
 
-## CI & releases
+## Data and privacy
 
-Every push runs the Dependency Rule lint, `swift format lint --strict`,
-the build, and the tests with coverage ([ci.yml](.github/workflows/ci.yml));
-the build fails when line coverage of the testable code drops under 90 %
-(everything but the composition root, the global hot key, the paste
-simulation and the entry point, which no unit test may exercise). Dependabot
-keeps the GitHub Actions (and any future Swift package dependencies) up to
-date and raises security alerts with automated fixes; CodeQL scans the
-Swift code itself on every push and weekly.
+The bundle identifier is `dev.whisky.maclx`. Existing development history stays
+in `~/Library/Application Support/WhiskMay-Dev`; renaming the app does not migrate
+or delete history. `WHISK_MAY_DATA_DIR` overrides this location for isolated tests.
+WhiskyMac does not import the upstream Whisk history automatically.
 
-Pushing a tag `v*` runs [release.yml](.github/workflows/release.yml): it
-tests, builds a universal (arm64 + x86_64) `Whisk.app`, attaches the zip to
-a GitHub release whose notes are the version's section of
-[CHANGELOG.md](CHANGELOG.md), and bumps the Homebrew formula in
-[nathan-poncet/homebrew-tap](https://github.com/nathan-poncet/homebrew-tap)
-(requires a `TAP_GITHUB_TOKEN` repository secret with write access to the
-tap).
+Global shortcuts and link previews start disabled. Link previews, when enabled,
+request metadata from the copied website. Update checks are disabled for this
+development distribution. Direct paste and optional sharing detection can require
+macOS permissions. Privacy protection does not recall content already exported
+to another application.
 
-```sh
-git tag v0.2.0 && git push origin v0.2.0
-```
+## License and attribution
 
-## Status & roadmap
+The software is licensed under **GPL-3.0-or-later**, except separately licensed
+third-party material. Preserve [LICENSE](LICENSE), [NOTICE](NOTICE) and
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
-Whisk covers the daily-driver feature set: history with pins and retention,
-search with operators, filters, keyboard-first navigation with rebindable
-shortcuts, rich previews, paste stack, plain-text paste, drag & drop,
-pause & per-app exclusions, SQLite storage, and an English/French
-interface. Still on the list:
+- Original Whisk: copyright 2026 Nathan Poncet and contributors.
+- WhiskyMac modifications: copyright 2026 LinShay (琳曦), to the extent of rights held.
+- Upstream App Store/TestFlight permission:
+  [original grant](LICENSE-EXCEPTION-APP-STORE.md), retained verbatim.
+- LinShay's permission for authorized WhiskyMac additions:
+  [separate grant](LICENSE-EXCEPTION-WHISKYMAC.md).
 
-- iCloud sync and an iOS/iPadOS companion app
-- Shared pinboards
+The upstream exception expressly includes works based on Whisk. These grants
+address copyright permission for that distribution channel; Apple review,
+signing and rights in third-party material remain separate requirements.
+The Neovim mark is by Jason Long under CC BY 3.0; the bundled Kenney UI Audio
+sounds are by Kenney Vleugels under CC0. See the third-party notices for details.
 
-Contributions welcome — start with [CONTRIBUTING.md](CONTRIBUTING.md) and
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the rules the codebase
-follows.
+When distributing binaries, supply the complete source corresponding to that
+version, including modifications, assets in their preferred editable form and
+necessary build scripts, under the applicable terms. Linking only to the
+unmodified upstream source is insufficient. App Store/TestFlight distribution
+under the exceptions requires that source to remain publicly available.
+No copyright assignment, paid license or “GPL certificate” is needed merely to
+maintain this fork.
 
-## Credits
+## Release configuration
 
-The Neovim mark (used as the code-category icon) is by Jason Long,
-licensed [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).
+The development repository is intended to be private. Public source access,
+support and privacy policy URLs are not yet configured. Set the public
+addresses in [release-config.json](release-config.json)
+before external binary distribution. Blank fields intentionally fail the
+release validation. No upstream account or website is used as this project's
+distribution destination.
 
-## License
+Legal files are copied into packaged apps under `Contents/Resources/Legal`
+and are accessible from the menu bar's **Licenses and notices…** item.
+See [licensing review](docs/LICENSING.md) for verified sources and remaining
+publication details. Existing compiled archives in `disc/` are old local
+artifacts; rebuild from source to obtain the renamed app with these notices.
 
-[GPL-3.0-or-later](LICENSE) since v0.5.0: you can use, study, modify and
-redistribute Whisk freely, but derivatives must stay open source under the
-same terms and keep the copyright notice — no proprietary forks. For a
-commercial license under other terms, contact the author.
-
-An [additional permission](LICENSE-EXCEPTION-APP-STORE.md) under GPLv3
-section 7 allows distribution through Apple's App Store, whose terms the
-GPL alone would not permit; the source stays under the GPL.
-
-Releases up to and including v0.4.0 were published under MIT and remain so
-(an already-granted MIT license is irrevocable for those versions).
+Contributions follow [CONTRIBUTING.md](CONTRIBUTING.md). Architecture:
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

@@ -8,6 +8,32 @@ live in the commit history.
 
 ## [Unreleased]
 
+### Added
+- Application filters support click or a short hover dwell (click by default).
+  All leads the filter row and clears app/type/pinned filters while keeping search.
+- Optional copy sounds with separate capture/history-copy switches, CC0 Kenney
+  clicks and system sounds, volume and audition. All paste actions stay silent.
+  Automatic feedback is muted in Privacy Mode; sensitive copies stay silent.
+  Both switches start off.
+
+### Fixed
+- Manual privacy spotlight images preserve their aspect ratio; revealing content
+  does not change card dimensions, and long text keeps its natural layout.
+- Card action popovers stay above the preview when their windows overlap,
+  including when the preview is reopened while the actions are visible.
+
+### Changed
+- Hover previews close 0.4 seconds after leaving their card, with reentry
+  cancelling the close. Explicit previews toggle closed when triggered again.
+- Privacy Mode can independently allow search and source-app names; both options
+  are off by default, while protected clipboard content remains masked.
+- Settings group related controls, explain each page, separate global and panel
+  shortcuts, and confirm before resetting keyboard bindings. Privacy details
+  expand on demand, and hover timing appears only when preview is enabled.
+- Settings now use frosted glass on macOS 15 and native Liquid Glass on macOS 26,
+  with animated navigation, page changes and expandable options. Reduced motion,
+  reduced transparency and increased contrast follow system preferences.
+
 ## [1.0.3] - 2026-10-21
 
 ### Fixed

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds dist/Whisk.app.
+# Builds dist/WhiskyMac.app.
 #   scripts/build-app.sh [version] [native|universal]
 #
 # Environment:
@@ -8,12 +8,15 @@
 #                         and the APP_STORE flag (no updater of its own)
 #   PROVISIONING_PROFILE  Mac App Store profile to embed; adds the team
 #                         entitlements the store requires (APP_STORE only)
+#   WHISK_PACKAGE_SUBDIR optional name under dist/; keeps other development builds
 #   BUILD_NUMBER          CFBundleVersion; defaults to the version
 set -euo pipefail
 
+"$(dirname "${BASH_SOURCE[0]}")/localizations.sh" check
+
 VERSION="${1:-0.0.0}"
 ARCH="${2:-native}"
-BUNDLE_ID="com.nathanponcet.whisk"
+BUNDLE_ID="dev.whisky.maclx"
 APP_STORE="${APP_STORE:-0}"
 
 SWIFT_FLAGS=()
@@ -31,12 +34,23 @@ else
   BINARY=".build/release/Whisk"
 fi
 
-APP="dist/Whisk.app"
-rm -rf dist
+# Only a single child name is accepted; never recursively remove an arbitrary
+# caller-provided path. Versioned packaging leaves the running build intact.
+PACKAGE_SUBDIR="${WHISK_PACKAGE_SUBDIR:-}"
+case "$PACKAGE_SUBDIR" in
+  .|..|*[!a-zA-Z0-9._-]*) echo "invalid WHISK_PACKAGE_SUBDIR" >&2; exit 2 ;;
+esac
+DIST_DIR="dist${PACKAGE_SUBDIR:+/$PACKAGE_SUBDIR}"
+APP="$DIST_DIR/WhiskyMac.app"
+rm -rf "$DIST_DIR"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BINARY" "$APP/Contents/MacOS/Whisk"
-cp Assets/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
+cp Assets/icon.icns "$APP/Contents/Resources/AppIcon.icns"
 cp Packaging/PrivacyInfo.xcprivacy "$APP/Contents/Resources/PrivacyInfo.xcprivacy"
+mkdir -p "$APP/Contents/Resources/Legal/docs/licenses"
+cp LICENSE LICENSE-EXCEPTION-APP-STORE.md LICENSE-EXCEPTION-WHISKYMAC.md NOTICE THIRD_PARTY_NOTICES.md release-config.json \
+  "$APP/Contents/Resources/Legal/"
+cp docs/licenses/* "$APP/Contents/Resources/Legal/docs/licenses/"
 
 # The SwiftPM resource bundle must ship inside the app: views resolve
 # bundled icons from Contents/Resources.
@@ -48,7 +62,8 @@ if [ -d "$RESOURCE_BUNDLE" ]; then
   /usr/libexec/PlistBuddy -c "Delete :CFBundleExecutable" \
     "$APP/Contents/Resources/Whisk_Whisk.bundle/Contents/Info.plist" 2>/dev/null || true
 else
-  echo "warning: $RESOURCE_BUNDLE not found; bundled icons will fall back" >&2
+  echo "error: required resource bundle $RESOURCE_BUNDLE is missing" >&2
+  exit 1
 fi
 
 # The toolchain stamps App Store uploads expect; absent without Xcode,
@@ -89,10 +104,17 @@ cat > "$APP/Contents/Info.plist" << PLIST
 <dict>
     <key>CFBundleDevelopmentRegion</key>
     <string>en</string>
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>en</string>
+        <string>fr</string>
+        <string>de</string>
+        <string>zh-Hans</string>
+    </array>
     <key>CFBundleName</key>
-    <string>Whisk</string>
+    <string>WhiskyMac</string>
     <key>CFBundleDisplayName</key>
-    <string>Whisk</string>
+    <string>WhiskyMac</string>
     <key>CFBundleIdentifier</key>
     <string>${BUNDLE_ID}</string>
     <key>CFBundleExecutable</key>
@@ -114,7 +136,7 @@ cat > "$APP/Contents/Info.plist" << PLIST
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.productivity</string>
     <key>LSMinimumSystemVersion</key>
-    <string>14.0</string>
+    <string>15.0</string>
     <key>LSUIElement</key>
     <true/>
     <key>NSPrincipalClass</key>
@@ -122,7 +144,7 @@ cat > "$APP/Contents/Info.plist" << PLIST
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
     <key>NSHumanReadableCopyright</key>
-    <string>© Nathan Poncet — GPL-3.0-or-later</string>
+    <string>Whisk © 2026 Nathan Poncet and contributors; WhiskyMac modifications © 2026 LinShay (琳曦). GPL-3.0-or-later.</string>
 ${DT_KEYS}
 </dict>
 </plist>
@@ -135,7 +157,7 @@ plutil -lint "$APP/Contents/Info.plist" > /dev/null
 # the build run locally under an ad-hoc signature, for testing.
 SIGN_OPTIONS=()
 if [ "$APP_STORE" = "1" ]; then
-  ENTITLEMENTS="dist/Whisk.entitlements"
+  ENTITLEMENTS="$DIST_DIR/Whisk.entitlements"
   cp Packaging/AppStore.entitlements "$ENTITLEMENTS"
   if [ -n "${PROVISIONING_PROFILE:-}" ]; then
     cp "$PROVISIONING_PROFILE" "$APP/Contents/embedded.provisionprofile"
@@ -152,14 +174,23 @@ fi
 # resource bundle is signed on its own first: nested content must be
 # signed before the bundle that carries it.
 IDENTITY="${CODESIGN_IDENTITY:--}"
-# Extended attributes would ride into the installer package as
-# AppleDouble files; the signature does not want them either.
-xattr -cr "$APP"
+# Desktop and File Provider folders re-attach Finder metadata that
+# codesign rejects. Sign a clean copy in a temp dir, then place the signed
+# app back and archive the clean copy.
+SIGN_DIR="$(mktemp -d /private/tmp/whisky-mac-sign.XXXXXX)"
+trap 'rm -rf "$SIGN_DIR"' EXIT
+ditto --norsrc "$APP" "$SIGN_DIR/WhiskyMac.app"
+xattr -cr "$SIGN_DIR/WhiskyMac.app"
 if [ "$IDENTITY" = "-" ]; then
-  codesign --force --sign - "$APP/Contents/Resources/Whisk_Whisk.bundle" 2>/dev/null || true
-  codesign --force --sign - ${SIGN_OPTIONS[@]+"${SIGN_OPTIONS[@]}"} "$APP"
+  codesign --force --sign - "$SIGN_DIR/WhiskyMac.app/Contents/Resources/Whisk_Whisk.bundle" 2>/dev/null || true
+  codesign --force --sign - ${SIGN_OPTIONS[@]+"${SIGN_OPTIONS[@]}"} "$SIGN_DIR/WhiskyMac.app"
 else
-  codesign --force --timestamp --sign "$IDENTITY" "$APP/Contents/Resources/Whisk_Whisk.bundle"
-  codesign --force --options runtime --timestamp --sign "$IDENTITY" ${SIGN_OPTIONS[@]+"${SIGN_OPTIONS[@]}"} "$APP"
+  codesign --force --timestamp --sign "$IDENTITY" "$SIGN_DIR/WhiskyMac.app/Contents/Resources/Whisk_Whisk.bundle"
+  codesign --force --options runtime --timestamp --sign "$IDENTITY" ${SIGN_OPTIONS[@]+"${SIGN_OPTIONS[@]}"} "$SIGN_DIR/WhiskyMac.app"
 fi
-echo "built $APP (version $VERSION, build ${BUILD_NUMBER:-$VERSION}, $ARCH, identity: $IDENTITY, app store: $APP_STORE)"
+
+codesign --verify --deep --strict "$SIGN_DIR/WhiskyMac.app"
+rm -rf "$APP"
+ditto --norsrc "$SIGN_DIR/WhiskyMac.app" "$APP"
+ditto -c -k --norsrc --keepParent "$SIGN_DIR/WhiskyMac.app" "$DIST_DIR/WhiskyMac.zip"
+echo "built $APP and $DIST_DIR/WhiskyMac.zip (version $VERSION, build ${BUILD_NUMBER:-$VERSION}, $ARCH, identity: $IDENTITY, app store: $APP_STORE)"
