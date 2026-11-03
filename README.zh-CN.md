@@ -23,7 +23,7 @@ WhiskyMac 是基于 [Whisk v1.0.3](https://github.com/nathan-poncet/whisk/tree/1
 - 外观、快捷键和可选拷贝音效设置。
 - 英文、法文、德文、简体中文界面。
 
-具体实现与限制见[开发说明](WHISK_MAY_DEV.md)。当前仍为开发版本。
+具体实现与限制见[开发说明](docs/DEVELOPMENT.md)。当前仍为开发版本。
 
 ## 构建与验证
 
@@ -84,7 +84,7 @@ Kenney Vleugels 创作，采用 CC0，详情见第三方声明。
 打包时会将许可文件放入应用的 `Contents/Resources/Legal`，
 可通过菜单栏的“许可证与声明…”打开。
 核验依据与尚待补齐的信息见[许可核验说明](docs/LICENSING.md)。
-`disc/` 中已有的应用和压缩包属于旧本地产物，需要重新构建才能获得改名后的应用及许可文件。
+构建产物和本地验收记录不纳入源码仓库；应用安装包通过 GitHub Releases 分发。
 
 贡献说明见 [CONTRIBUTING.md](CONTRIBUTING.md)，架构见
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。

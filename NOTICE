@@ -1,7 +1,7 @@
 WhiskyMac
 WhiskyMac modifications: Copyright (C) 2026 LinShay (琳曦)
 Modified version notice: this checkout contains changes to Whisk, documented
-on 2026-11-03. See WHISK_MAY_DEV.md and the source history for the changes.
+on 2026-11-03. See docs/DEVELOPMENT.md and the source history for the changes.
 
 This product is a modified derivative of Whisk v1.0.3, based on upstream
 commit 1ebcee1e0735e957777c599017ee411d8046c7e7.

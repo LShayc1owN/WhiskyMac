@@ -21,4 +21,4 @@ Concealed clipboard data unexpectedly recorded, privacy-protected content
 exposed, unexpected network transfers, and unsafe handling of crafted clipboard
 data are relevant security reports. Accessibility permissions for direct paste
 and same-account access to unencrypted local history are documented behavior.
-See README.md and WHISK_MAY_DEV.md for development storage and privacy limits.
+See README.md and docs/DEVELOPMENT.md for development storage and privacy limits.

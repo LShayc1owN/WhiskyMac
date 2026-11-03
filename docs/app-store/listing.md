@@ -12,4 +12,4 @@ those Apple credentials or guarantee approval.
 
 Publish the exact corresponding modified source and retain both exception
 notices. See ../LICENSING.md and the two root README language versions.
-upstream-listing.md and review-replies.md are historical Whisk records only.
+The draft does not represent an existing WhiskyMac App Store submission.

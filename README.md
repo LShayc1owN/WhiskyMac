@@ -26,7 +26,7 @@ Modifications are documented as of **2026-11-03**.
 - Configurable appearance, keyboard shortcuts and optional copy sounds.
 - English, French, German and Simplified Chinese interface.
 
-See [development notes](WHISK_MAY_DEV.md) for implementation details and
+See [development notes](docs/DEVELOPMENT.md) for implementation details and
 limitations. The software is currently a development build.
 
 ## Build and verify
@@ -100,8 +100,8 @@ distribution destination.
 Legal files are copied into packaged apps under `Contents/Resources/Legal`
 and are accessible from the menu bar's **Licenses and notices…** item.
 See [licensing review](docs/LICENSING.md) for verified sources and remaining
-publication details. Existing compiled archives in `disc/` are old local
-artifacts; rebuild from source to obtain the renamed app with these notices.
+publication details. Build outputs and local acceptance records are excluded
+from this repository; distribute application packages through GitHub Releases.
 
 Contributions follow [CONTRIBUTING.md](CONTRIBUTING.md). Architecture:
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

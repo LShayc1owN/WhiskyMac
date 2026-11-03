@@ -36,12 +36,12 @@ The publisher must verify the accuracy of privacy disclosures, asset provenance,
 the released source and all third-party rights before submission. A LinShay
 grant extends only to rights LinShay holds or can grant, including for artwork.
 
-Existing website/demo material and old App Store review replies inherited from
-Whisk are historical upstream material; they are not WhiskyMac's current
-privacy policy, submission history or marketing assets. Replace and review
-them before publishing a website or store listing. Old disc/ packages do not
-contain the updated licensing configuration. No release or upload was made
-during this review.
+Existing website/demo material inherited from Whisk is historical upstream
+material; it is not WhiskyMac's current privacy policy or marketing material.
+Replace and review it before publishing a website or store listing. Local
+acceptance reports, screenshots, editing workspaces and compiled packages
+are excluded from the source repository. No release or upload was made
+during the licensing review.
 
 ## Primary sources
 

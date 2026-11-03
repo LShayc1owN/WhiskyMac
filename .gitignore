@@ -9,3 +9,19 @@ private_keys/
 *.p8
 *.p12
 *.provisionprofile
+
+# Local agent context, acceptance evidence and editing workspaces.
+/CLAUDE.md
+/WHISK_MAY_DEV.md
+/.agents/
+/.codex/
+/docs/research/
+/docs/media/edit/
+/docs/app-store/upstream-listing.md
+/docs/app-store/review-replies.md
+
+# Distribute compiled installers through Releases, not the source tree.
+*.app/
+*.zip
+*.dmg
+*.pkg
