@@ -2,8 +2,10 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
+Original project: [Whisk — nathan-poncet/whisk](https://github.com/nathan-poncet/whisk).
+
 Repository: [lshayc1own/WhiskyMac](https://github.com/lshayc1own/WhiskyMac).
-This checkout is being prepared for a private development repository; public
+This is a private development repository; public
 binary distribution has not been configured.
 
 WhiskyMac is a clipboard manager for macOS, developed from
@@ -88,7 +90,7 @@ maintain this fork.
 
 ## Release configuration
 
-The development repository is intended to be private. Public source access,
+The development repository is private. Public source access,
 support and privacy policy URLs are not yet configured. Set the public
 addresses in [release-config.json](release-config.json)
 before external binary distribution. Blank fields intentionally fail the

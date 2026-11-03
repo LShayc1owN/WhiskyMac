@@ -2,8 +2,10 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
+原项目：[Whisk — nathan-poncet/whisk](https://github.com/nathan-poncet/whisk)。
+
 仓库：[lshayc1own/WhiskyMac](https://github.com/lshayc1own/WhiskyMac)。
-当前准备存放在私有开发仓库，尚未配置公开二进制发行。
+当前为私有开发仓库，尚未配置公开二进制发行。
 
 WhiskyMac 是基于 [Whisk v1.0.3](https://github.com/nathan-poncet/whisk/tree/1ebcee1e0735e957777c599017ee411d8046c7e7)
 开发的 macOS 剪贴板管理器。原作者为 Nathan Poncet 及贡献者，基于提交
@@ -75,7 +77,7 @@ Kenney Vleugels 创作，采用 CC0，详情见第三方声明。
 
 ## 发布配置
 
-开发仓库计划保持私有；公开源码访问、支持页面及隐私政策地址尚未配置。
+开发仓库目前为私有；公开源码访问、支持页面及隐私政策地址尚未配置。
 对外分发二进制前，请填写 [release-config.json](release-config.json)；
 字段留空会使发布校验失败。发布目的地不使用上游作者的账号或网址。
 
