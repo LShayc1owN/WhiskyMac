@@ -9,6 +9,44 @@ live in the commit history.
 ## [Unreleased]
 
 ### Added
+- Category shortcut resets show a five-second Undo toast at the bottom of Settings,
+  restoring previous bindings and global enabled states without changing other categories.
+- Shortcut reset uses checkboxes for global, panel and Vim bindings; any combination
+  is supported, and empty selection disables reset.
+  Global reset restores disabled defaults; other categories retain their settings.
+- Split is available as a configurable normal-mode single, double or right-click
+  action; privacy and hover profiles continue to exclude it.
+- Content splitting by lines, paragraphs, literal separators and HTTP(S) links,
+  with selectable previews, optional RTF preservation and three save modes:
+  keep/add, replace, or a persistent group. A batch saves/undoes atomically.
+- Split groups choose original or ordered child parts before copy/paste, support
+  multi-selection, search and inherited pin metadata, and count as one history item.
+  Privacy/hidden items cannot open split drafts; stale drafts are invalidated.
+- Pinned items support searchable notes, persistent content masking and seven
+  color tags. Hidden items keep explicit copy/paste while blocking previews,
+  editing, dragging, exports and online link metadata.
+- Independent opt-in pinned shortcut and menu entry, with aggregated history or
+  a separate pinned window. Defaults to a vertical list near the pointer; bottom
+  cards are also available. Separate windows keep their pinned-only scope.
+- Ten additional CC0 copy sounds: six Kenney UI Audio and four Wyzowl SFX Kit
+  samples, all under 0.15 seconds. The 16 choices are grouped by library in Settings,
+  with new labels localized and licenses available under About → Licenses.
+- Privacy → Sensitive access groups sensitive and excluded app rules. Sensitive
+  copies stay in memory for a configurable 1–1440 minutes (default 2), then expire
+  without undo; excluded apps are never recorded. The redundant retention toggle
+  is removed, and selecting a rule moves the app out of the other list.
+- Separate normal/privacy card interaction profiles, including independent
+  hover timing. Explicit privacy clicks may copy/paste; grouped records require
+  a format choice. Full preview/edit stay blocked; auto protection stays masked.
+- Optional filters in Privacy Mode keep results masked. App filters additionally
+  require source-app visibility; search and filtering remain independent.
+- History cards display bounded rich-text excerpts with original formatting.
+  Oversized or invalid RTF falls back to plain text; full previews remain available.
+- Privacy hover reveal has adjustable diameter and edge blur, live updates,
+  persistent preferences and a restore-defaults action. Automatic protection
+  continues to mask all clipboard content.
+- Clear button in the history toolbar removes all unpinned history while keeping
+  pins, supports undo, and explains that hidden results are included.
 - Application filters support click or a short hover dwell (click by default).
   All leads the filter row and clears app/type/pinned filters while keeping search.
 - Optional copy sounds with separate capture/history-copy switches, CC0 Kenney
@@ -23,6 +61,12 @@ live in the commit history.
   including when the preview is reopened while the actions are visible.
 
 ### Changed
+- Copy sounds use short-lived AudioToolbox queues instead of NSSound, keeping
+  volume control and disposing playback resources after completion.
+- Privacy hover reveal defaults to a 150-point diameter and 50-point soft edge.
+  Both values support keyboard input as well as sliders; saved preferences stay.
+- Manual Privacy Mode defaults to Command-Option-P. Existing custom bindings
+  and opt-in global shortcut registration are preserved.
 - Hover previews close 0.4 seconds after leaving their card, with reentry
   cancelling the close. Explicit previews toggle closed when triggered again.
 - Privacy Mode can independently allow search and source-app names; both options

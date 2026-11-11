@@ -21,10 +21,18 @@ Sources/Whisk/
 │   ├── Presenters/         HistoryPresenter · HistoryViewState     (Foundation only)
 │   └── Gateways/           SQLiteHistoryStore · LegacyJSONHistory · VolatileHistoryStore ·
 │                           AppKitPasteboard · ConsoleLogger        (Foundation + AppKit + SQLite3)
+├── Components/             Reusable SwiftUI views and modifiers used by this app
 └── App/                    frameworks & drivers + composition root (anything goes)
-    ├── Views/              SwiftUI renderers of HistoryViewState
-    └── …                   AppDelegate · HistoryStorage · PanelWiring · PanelKeyRouter ·
-                            NSPanel · Timer · hot key · CGEvent
+    ├── Composition/        AppIdentity · Distribution · PanelWiring
+    ├── Panel/              PanelController · PanelLayout · PanelKeyRouter · HotKey · SplitSession
+    ├── Settings/           AppearanceSettings · GeneralSettings · SettingsPage ·
+    │                       KeyBindings · VimBindings · LegalDocuments
+    ├── Privacy/            PrivacyController · SensitiveSessionStore · SharingMonitor
+    ├── StatusMenu/         StatusBarSymbol · StatusMenuMessage · SymbolCatalog
+    ├── Infrastructure/     HistoryStorage · SystemClock · CopySound · UpdateChecker · Debouncer
+    ├── Views/              SwiftUI renderers of HistoryViewState, grouped by
+    │                       Panel · Preview · Settings · Onboarding · Shared
+    └── …                   AppDelegate · main
 ```
 
 ## The rings
@@ -53,7 +61,10 @@ Sources/Whisk/
      session alive when no database can be opened; `AppKitPasteboard`
      owns the NSPasteboard boundary; `ConsoleLogger` writes to the
      unified log. This is the only ring folder allowed to import AppKit.
-3. **Frameworks & drivers (`App/`).** The composition root and everything
+3. **Frameworks & drivers (`Components/` and `App/`).** `Components/` holds
+   small reusable SwiftUI pieces that the app actually uses. The private
+   PetaToolKit and PetaKitUIX packages are not dependencies. `App/` holds
+   the composition root and everything
    framework-shaped: SwiftUI views (dumb renderers of `HistoryViewState`),
    the floating `NSPanel`, the menu bar item, the polling `Timer`, the
    Carbon hot key, paste simulation. `HistoryStorage` opens the database,

@@ -1,0 +1,108 @@
+[
+  {
+    "repo": "Calinou/kenney-ui-audio",
+    "revision": "8c3d81b9159d058c444f89d12d518276b0b09345",
+    "path": "addons/kenney_ui_audio/click3.wav",
+    "target": "kenney-click3.wav",
+    "gitBlob": "73dc62ec54a50dc88bbc22d3061db47b3dd8f69d",
+    "sha256": "8d0676a5bcbfedad3e65b7b73e93a044216d7f192c99a3a05caf21e2aa4a8dda",
+    "bytes": 15694,
+    "duration": 0.088526,
+    "url": "https://raw.githubusercontent.com/Calinou/kenney-ui-audio/8c3d81b9159d058c444f89d12d518276b0b09345/addons/kenney_ui_audio/click3.wav"
+  },
+  {
+    "repo": "Calinou/kenney-ui-audio",
+    "revision": "8c3d81b9159d058c444f89d12d518276b0b09345",
+    "path": "addons/kenney_ui_audio/click5.wav",
+    "target": "kenney-click5.wav",
+    "gitBlob": "6e907ee72e0590c6d2966d77dbeceed03aef46b0",
+    "sha256": "8a6f69fef5d241794a98d0b71baf0c7f51743c9e54ee4dd010a0323a8edeca83",
+    "bytes": 6222,
+    "duration": 0.03483,
+    "url": "https://raw.githubusercontent.com/Calinou/kenney-ui-audio/8c3d81b9159d058c444f89d12d518276b0b09345/addons/kenney_ui_audio/click5.wav"
+  },
+  {
+    "repo": "Calinou/kenney-ui-audio",
+    "revision": "8c3d81b9159d058c444f89d12d518276b0b09345",
+    "path": "addons/kenney_ui_audio/mouseclick1.wav",
+    "target": "kenney-mouseclick1.wav",
+    "gitBlob": "dcb3cf43f385861356082484246cb113d6765568",
+    "sha256": "9f2a6efb18f36bcbae784af13f6f0edfaee99202acf6a830610b77b786c6004f",
+    "bytes": 13646,
+    "duration": 0.076916,
+    "url": "https://raw.githubusercontent.com/Calinou/kenney-ui-audio/8c3d81b9159d058c444f89d12d518276b0b09345/addons/kenney_ui_audio/mouseclick1.wav"
+  },
+  {
+    "repo": "Calinou/kenney-ui-audio",
+    "revision": "8c3d81b9159d058c444f89d12d518276b0b09345",
+    "path": "addons/kenney_ui_audio/mouserelease1.wav",
+    "target": "kenney-mouserelease1.wav",
+    "gitBlob": "d16c2b0e1171004305650f7311840cceab709b40",
+    "sha256": "2841f77228c7956b804cd828da10897746cfb5efafc80d6066e58cab7db5be1c",
+    "bytes": 15182,
+    "duration": 0.085624,
+    "url": "https://raw.githubusercontent.com/Calinou/kenney-ui-audio/8c3d81b9159d058c444f89d12d518276b0b09345/addons/kenney_ui_audio/mouserelease1.wav"
+  },
+  {
+    "repo": "Calinou/kenney-ui-audio",
+    "revision": "8c3d81b9159d058c444f89d12d518276b0b09345",
+    "path": "addons/kenney_ui_audio/rollover2.wav",
+    "target": "kenney-rollover2.wav",
+    "gitBlob": "6a6573b4f7c644ff76e0f70915b83d2dea79c5d9",
+    "sha256": "c0c10c006967920edbb29ca364099a42ad3459a823d75f18a90181ac36774bf2",
+    "bytes": 11086,
+    "duration": 0.062404,
+    "url": "https://raw.githubusercontent.com/Calinou/kenney-ui-audio/8c3d81b9159d058c444f89d12d518276b0b09345/addons/kenney_ui_audio/rollover2.wav"
+  },
+  {
+    "repo": "Calinou/kenney-ui-audio",
+    "revision": "8c3d81b9159d058c444f89d12d518276b0b09345",
+    "path": "addons/kenney_ui_audio/switch14.wav",
+    "target": "kenney-switch14.wav",
+    "gitBlob": "91d6f7f24555545753b89222ace1c3fee316a609",
+    "sha256": "d724a9922ce3d978069b02401f6aafdb3fd247a1a55d54a7e3e3e062e400f44c",
+    "bytes": 6222,
+    "duration": 0.03483,
+    "url": "https://raw.githubusercontent.com/Calinou/kenney-ui-audio/8c3d81b9159d058c444f89d12d518276b0b09345/addons/kenney_ui_audio/switch14.wav"
+  },
+  {
+    "repo": "wyzowl/sfx-kit",
+    "revision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+    "path": "sounds/pops/pop-small-bubble.wav",
+    "target": "sfx-pop-small-bubble.wav",
+    "sha256": "73691f1ecec5b2f8d1dc231244281558479a42e347f738c16aa6551be21e6124",
+    "bytes": 11786,
+    "duration": 0.0805,
+    "url": "https://raw.githubusercontent.com/wyzowl/sfx-kit/92780e7ab0cdfb557497a988089c47f46e8c7412/sounds/pops/pop-small-bubble.wav"
+  },
+  {
+    "repo": "wyzowl/sfx-kit",
+    "revision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+    "path": "sounds/interface/click-button-soft.wav",
+    "target": "sfx-click-button-soft.wav",
+    "sha256": "67b805971d75ecc458891989debbf045b752518fa8b4b697f42691b012f5f56a",
+    "bytes": 2500,
+    "duration": 0.016,
+    "url": "https://raw.githubusercontent.com/wyzowl/sfx-kit/92780e7ab0cdfb557497a988089c47f46e8c7412/sounds/interface/click-button-soft.wav"
+  },
+  {
+    "repo": "wyzowl/sfx-kit",
+    "revision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+    "path": "sounds/interface/click-snap-soft.wav",
+    "target": "sfx-click-snap-soft.wav",
+    "sha256": "bbc916a0c0f2e37c7a1450cd67a4a17f9b0b72243ef2d07c4033738dd780a0bf",
+    "bytes": 21434,
+    "duration": 0.1475,
+    "url": "https://raw.githubusercontent.com/wyzowl/sfx-kit/92780e7ab0cdfb557497a988089c47f46e8c7412/sounds/interface/click-snap-soft.wav"
+  },
+  {
+    "repo": "wyzowl/sfx-kit",
+    "revision": "92780e7ab0cdfb557497a988089c47f46e8c7412",
+    "path": "sounds/interface/click-tap-soft.wav",
+    "target": "sfx-click-tap-soft.wav",
+    "sha256": "e870f882b03aed3036011235a06350e626ae69a92dd5c138eb370d87194c6784",
+    "bytes": 2498,
+    "duration": 0.016,
+    "url": "https://raw.githubusercontent.com/wyzowl/sfx-kit/92780e7ab0cdfb557497a988089c47f46e8c7412/sounds/interface/click-tap-soft.wav"
+  }
+]

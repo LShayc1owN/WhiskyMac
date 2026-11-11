@@ -22,10 +22,18 @@ Sources/Whisk/
 │   ├── Presenters/         HistoryPresenter · HistoryViewState     (Foundation seulement)
 │   └── Gateways/           SQLiteHistoryStore · LegacyJSONHistory · VolatileHistoryStore ·
 │                           AppKitPasteboard · ConsoleLogger        (Foundation + AppKit + SQLite3)
+├── Components/             vues et modificateurs SwiftUI réutilisables dans l'application
 └── App/                    frameworks & drivers + racine de composition (tout est permis)
-    ├── Views/              rendus SwiftUI du HistoryViewState
-    └── …                   AppDelegate · HistoryStorage · PanelWiring · PanelKeyRouter ·
-                            NSPanel · Timer · raccourci · CGEvent
+    ├── Composition/        AppIdentity · Distribution · PanelWiring
+    ├── Panel/              PanelController · PanelLayout · PanelKeyRouter · HotKey · SplitSession
+    ├── Settings/           AppearanceSettings · GeneralSettings · SettingsPage ·
+    │                       KeyBindings · VimBindings · LegalDocuments
+    ├── Privacy/            PrivacyController · SensitiveSessionStore · SharingMonitor
+    ├── StatusMenu/         StatusBarSymbol · StatusMenuMessage · SymbolCatalog
+    ├── Infrastructure/     HistoryStorage · SystemClock · CopySound · UpdateChecker · Debouncer
+    ├── Views/              rendus SwiftUI du HistoryViewState, groupés par
+    │                       Panel · Preview · Settings · Onboarding · Shared
+    └── …                   AppDelegate · main
 ```
 
 ## Les rings
@@ -57,7 +65,10 @@ Sources/Whisk/
      `AppKitPasteboard` possède la frontière NSPasteboard ;
      `ConsoleLogger` écrit dans le journal unifié. C'est le seul dossier
      du ring autorisé à importer AppKit.
-3. **Frameworks & drivers (`App/`).** La racine de composition et tout ce
+3. **Frameworks & drivers (`Components/` et `App/`).** `Components/` contient
+   les petits éléments SwiftUI réutilisables réellement employés par
+   l'application. Les packages privés PetaToolKit et PetaKitUIX ne sont pas
+   des dépendances. `App/` contient la racine de composition et tout ce
    qui a la forme d'un framework : vues SwiftUI (rendus muets du
    `HistoryViewState`), le `NSPanel` flottant, l'icône de barre de menus,
    le `Timer` de polling, le raccourci Carbon, la simulation de collage.

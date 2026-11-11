@@ -12,6 +12,7 @@ struct EditItem<Store: HistoryStore> {
     }
 
     func callAsFunction(_ id: UUID, text: String, in history: History) throws -> History {
+        guard history.items.first(where: { $0.id == id })?.splitGroup == nil else { return history }
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return history }
         let next = history.replacingPayload(of: id, with: Self.payload(for: text))
         guard next != history else { return history }

@@ -46,6 +46,38 @@ import Testing
         }
     }
 
+    @Test func clearing_removes_hidden_unpinned_history_keeps_pins_and_can_be_undone() throws {
+        let items = [anItem(.text("one")), anItem(.text("two")), anItem(.text("kept"), pinned: true)]
+        let fixture = Fixture(items)
+        #expect(fixture.spy.last.canClearHistory)
+        fixture.controller.toggleCategoryFilter(pinnedChipID)
+        #expect(fixture.spy.last.cards.map(\.id) == [items[2].id])
+        #expect(fixture.spy.last.canClearHistory)
+        try fixture.wired.search("no matches")
+        try fixture.wired.clearHistory()
+        #expect(fixture.spy.last.query == "no matches")
+        #expect(fixture.spy.last.cards.isEmpty)
+        #expect(!fixture.spy.last.canClearHistory)
+        #expect(fixture.store.stored.map(\.id) == [items[2].id])
+        #expect(fixture.pasteboard.written.isEmpty)
+        #expect(fixture.hides == 0 && fixture.pastes == 0)
+        try fixture.wired.undo()
+        #expect(fixture.store.stored == items)
+        #expect(fixture.spy.last.canClearHistory)
+    }
+
+    @Test func protected_panel_actions_cannot_clear_history() throws {
+        let fixture = Fixture([.text("synthetic")])
+        var protected = true
+        let actions = try fixture.wired.guarded(by: { protected })
+        actions.clearHistory()
+        #expect(fixture.store.stored.count == 1)
+        protected = false
+        actions.clearHistory()
+        #expect(fixture.store.stored.isEmpty)
+        #expect(!fixture.spy.last.canClearHistory)
+    }
+
     @Test func search_keystrokes_coalesce_into_the_last_query() throws {
         let fixture = Fixture([.text("alpha"), .text("beta")])
 

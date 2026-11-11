@@ -11,6 +11,68 @@ import Testing
 
 @MainActor
 @Suite struct HoverPrivacy {
+    @Test func spotlight_preferences_persist_and_update_display_without_changing_protection() throws {
+        let sandbox = try IsolatedDefaults()
+        let privacy = PrivacyController(defaults: sandbox.defaults, schedulesTimer: false)
+        let store = HistoryViewStateStore()
+        #expect(privacy.spotlight == SpotlightPreferences(diameter: 150, blurRadius: 50))
+        privacy.spotlightSettingsChanged = { store.spotlight = $0 }
+        privacy.spotlight.diameter = 240
+        privacy.spotlight.blurRadius = 50
+        #expect(store.spotlight == privacy.spotlight)
+        #expect(!privacy.isProtected && !store.allowsSpotlight)
+        let restored = PrivacyController(defaults: sandbox.defaults, schedulesTimer: false)
+        #expect(restored.spotlight == privacy.spotlight)
+        privacy.spotlight = SpotlightPreferences()
+        #expect(PrivacyController(defaults: sandbox.defaults).spotlight == SpotlightPreferences())
+        sandbox.defaults.set(Data([0]), forKey: "privacySpotlight")
+        #expect(PrivacyController(defaults: sandbox.defaults).spotlight == SpotlightPreferences())
+    }
+
+    @Test func spotlight_values_are_finite_bounded_and_partial_preferences_migrate() throws {
+        #expect(SpotlightPreferences().outerRadius == 75)
+        #expect(SpotlightPreferences().innerRadius == 25)
+        #expect(SpotlightPreferences(diameter: .nan, blurRadius: .infinity) == SpotlightPreferences())
+        var settings = SpotlightPreferences(diameter: 999, blurRadius: 999)
+        #expect(settings.diameter == 320 && settings.blurRadius == 80)
+        settings.diameter = 40
+        #expect(settings.outerRadius == 20 && settings.blurRadius == 20 && settings.innerRadius == 0)
+        #expect(settings.blurRange == 0...20)
+        settings.blurRadius = -1
+        #expect(settings.blurRadius == 0)
+        settings.blurRadius = .nan
+        #expect(settings.blurRadius == 20)
+        settings.diameter = -.infinity
+        #expect(settings.diameter == 150 && settings.blurRadius == 20)
+        settings.diameter = -1
+        #expect(settings.diameter == 40)
+        let decoded = try JSONDecoder().decode(SpotlightPreferences.self, from: Data("{}".utf8))
+        #expect(decoded == SpotlightPreferences())
+        let invalid = try JSONDecoder().decode(
+            SpotlightPreferences.self, from: Data("{\"diameter\":-100,\"blurRadius\":999}".utf8))
+        #expect(invalid == SpotlightPreferences(diameter: 40, blurRadius: 20))
+        #expect(try JSONDecoder().decode(SpotlightPreferences.self, from: JSONEncoder().encode(settings)) == settings)
+    }
+
+    @Test func keyboard_point_drafts_commit_whole_values_and_keep_saved_customizations() throws {
+        #expect(SpotlightPreferences.points(from: "150") == 150)
+        #expect(SpotlightPreferences.points(from: " 50 ") == 50)
+        for invalid in ["", "abc", "150pt", "50.5", "NaN", "999999999999999999999999999999"] {
+            #expect(SpotlightPreferences.points(from: invalid) == nil)
+        }
+        var settings = SpotlightPreferences()
+        settings.diameter = try #require(SpotlightPreferences.points(from: "170"))
+        settings.blurRadius = try #require(SpotlightPreferences.points(from: "55"))
+        #expect(settings == SpotlightPreferences(diameter: 170, blurRadius: 55))
+        settings.diameter = try #require(SpotlightPreferences.points(from: "10"))
+        #expect(settings.diameter == 40 && settings.blurRadius == 20)
+        settings.blurRadius = try #require(SpotlightPreferences.points(from: "-1"))
+        #expect(settings.blurRadius == 0)
+        let saved = try JSONDecoder().decode(
+            SpotlightPreferences.self, from: Data("{\"diameter\":160,\"blurRadius\":24}".utf8))
+        #expect(saved.diameter == 160 && saved.blurRadius == 24)
+    }
+
     @Test func old_preferences_migrate_and_hover_has_no_export_actions() throws {
         for action in CardAction.allCases {
             let json = Data("{\"hover\":\"\(action.rawValue)\"}".utf8)
@@ -44,6 +106,8 @@ import Testing
         privacy.setAutomaticEnabled(true)
         #expect(privacy.isProtected && privacy.isManuallyProtected)
         #expect(!privacy.allowsSpotlight && !state.allowsSpotlight)
+        privacy.spotlight = SpotlightPreferences(diameter: 320, blurRadius: 0)
+        #expect(!privacy.allowsSpotlight && !state.allowsSpotlight)
         privacy.receive([SharingReport(state: .active, reason: .toolbarPresent)])
         #expect(!privacy.allowsSpotlight)
         privacy.receive([SharingReport(state: .unknown, reason: .unavailable)])
@@ -67,7 +131,7 @@ import Testing
         state.setPanelVisible(true)
         #expect(state.state.cards.isEmpty)
         #expect(state.spotlightPayload(for: item.id) == nil)
-        state.interactions.hover = .preview
+        state.privacyInteractions.hover = .preview
         #expect(state.spotlightPayload(for: item.id) == item.payload)
         #expect(reads == 1)
         #expect(state.previewItems.isEmpty)
@@ -116,7 +180,7 @@ import Testing
         #expect(SpotlightCanvas.thumbnail(Data(count: 8 * 1024 * 1024 + 1)) == nil)
         #expect(SpotlightCanvas.thumbnail(ViewFixtures.png) != nil)
         let state = HistoryViewStateStore()
-        state.interactions.hover = .preview
+        state.privacyInteractions.hover = .preview
         state.setSpotlightAllowed(true)
         state.setPanelVisible(true)
         state.setPrivacy(true)

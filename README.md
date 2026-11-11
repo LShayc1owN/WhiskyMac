@@ -1,6 +1,6 @@
 # WhiskyMac
 
-[English](README.md) | [简体中文](README.zh-CN.md)
+[English](README.md) | [简体中文](README.zh-CN.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Italiano](README.it.md)
 
 Original project: [Whisk — nathan-poncet/whisk](https://github.com/nathan-poncet/whisk).
 
@@ -15,19 +15,21 @@ by Nathan Poncet and contributors. Upstream base:
 
 This is an independent modified version maintained by **LinShay (琳曦)**.
 It is not an official Whisk release and does not imply upstream endorsement.
-Modifications are documented as of **2026-11-03**.
+Current changes are recorded in [CHANGELOG.md](CHANGELOG.md).
 
 ## Features
 
-- Local clipboard history for text, rich text, links, images, files and colors.
-- Search, application/category filters, pins, retention rules and a paste stack.
-- Rich-text version grouping, configurable card interactions and previews.
-- Manual privacy protection, optional sharing detection and temporary sensitive sessions.
-- Configurable appearance, keyboard shortcuts and optional copy sounds.
-- English, French, German and Simplified Chinese interface.
+- Local clipboard history for text, rich text, links, images, files and colors; search by content or source app and filter by app, category, pins or color tags.
+- Copy, direct paste, plain-text paste, drag and drop, previews, editable text, a paste stack, and optional Vim navigation. Rich-text formats with matching plain text are grouped for selection.
+- Split text by lines, paragraphs or separators, or extract HTTP(S) links. Review parts before saving as new cards, replacements or one persistent group; choose individual group parts when copying or pasting.
+- Pin items with searchable notes, seven color tags and an option to keep content hidden. Open pins within history or in a separate window; set retention and capacity for unpinned history and clear it with Undo.
+- Manual Privacy Mode, a limited optional sharing-toolbar detector, configurable pointer-area reveal, and optional search or filters while content remains masked. Separate card interactions apply in normal and privacy modes.
+- Mark source apps as sensitive for temporary in-memory copies, or exclude apps from capture entirely. Sensitive entries expire after a configurable period.
+- Pause capture, choose login startup, and customize card size, glass appearance, status symbol, language, shortcuts and card actions. Settings search and category-specific shortcut reset with Undo help manage preferences. Optional copy sounds include Kenney UI Audio, SFX Kit and macOS sounds.
+- English, French, German, Italian and Simplified Chinese interface.
 
-See [development notes](docs/DEVELOPMENT.md) for implementation details and
-limitations. The software is currently a development build.
+See [development notes](docs/DEVELOPMENT.md) and the [changelog](CHANGELOG.md)
+for behavior and limitations. The software is currently a development build.
 
 ## Build and verify
 
@@ -77,8 +79,8 @@ third-party material. Preserve [LICENSE](LICENSE), [NOTICE](NOTICE) and
 The upstream exception expressly includes works based on Whisk. These grants
 address copyright permission for that distribution channel; Apple review,
 signing and rights in third-party material remain separate requirements.
-The Neovim mark is by Jason Long under CC BY 3.0; the bundled Kenney UI Audio
-sounds are by Kenney Vleugels under CC0. See the third-party notices for details.
+The Neovim mark is by Jason Long under CC BY 3.0. Bundled Kenney UI Audio and
+Wyzowl SFX Kit sounds are CC0. See the third-party notices for details.
 
 When distributing binaries, supply the complete source corresponding to that
 version, including modifications, assets in their preferred editable form and
@@ -97,8 +99,9 @@ before external binary distribution. Blank fields intentionally fail the
 release validation. No upstream account or website is used as this project's
 distribution destination.
 
-Legal files are copied into packaged apps under `Contents/Resources/Legal`
-and are accessible from the menu bar's **Licenses and notices…** item.
+Legal files are copied into packaged apps under `Contents/Resources/Legal`.
+The menu bar's **Licenses and notices…** item opens Settings → About → Licenses and notices,
+with controls to open the source file or reveal it in Finder.
 See [licensing review](docs/LICENSING.md) for verified sources and remaining
 publication details. Build outputs and local acceptance records are excluded
 from this repository; distribute application packages through GitHub Releases.

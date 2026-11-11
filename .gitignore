@@ -13,12 +13,27 @@ private_keys/
 # Local agent context, acceptance evidence and editing workspaces.
 /CLAUDE.md
 /WHISK_MAY_DEV.md
+/AGENTS.md
 /.agents/
+/.claude/
 /.codex/
+/.cursor/
 /docs/research/
 /docs/media/edit/
 /docs/app-store/upstream-listing.md
 /docs/app-store/review-replies.md
+
+# Private AI conversations, handoffs and delivery records.
+/acceptance/
+/deliverables/
+/handoffs/
+/docs/acceptance/
+/docs/conversations/
+/docs/deliverables/
+/docs/handoffs/
+/*.chat.md
+/*.session.md
+/*.transcript.md
 
 # Distribute compiled installers through Releases, not the source tree.
 *.app/

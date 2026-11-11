@@ -11,7 +11,7 @@ import SwiftUI
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private typealias Controller = ClipboardController<AppKitPasteboard, SystemClock, AnyHistoryStore, ConsoleLogger>
 
-    private let privacy = PrivacyController()
+    private let privacy = PrivacyController(startInDefaultMode: true)
     private let logger = ConsoleLogger()
     private let defaults = AppIdentity.defaults
     private let keyBindings = KeyBindingsStore()
@@ -28,11 +28,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let statusSymbol = StatusBarSymbol()
     private var panelController: PanelController?
     private var hotKey: HotKey?
+    private var pinnedHotKey: HotKey?
     private var privacyHotKey: HotKey?
     private var stackHotKey: HotKey?
     private var layoutObserver: NSObjectProtocol?
     private var bindingsObserver: AnyCancellable?
     private var settingsWindow: NSWindow?
+    private let settingsSearch = SettingsSearchModel()
+    private var settingsSearchToolbar: SettingsSearchToolbar?
     private var stateStore: HistoryViewStateStore?
     private var clipboard: Controller?
     private var pollTimer: Timer?
@@ -51,6 +54,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             guard let self, let window = note.object as? NSWindow,
                 window === self.settingsWindow || window === self.onboardingWindow
             else { return }
+            if window === self.settingsWindow {
+                self.generalSettings.cancelCardSizePreview()
+                NotificationCenter.default.post(name: .settingsWindowClosed, object: nil)
+            }
             self.updateDockIcon(excluding: window)
         }
         colorObserver = NotificationCenter.default.addObserver(
@@ -63,10 +70,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let stateStore = HistoryViewStateStore()
         stateStore.setPrivacyPermissions(
             allowSearch: privacy.allowSearchWhileProtected,
-            showSourceApps: privacy.showSourceAppsWhileProtected)
+            showSourceApps: privacy.showSourceAppsWhileProtected,
+            allowFiltering: privacy.allowFilteringWhileProtected)
         stateStore.setPrivacy(privacy.isProtected)
         stateStore.setSpotlightAllowed(privacy.allowsSpotlight)
+        stateStore.spotlight = privacy.spotlight
         stateStore.interactions = generalSettings.interactions
+        stateStore.privacyInteractions = generalSettings.privacyInteractions
         stateStore.appFilterTrigger = generalSettings.appFilterTrigger
         let clipboard = ClipboardController(
             pasteboard: AppKitPasteboard(didWrite: { [weak self] in
@@ -84,6 +94,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         self.stateStore = stateStore
         self.clipboard = clipboard
+        clipboard.hiddenLinksChanged = { LinkPreviewStore.shared.setHiddenAddresses($0) }
+        LinkPreviewStore.shared.setHiddenAddresses(clipboard.hiddenLinkAddresses)
         clipboard.didRecord = { [weak self] in
             guard let self else { return }
             self.copySoundPlayer.play(
@@ -91,8 +103,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 protected: self.privacy.isProtected)
         }
         stateStore.protectedSearch = { [weak clipboard] query in clipboard?.search(query) }
+        stateStore.protectedFilter = { [weak clipboard] action in
+            switch action {
+            case .toggleApp(let key): clipboard?.toggleSourceFilter(key)
+            case .selectApp(let key): clipboard?.selectSourceFilter(key)
+            case .toggleKind(let key): clipboard?.toggleCategoryFilter(key)
+            case .reset: clipboard?.toggleCategoryFilter(allFiltersChipID)
+            }
+        }
         clipboard.retainSensitive = { [weak self, weak stateStore] snapshot in
-            guard self?.generalSettings.retainSensitiveCopies == true else { return }
+            guard let self, let bundleID = snapshot.source?.bundleID,
+                self.generalSettings.sensitiveBundleIDs.contains(bundleID),
+                !self.generalSettings.excludedBundleIDs.contains(bundleID)
+            else { return }
+            stateStore?.sensitiveSession.setRetention(minutes: self.generalSettings.sensitiveRetentionMinutes)
             stateStore?.sensitiveSession.receive(snapshot)
         }
         stateStore.sensitiveSession.copyToPasteboard = { payload, rtf in
@@ -129,14 +153,78 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 excludeSource: { [weak self] bundleID, name in
                     guard let self, !self.generalSettings.excludedApps.contains(where: { $0.bundleID == bundleID })
                     else { return }
-                    self.generalSettings.excludedApps.append(ExcludedApp(bundleID: bundleID, name: name))
+                    self.generalSettings.excludeApp(ExcludedApp(bundleID: bundleID, name: name))
                 },
                 beginEditing: { stateStore.beginEditing($0) },
                 openPasteboardSettings: { [weak self] in self?.openPasteboardSettings() }
             )
         )
+        stateStore.protectedExport = { [weak self, weak clipboard] id, action in
+            guard self?.privacy.isProtected == true else { return }
+            guard clipboard?.select(id, forPaste: action == .paste) == true else { return }
+            self?.panelController?.hide()
+            if action == .paste { self?.panelController?.pasteToPreviousApplication(explicitProtectedExport: true) }
+        }
+        stateStore.beginSplit = { [weak stateStore, weak clipboard] id in
+            guard let stateStore, let clipboard, !stateStore.isProtected, stateStore.panelVisible,
+                let item = clipboard.item(for: id),
+                !item.pinnedMetadata.hidesContent, item.splitGroup == nil,
+                item.payload.transformableText != nil
+            else { return }
+            stateStore.hidePreview?()
+            stateStore.closeSplitSessions()
+            let session = SplitSession(
+                source: item, current: { [weak clipboard] in clipboard?.item(for: $0) },
+                allowed: { [weak stateStore] in stateStore?.isProtected == false && stateStore?.panelVisible == true },
+                assess: { [weak clipboard] request in
+                    guard let clipboard else { throw SplitFailure.unavailable };
+                    return try clipboard.assessSplit(request)
+                },
+                save: { [weak clipboard] request, confirm in
+                    guard let clipboard else { throw SplitFailure.unavailable };
+                    try clipboard.saveSplit(request, confirmEviction: confirm)
+                })
+            session.completed = { [weak stateStore] in stateStore?.closeSplitSessions() }
+            stateStore.splitSession = session
+            stateStore.auxiliaryDidChange()
+        }
+        clipboard.requestGroupSelection = { [weak self, weak stateStore, weak clipboard] id, plain, paste in
+            guard let stateStore, let clipboard, !stateStore.isProtected, stateStore.panelVisible,
+                let item = clipboard.item(for: id), item.splitGroup != nil
+            else { return }
+            stateStore.hidePreview?()
+            stateStore.closeSplitSessions()
+            let session = SplitGroupSession(
+                source: item, action: paste ? .paste : .copy, plain: plain, query: stateStore.state.query,
+                current: { [weak clipboard] in clipboard?.item(for: $0) },
+                allowed: { [weak stateStore] in stateStore?.isProtected == false && stateStore?.panelVisible == true },
+                export: { [weak clipboard] item, selected, original, plain, paste in
+                    guard let clipboard else { throw SplitFailure.unavailable }
+                    try clipboard.exportGroup(
+                        item, selected: selected, original: original, plain: plain,
+                        forPaste: paste, combine: SplitContentCodec.combine)
+                })
+            session.completed = { [weak self, weak stateStore] in
+                stateStore?.closeSplitSessions()
+                self?.panelController?.hide()
+                if paste { self?.panelController?.pasteToPreviousApplication() }
+            }
+            stateStore.splitGroupSession = session
+            stateStore.auxiliaryDidChange()
+        }
         var guardedActions = actions
+        guardedActions.split = { [weak stateStore, weak clipboard] id in
+            guard let stateStore, let clipboard, !stateStore.isProtected else { return }
+            if let card = stateStore.state.cards.first(where: { $0.id == id }), card.variantIDs.count > 1 {
+                let candidates = clipboard.items(for: card.variantIDs)
+                stateStore.chooseSplitVersion(candidates)
+            } else {
+                stateStore.beginSplit(id)
+            }
+        }
         guardedActions.editRich = { [weak clipboard] id, text, rtf in clipboard?.editRich(id, text: text, rtf: rtf) }
+        guardedActions.metadataEditorChanged = { [weak stateStore] in stateStore?.pinMetadataEditing = $0 }
+        guardedActions.cardMenuChanged = { [weak stateStore] in stateStore?.cardMenuOpen = $0 }
         guardedActions = guardedActions.guarded { [weak stateStore] in stateStore?.isProtected != false }
         let panelController = PanelController(
             stateStore: stateStore, actions: guardedActions, keyBindings: keyBindings,
@@ -148,9 +236,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             guard let self else { return }
             stateStore?.setPrivacyPermissions(
                 allowSearch: self.privacy.allowSearchWhileProtected,
-                showSourceApps: self.privacy.showSourceAppsWhileProtected)
+                showSourceApps: self.privacy.showSourceAppsWhileProtected,
+                allowFiltering: self.privacy.allowFilteringWhileProtected)
             if self.privacy.isProtected { self.panelController?.privacyDidChange() }
         }
+        privacy.spotlightSettingsChanged = { [weak stateStore] in stateStore?.spotlight = $0 }
         privacy.willChangeSpotlight = { [weak stateStore] allowed in
             stateStore?.setSpotlightAllowed(allowed)
         }
@@ -196,14 +286,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         clipboard.applyRetention(generalSettings.policy)
         clipboard.applyExclusions(generalSettings.excludedBundleIDs)
         clipboard.applySensitiveSources(generalSettings.sensitiveBundleIDs)
+        stateStore.sensitiveSession.setRetention(minutes: generalSettings.sensitiveRetentionMinutes)
         LinkPreviewStore.shared.setEnabled(generalSettings.linkPreviews)
-        stateStore.configureCards(side: generalSettings.cardSize.side)
+        stateStore.configureCards(side: CGFloat(generalSettings.effectiveCardSide))
         clipboard.setLayoutDirection(
             NSApp.userInterfaceLayoutDirection == .rightToLeft ? .rightToLeft : .leftToRight)
         // willSet semantics again: hop to the next cycle so the policy is
         // read after the setting has landed.
         var sensitivePolicy = generalSettings.sensitiveApps
-        var sensitiveRetention = generalSettings.retainSensitiveCopies
         var exclusions = generalSettings.excludedApps
         settingsObserver = generalSettings.objectWillChange
             .receive(on: DispatchQueue.main)
@@ -217,17 +307,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self.clipboard?.applyRetention(self.generalSettings.policy)
                 self.clipboard?.applyExclusions(self.generalSettings.excludedBundleIDs)
                 self.clipboard?.applySensitiveSources(self.generalSettings.sensitiveBundleIDs)
+                self.stateStore?.sensitiveSession.setRetention(minutes: self.generalSettings.sensitiveRetentionMinutes)
                 LinkPreviewStore.shared.setEnabled(self.generalSettings.linkPreviews)
-                self.stateStore?.configureCards(side: self.generalSettings.cardSize.side)
+                if let stateStore = self.stateStore {
+                    let side = CGFloat(self.generalSettings.effectiveCardSide)
+                    if stateStore.cardSide != side {
+                        stateStore.configureCards(side: side)
+                        self.panelController?.cardSizeDidChange()
+                    }
+                }
                 self.stateStore?.interactions = self.generalSettings.interactions
+                self.stateStore?.privacyInteractions = self.generalSettings.privacyInteractions
                 self.stateStore?.appFilterTrigger = self.generalSettings.appFilterTrigger
                 if sensitivePolicy != self.generalSettings.sensitiveApps
-                    || sensitiveRetention != self.generalSettings.retainSensitiveCopies
                     || exclusions != self.generalSettings.excludedApps
                 {
                     self.stateStore?.sensitiveSession.clear()
                     sensitivePolicy = self.generalSettings.sensitiveApps
-                    sensitiveRetention = self.generalSettings.retainSensitiveCopies
                     exclusions = self.generalSettings.excludedApps
                 }
             }
@@ -236,7 +332,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         if Distribution.current.checksForUpdates, generalSettings.checkForUpdates {
-            updateChecker.checkNow()
+            updateChecker.checkNow(automatic: true)
         }
         if !defaults.bool(forKey: "didShowOnboarding"),
             !CommandLine.arguments.contains("--smoke-test")
@@ -275,6 +371,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         precondition(localized("Copy") == "Copier")
         appearance.language = .german
         precondition(localized("Copy") == "Kopieren")
+        appearance.language = .italian
+        precondition(localized("Copy") == "Copia")
         appearance.language = .simplifiedChinese
         precondition(localized("Copy") == "拷贝")
         precondition(settingsWindow == nil)
@@ -320,6 +418,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// layout switches and on binding changes.
     private func registerHotKey() {
         keyBindings.registrationFailures = []
+        pinnedHotKey = nil
         hotKey = nil
         stackHotKey = nil
         privacyHotKey = nil
@@ -330,6 +429,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 [weak self] in
                 self?.privacy.toggle()
             }
+        }
+        if keyBindings.isGlobalEnabled(.togglePinned) {
+            let binding = keyBindings.binding(for: .togglePinned)
+            pinnedHotKey = HotKey(keyCode: UInt32(binding.keyCode), modifiers: binding.carbonModifiers) { [weak self] in
+                self?.showPinnedItems()
+            }
+        }
+        if keyBindings.isGlobalEnabled(.togglePinned), pinnedHotKey == nil {
+            keyBindings.registrationFailures.insert(.togglePinned)
         }
         if keyBindings.isGlobalEnabled(.togglePanel) {
             let toggle = keyBindings.binding(for: .togglePanel)
@@ -405,14 +513,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func updateStatusIcon(protected: Bool) {
-        let image: NSImage?
-        if protected || isPaused {
-            image = NSImage(
-                systemSymbolName: protected ? "eye.slash" : "pause.circle",
-                accessibilityDescription: AppIdentity.displayName)
-        } else {
-            image = AppSymbol.image()
-        }
+        let image = AppSymbol.image(
+            named: appearance.statusSymbolName(protected: protected, paused: isPaused),
+            pointSize: StatusBarSymbol.pointSize)
         image?.isTemplate = true
         statusSymbol.imageView.image = image
         statusItem?.button?.toolTip = AppIdentity.displayName + " — " + privacy.statusText
@@ -422,26 +525,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func presentMenu() {
         let menu = NSMenu()
-        let status = NSMenuItem(title: privacy.statusText, action: nil, keyEquivalent: "")
-        status.isEnabled = false
-        menu.addItem(status)
+        menu.addItem(StatusMenuMessage.item(for: privacy.statusText))
         menu.addItem(
             menuItem(
                 title: privacy.isManuallyProtected
                     ? localized("Turn off manual protection") : localized("Turn on manual protection"),
-                action: #selector(togglePrivacy)))
+                action: #selector(togglePrivacy), shortcut: .togglePrivacy))
         menu.addItem(
             menuItem(
-                title: keyBindings.isGlobalEnabled(.togglePanel)
-                    ? String(format: localized("Show History (%@)"), keyBindings.label(for: .togglePanel))
-                    : localized("Show History"),
-                action: #selector(showPanel)))
+                title: localized("Show History"),
+                action: #selector(showPanel), shortcut: .togglePanel))
         menu.addItem(
             menuItem(
                 title: isPaused ? localized("Resume Capture") : localized("Pause Capture"),
                 action: #selector(togglePause)))
+        menu.addItem(
+            menuItem(title: localized("Pinned items"), action: #selector(showPinnedItems), shortcut: .togglePinned))
         menu.addItem(menuItem(title: localized("Clear Unpinned Items"), action: #selector(clearHistory)))
-        menu.addItem(menuItem(title: localized("Undo Last Change"), action: #selector(undoLastChange)))
+        menu.addItem(
+            menuItem(
+                title: localized("Undo Last Change"), action: #selector(undoLastChange), shortcut: .undoLastChange))
         if let clipboard, clipboard.clipboardAccess != .granted {
             menu.addItem(.separator())
             menu.addItem(
@@ -455,6 +558,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     action: #selector(openReleasesPage)))
         }
         menu.addItem(.separator())
+        if Distribution.current.checksForUpdates {
+            menu.addItem(menuItem(title: localized("Check for updates"), action: #selector(checkForUpdatesFromMenu)))
+        }
         menu.addItem(menuItem(title: localized("Settings…"), action: #selector(openSettings)))
         menu.addItem(menuItem(title: localized("Licenses and notices…"), action: #selector(openLegalNotices)))
         menu.addItem(menuItem(title: localized("Quit WhiskyMac"), action: #selector(quit)))
@@ -463,10 +569,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem?.menu = nil
     }
 
-    private func menuItem(title: String, action: Selector) -> NSMenuItem {
+    private func menuItem(title: String, action: Selector, shortcut: KeyAction? = nil) -> NSMenuItem {
         let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
         item.target = self
+        if let shortcut,
+            (!shortcut.isGlobal || keyBindings.isGlobalEnabled(shortcut)),
+            let equivalent = keyBindings.binding(for: shortcut).menuKeyEquivalent
+        {
+            item.keyEquivalent = equivalent
+            item.keyEquivalentModifierMask = keyBindings.binding(for: shortcut).modifiers
+        }
         return item
+    }
+
+    @objc private func showPinnedItems() {
+        panelController?.togglePinned(
+            presentation: generalSettings.pinnedPresentation, style: generalSettings.pinnedWindowStyle)
     }
 
     @objc private func showPanel() {
@@ -491,6 +609,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if let url = UpdateChecker.releasesPage {
             NSWorkspace.shared.open(url)
         }
+    }
+
+    @objc private func checkForUpdatesFromMenu() {
+        updateChecker.checkNow()
+        showSettings(destination: SettingsDestination(section: .aboutApp))
     }
 
     private func showOnboarding() {
@@ -523,11 +646,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func openSettings() {
+        showSettings(destination: nil)
+    }
+
+    private func showSettings(destination: SettingsDestination?) {
         if settingsWindow == nil {
             let hosting = NSHostingController(
                 rootView: SettingsView(
                     store: keyBindings, general: generalSettings, loginItem: loginItem,
-                    vimBindings: vimKeymap, privacy: privacy, appearance: appearance)
+                    vimBindings: vimKeymap, privacy: privacy,
+                    clearHistory: { [weak self] in self?.clipboard?.clear() },
+                    appearance: appearance, updateChecker: updateChecker, search: settingsSearch,
+                    selectedPage: destination?.page ?? .general)
             )
             let window = NSWindow(contentViewController: hosting)
             // SwiftUI sizing is lazy: without this the window materializes
@@ -535,6 +665,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             window.setContentSize(hosting.view.fittingSize)
             window.styleMask.remove([.resizable, .miniaturizable])
             SettingsWindowConfiguration.apply(to: window)
+            settingsSearchToolbar = SettingsSearchToolbar(
+                window: window, search: settingsSearch, appearance: appearance
+            ) { [weak self] in
+                self?.keyBindings.recordingAction == nil
+            }
             window.title = localized("WhiskyMac Settings")
             window.isReleasedWhenClosed = false
             settingsWindow = window
@@ -548,6 +683,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if appearance.dockIcon != .never { NSApp.setActivationPolicy(.regular) }
         NSApp.activate(ignoringOtherApps: true)
         settingsWindow?.makeKeyAndOrderFront(nil)
+        DispatchQueue.main.async {
+            if let destination {
+                NotificationCenter.default.post(
+                    name: .settingsPageRequested,
+                    object: destination)
+            }
+            NotificationCenter.default.post(name: .settingsWindowOpened, object: nil)
+        }
         updateDockIcon()
     }
 
@@ -590,10 +733,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func openLegalNotices() {
-        guard let resources = Bundle.main.resourceURL else { return }
-        let legal = resources.appendingPathComponent("Legal", isDirectory: true)
-        guard FileManager.default.fileExists(atPath: legal.path) else { return }
-        NSWorkspace.shared.open(legal)
+        showSettings(destination: SettingsDestination(section: .licenses))
     }
 
     @objc private func undoLastChange() {
@@ -617,6 +757,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         bindingsObserver?.cancel()
         settingsObserver?.cancel()
         privacyObserver?.cancel()
+        pinnedHotKey = nil
         hotKey = nil
         stackHotKey = nil
         privacyHotKey = nil

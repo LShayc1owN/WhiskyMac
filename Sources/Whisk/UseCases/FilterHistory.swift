@@ -9,17 +9,20 @@ struct HistoryFilter: Equatable {
     var sources: [SourceApp]
     var categories: Set<ContentCategory>
     var pinnedOnly: Bool
+    var tags: Set<PinTagColor>
 
     init(
         query: String = "",
         sources: [SourceApp] = [],
         categories: Set<ContentCategory> = [],
-        pinnedOnly: Bool = false
+        pinnedOnly: Bool = false,
+        tags: Set<PinTagColor> = []
     ) {
         self.query = query
         self.sources = sources
         self.categories = categories
         self.pinnedOnly = pinnedOnly
+        self.tags = tags
     }
 }
 
@@ -35,6 +38,9 @@ struct FilterHistory {
         let query = ParsedQuery(filter.query)
         var scored: [(item: ClipboardItem, score: Int, recency: Int)] = []
         for (recency, item) in history.items.enumerated() {
+            if !filter.tags.isEmpty, (!item.isPinned || item.pinnedMetadata.tags.isDisjoint(with: filter.tags)) {
+                continue
+            }
             if filter.pinnedOnly, !item.isPinned {
                 continue
             }
@@ -96,11 +102,16 @@ struct ParsedQuery: Equatable {
         }
         var total = 0
         for word in words {
-            let content = item.payload.searchableText
-                .flatMap { FuzzyMatch.score(pattern: word, in: $0) }
+            let text =
+                item.pinnedMetadata.hidesContent
+                ? nil
+                : ([item.payload.searchableText].compactMap { $0 } + (item.splitGroup?.parts.map(\.text) ?? [])).joined(
+                    separator: "\n")
+            let content = text.flatMap { FuzzyMatch.score(pattern: word, in: $0) }
+            let note = FuzzyMatch.score(pattern: word, in: item.pinnedMetadata.note)
             let source = sourceText(item)
                 .flatMap { FuzzyMatch.score(pattern: word, in: $0) }
-            guard let best = [content, source].compactMap({ $0 }).max() else { return nil }
+            guard let best = [content, note, source].compactMap({ $0 }).max() else { return nil }
             total += best
         }
         return total

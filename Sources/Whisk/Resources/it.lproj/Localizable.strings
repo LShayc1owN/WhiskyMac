@@ -1,0 +1,910 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key> is a clipboard app based on </key>
+	<string> è un’app per gli appunti basata su </string>
+	<key> that aims to do as much as possible, making input on your Mac easier and simpler.</key>
+	<string> e mira a offrire tutte le funzioni possibili per semplificare la scrittura sul Mac.</string>
+	<key>%@, application filter</key>
+	<string>%@, filtro per applicazione</string>
+	<key>%@, kind filter</key>
+	<string>%@, filtro per tipo</string>
+	<key>%lld pt</key>
+	<string>%lld pt</string>
+	<key>+ %lld more</key>
+	<string>+ altri %lld</string>
+	<key>24 hours</key>
+	<string>24 ore</string>
+	<key>30 days</key>
+	<string>30 giorni</string>
+	<key>7 days</key>
+	<string>7 giorni</string>
+	<key>A Handoff marker was observed. The device and source app are unknown.</key>
+	<string>È stato rilevato un indicatore di Handoff. Il dispositivo e l’app di origine sono sconosciuti.</string>
+	<key>A copied link is looked up once for its title and image. Off, nothing leaves this Mac.</key>
+	<string>Un link copiato viene consultato una volta per ottenere titolo e immagine. Se disattivato, nessun dato lascia il Mac.</string>
+	<key>A donation link will be added later.</key>
+	<string>Un link per le donazioni sarà aggiunto in seguito.</string>
+	<key>A panel slides up with everything you copied — search it, filter it, arrow through it.</key>
+	<string>Un pannello mostra ciò che hai copiato: cerca, filtra e sfoglia con le frecce.</string>
+	<key>About</key>
+	<string>Informazioni</string>
+	<key>About the developer</key>
+	<string>Informazioni sullo sviluppatore</string>
+	<key>About this App</key>
+	<string>Informazioni sull’app</string>
+	<key>Accent color</key>
+	<string>Colore di accento</string>
+	<key>Accessibility access is needed to check sharing toolbars. Content is hidden as a precaution.</key>
+	<string>Serve l’accesso ad Accessibilità per controllare le barre di condivisione. Il contenuto è nascosto per precauzione.</string>
+	<key>Actions</key>
+	<string>Azioni</string>
+	<key>Add App…</key>
+	<string>Aggiungi app…</string>
+	<key>Add sensitive app…</key>
+	<string>Aggiungi app sensibile…</string>
+	<key>Add to Paste Stack</key>
+	<string>Aggiungi alla pila di incolla</string>
+	<key>Additional contact</key>
+	<string>Altro contatto</string>
+	<key>All</key>
+	<string>Tutti</string>
+	<key>All items, clear filters</key>
+	<string>Tutti gli elementi, cancella i filtri</string>
+	<key>Allow Accessibility for toolbar detection…</key>
+	<string>Consenti Accessibilità per rilevare le barre degli strumenti…</string>
+	<key>Allow Clipboard Access</key>
+	<string>Consenti accesso agli appunti</string>
+	<key>Allow Clipboard Access…</key>
+	<string>Consenti accesso agli appunti…</string>
+	<key>Allow filtering in Privacy Mode</key>
+	<string>Consenti i filtri in modalità privacy</string>
+	<key>Allow removal of %lld older history items</key>
+	<string>Consenti la rimozione di %lld elementi meno recenti</string>
+	<key>Allow search in Privacy Mode</key>
+	<string>Consenti la ricerca in Modalità privacy</string>
+	<key>Always hide content</key>
+	<string>Nascondi sempre il contenuto</string>
+	<key>Always show</key>
+	<string>Mostra sempre</string>
+	<key>App Store exception</key>
+	<string>Eccezione App Store</string>
+	<key>Appearance</key>
+	<string>Aspetto</string>
+	<key>Application filter trigger</key>
+	<string>Attivazione filtro per applicazione</string>
+	<key>Application observed on this Mac at capture time; source is not verified.</key>
+	<string>App rilevata su questo Mac al momento dell’acquisizione; l’origine non è verificata.</string>
+	<key>Applies to manual and automatic protection. Search terms and enabled app names are visible on screen and in accessibility. Clipboard content stays hidden; automatic protection still blocks hover reveals.</key>
+	<string>Si applica alla protezione manuale e automatica. I termini di ricerca e i nomi delle app abilitati sono visibili sullo schermo e tramite Accessibilità. Il contenuto degli appunti resta nascosto; la protezione automatica impedisce comunque la rivelazione al passaggio del puntatore.</string>
+	<key>Applies to manual privacy with Hover set to Preview. The blur softens the reveal edge. Revealed content can be recorded; automatic protection stays fully masked.</key>
+	<string>Si applica alla privacy manuale con «Passaggio del puntatore» impostato su «Anteprima». La sfocatura ammorbidisce il bordo dell’area rivelata. Il contenuto visibile può essere registrato; la protezione automatica resta completamente oscurata.</string>
+	<key>Automatic detection is limited. Use manual protection before important sharing.</key>
+	<string>Il rilevamento automatico è limitato. Attiva la protezione manuale prima di condivisioni importanti.</string>
+	<key>Automatic detection is off. Use manual protection before sharing.</key>
+	<string>Il rilevamento automatico è disattivato. Attiva la protezione manuale prima di condividere.</string>
+	<key>Automatic protection (limited detection)</key>
+	<string>Protezione automatica (rilevamento limitato)</string>
+	<key>Available for 5 seconds</key>
+	<string>Disponibile per 5 secondi</string>
+	<key>Back to latest</key>
+	<string>Torna al più recente</string>
+	<key>Base64-decoded</key>
+	<string>Decodificato da Base64</string>
+	<key>Base64-encoded</key>
+	<string>Codificato in Base64</string>
+	<key>Based on Whisk. Includes Kenney UI Audio, SFX Kit and the Neovim icon.</key>
+	<string>Basato su Whisk. Include Kenney UI Audio, SFX Kit e l’icona di Neovim.</string>
+	<key>Blue tag</key>
+	<string>Etichetta blu</string>
+	<key>By line</key>
+	<string>Per riga</string>
+	<key>By paragraph</key>
+	<string>Per paragrafo</string>
+	<key>By separator</key>
+	<string>Per separatore</string>
+	<key>Cancel</key>
+	<string>Annulla</string>
+	<key>Card group</key>
+	<string>Gruppo di schede</string>
+	<key>Card size</key>
+	<string>Dimensione schede</string>
+	<key>Cards from the bottom</key>
+	<string>Schede dal basso</string>
+	<key>Check for updates</key>
+	<string>Controlla aggiornamenti</string>
+	<key>Check for updates at launch</key>
+	<string>Controlla gli aggiornamenti all’avvio</string>
+	<key>Checking for updates…</key>
+	<string>Ricerca aggiornamenti…</string>
+	<key>Checks Zoom and Teams sharing toolbar titles using Accessibility. Client versions and languages may not match. System sharing, remote desktop, recording and browser tabs are not covered. Enable manual protection before important sharing.</key>
+	<string>Controlla i titoli delle barre di condivisione di Zoom e Teams tramite Accessibilità. Versioni e lingue delle app potrebbero non corrispondere. Non copre la condivisione di sistema, il desktop remoto, le registrazioni o le schede del browser. Attiva la protezione manuale prima di condivisioni importanti.</string>
+	<key>Choose a format to continue</key>
+	<string>Scegli un formato per continuare</string>
+	<key>Choose a format to split</key>
+	<string>Scegli il formato da dividere</string>
+	<key>Choose how WhiskyMac starts and where you open it.</key>
+	<string>Scegli come avviare WhiskyMac e da dove aprirlo.</string>
+	<key>Choose how much clipboard history to keep and for how long.</key>
+	<string>Scegli quanti elementi conservare negli appunti e per quanto tempo.</string>
+	<key>Choose original or parts</key>
+	<string>Scegli originale o parti</string>
+	<key>Choose what clicking or hovering over a clipboard card does.</key>
+	<string>Scegli cosa accade quando fai clic su una scheda degli appunti o ci passi sopra con il puntatore.</string>
+	<key>Clear</key>
+	<string>Cancella</string>
+	<key>Clear Unpinned Items</key>
+	<string>Cancella gli elementi non fissati</string>
+	<key>Clear the search</key>
+	<string>Cancella la ricerca</string>
+	<key>Clear unpinned history</key>
+	<string>Cancella la cronologia non fissata</string>
+	<key>Clears all unpinned history, including hidden results. Pinned items are kept. Undo with Command-Z.</key>
+	<string>Cancella tutta la cronologia non fissata, inclusi i risultati nascosti. Gli elementi fissati restano. Annulla con Comando-Z.</string>
+	<key>Click a shortcut to record a new one — press Escape to cancel recording.</key>
+	<string>Fai clic su una scorciatoia per registrarne una nuova; premi Esc per annullare.</string>
+	<key>Click to filter</key>
+	<string>Fai clic per filtrare</string>
+	<key>Clipboard cards</key>
+	<string>Schede degli appunti</string>
+	<key>Close the panel</key>
+	<string>Chiudi il pannello</string>
+	<key>Color tags</key>
+	<string>Etichette colorate</string>
+	<key>Colors</key>
+	<string>Colori</string>
+	<key>Comma (, / ，)</key>
+	<string>Virgola (, / ，)</string>
+	<key>Complete original</key>
+	<string>Originale completo</string>
+	<key>Confirm removal of older history before saving.</key>
+	<string>Conferma la rimozione della cronologia meno recente prima di salvare.</string>
+	<key>Content always hidden</key>
+	<string>Contenuto sempre nascosto</string>
+	<key>Content hidden by Privacy Mode</key>
+	<string>Contenuto nascosto dalla Modalità privacy</string>
+	<key>Control what is recorded, displayed and fetched online.</key>
+	<string>Controlla cosa viene registrato, mostrato e recuperato online.</string>
+	<key>Copies are kept temporarily, then deleted from WhiskyMac without undo.</key>
+	<string>Le copie vengono conservate temporaneamente, poi eliminate da WhiskyMac senza possibilità di annullamento.</string>
+	<key>Copies from excluded apps are never recorded.</key>
+	<string>Gli elementi copiati dalle app escluse non vengono mai registrati.</string>
+	<key>Copy</key>
+	<string>Copia</string>
+	<key>Copy and paste require an explicit click. Full preview and editing stay disabled. Local reveal works only in manual privacy; automatic protection stays masked.</key>
+	<string>Copia e incolla richiedono un clic esplicito. Anteprima completa e modifica restano disabilitate. La visualizzazione locale funziona solo nella privacy manuale; la protezione automatica resta oscurata.</string>
+	<key>Copy something to get started</key>
+	<string>Copia qualcosa per iniziare</string>
+	<key>Copy sound</key>
+	<string>Suono di copia</string>
+	<key>Copy the selection without pasting</key>
+	<string>Copia la selezione senza incollarla</string>
+	<key>Corrections and feedback</key>
+	<string>Correzioni e feedback</string>
+	<key>Could not check for updates. Try again or visit GitHub.</key>
+	<string>Impossibile verificare gli aggiornamenti. Riprova o visita GitHub.</string>
+	<key>Custom color</key>
+	<string>Colore personalizzato</string>
+	<key>Custom separator (literal text)</key>
+	<string>Separatore personalizzato (testo letterale)</string>
+	<key>Default mode icon</key>
+	<string>Icona della modalità predefinita</string>
+	<key>Delete</key>
+	<string>Elimina</string>
+	<key>Delete All from %@</key>
+	<string>Elimina tutto da %@</string>
+	<key>Delete everything from the selection's application</key>
+	<string>Elimina tutti gli elementi dell’app della selezione</string>
+	<key>Delete the selection</key>
+	<string>Elimina la selezione</string>
+	<key>Dependencies and credits</key>
+	<string>Dipendenze e riconoscimenti</string>
+	<key>Detection coverage</key>
+	<string>Ambito del rilevamento</string>
+	<key>Detection is uncertain. Content is hidden as a precaution.</key>
+	<string>Il rilevamento è incerto. Il contenuto è nascosto per precauzione.</string>
+	<key>Diameter</key>
+	<string>Diametro</string>
+	<key>Do nothing</key>
+	<string>Non fare nulla</string>
+	<key>Dock icon</key>
+	<string>Icona nel Dock</string>
+	<key>Document</key>
+	<string>Documento</string>
+	<key>Donate</key>
+	<string>Fai una donazione</string>
+	<key>Done</key>
+	<string>Fine</string>
+	<key>Double click</key>
+	<string>Doppio clic</string>
+	<key>Download update on GitHub</key>
+	<string>Scarica aggiornamento su GitHub</string>
+	<key>Edge blur radius</key>
+	<string>Raggio di sfocatura del bordo</string>
+	<key>Edit the selection</key>
+	<string>Modifica la selezione</string>
+	<key>Editing %@</key>
+	<string>Modifica di %@</string>
+	<key>Editor</key>
+	<string>Editor</string>
+	<key>Edit…</key>
+	<string>Modifica…</string>
+	<key>Enable</key>
+	<string>Abilita</string>
+	<key>Enable the global shortcut in Settings whenever you want it.</key>
+	<string>Puoi abilitare la scorciatoia globale nelle Impostazioni quando vuoi.</string>
+	<key>Enable this global shortcut</key>
+	<string>Abilita questa scorciatoia globale</string>
+	<key>Enter 1–1440 minutes. Shortening the limit also applies to existing sensitive copies; increasing it only affects new copies.</key>
+	<string>Inserisci da 1 a 1440 minuti. Ridurre il limite vale anche per le copie sensibili esistenti; aumentarlo riguarda solo le nuove copie.</string>
+	<key>Enumeration comma (、)</key>
+	<string>Virgola di enumerazione (、)</string>
+	<key>Everything stays local</key>
+	<string>Tutto resta sul Mac</string>
+	<key>Exclude %@</key>
+	<string>Escludi %@</string>
+	<key>Exclude the selection's application</key>
+	<string>Escludi l’app della selezione</string>
+	<key>Excluded apps</key>
+	<string>App escluse</string>
+	<key>Explicit no-record markers and excluded apps always win. Existing normal history is not reclassified. An app can belong to only one list; adding it moves it from the other list. Source attribution is best effort.</key>
+	<string>I marcatori espliciti di non registrazione e le app escluse hanno sempre la precedenza. La cronologia normale esistente non viene riclassificata. Un’app può appartenere a una sola lista; aggiungerla la rimuove dall’altra. L’attribuzione della fonte può essere imprecisa.</string>
+	<key>Extract links</key>
+	<string>Estrai link</string>
+	<key>Feedback</key>
+	<string>Feedback</string>
+	<key>Fetch link previews</key>
+	<string>Recupera le anteprime dei link</string>
+	<key>Filtering keeps content hidden. Application filters require Show source apps in Privacy Mode.</key>
+	<string>Il contenuto resta nascosto durante il filtraggio. I filtri per app richiedono l’opzione Mostra app di origine in modalità privacy.</string>
+	<key>Filters</key>
+	<string>Filtri</string>
+	<key>First card</key>
+	<string>Prima scheda</string>
+	<key>Focus the row above</key>
+	<string>Passa alla riga sopra</string>
+	<key>Focus the row below</key>
+	<string>Passa alla riga sotto</string>
+	<key>Follow System</key>
+	<string>Segui il sistema</string>
+	<key>Follow windows</key>
+	<string>Segui le finestre</string>
+	<key>Forever</key>
+	<string>Per sempre</string>
+	<key>Format %lld</key>
+	<string>Formato %lld</string>
+	<key>Formatted JSON</key>
+	<string>JSON formattato</string>
+	<key>GNU General Public License</key>
+	<string>Licenza pubblica generale GNU</string>
+	<key>General</key>
+	<string>Generali</string>
+	<key>Get Started</key>
+	<string>Inizia</string>
+	<key>GitHub repository source code</key>
+	<string>GitHub repository codice sorgente</string>
+	<key>Global shortcuts</key>
+	<string>Scorciatoie globali</string>
+	<key>Global shortcuts are off until enabled here or recorded.</key>
+	<string>Le scorciatoie globali restano disattivate finché non le abiliti qui o non ne registri una.</string>
+	<key>Gray tag</key>
+	<string>Etichetta grigia</string>
+	<key>Green tag</key>
+	<string>Etichetta verde</string>
+	<key>Handoff (system marker)</key>
+	<string>Handoff (indicatore di sistema)</string>
+	<key>Handoff labels use a system pasteboard marker. Missing markers do not prove a local copy; existing history cannot be reclassified.</key>
+	<string>Le etichette di Handoff usano un indicatore degli appunti di sistema. L’assenza dell’indicatore non dimostra che la copia sia locale; la cronologia esistente non può essere riclassificata.</string>
+	<key>Hidden — right-click to show temporarily</key>
+	<string>Nascosto: fai clic con il tasto destro per mostrarlo temporaneamente</string>
+	<key>Hide</key>
+	<string>Nascondi</string>
+	<key>History</key>
+	<string>Cronologia</string>
+	<key>History capacity</key>
+	<string>Capacità della cronologia</string>
+	<key>History lives on this Mac. Concealed content from password managers is never recorded.</key>
+	<string>La cronologia resta su questo Mac. I contenuti nascosti dai gestori di password non vengono mai registrati.</string>
+	<key>Hover after a short delay</key>
+	<string>Passaggio del puntatore dopo una breve pausa</string>
+	<key>Hover delay (seconds)</key>
+	<string>Ritardo al passaggio del puntatore (secondi)</string>
+	<key>Hover preview</key>
+	<string>Anteprima al passaggio del puntatore</string>
+	<key>Hover reveal area</key>
+	<string>Area rivelata al passaggio del puntatore</string>
+	<key>Hover switches to one app after a brief pause. Click still toggles filters; All clears app, type and pinned filters without clearing search.</key>
+	<string>Dopo una breve pausa, il passaggio del puntatore filtra una sola app. Il clic continua ad attivare o disattivare i filtri; «Tutti» cancella i filtri per app, tipo ed elementi fissati senza cancellare la ricerca.</string>
+	<key>Hover to filter</key>
+	<string>Passa il puntatore per filtrare</string>
+	<key>How sensitive access works</key>
+	<string>Come funziona l’accesso sensibile</string>
+	<key>Image</key>
+	<string>Immagine</string>
+	<key>Image retained in memory. Copy to view in another app.</key>
+	<string>Immagine conservata in memoria. Copiala per visualizzarla in un’altra app.</string>
+	<key>In the clipboard panel</key>
+	<string>Nel pannello degli appunti</string>
+	<key>Inside the clipboard panel</key>
+	<string>Nel pannello degli appunti</string>
+	<key>Interactions</key>
+	<string>Interazioni</string>
+	<key>Keep history for</key>
+	<string>Conserva la cronologia per</string>
+	<key>Keep original and add cards</key>
+	<string>Mantieni originale e aggiungi schede</string>
+	<key>Keep sensitive copies for</key>
+	<string>Conserva copie sensibili per</string>
+	<key>Keep separators at the end of the previous part</key>
+	<string>Mantieni separatori alla fine della parte precedente</string>
+	<key>Kenney UI Audio is provided under CC0. Open the original license for its full text.</key>
+	<string>Kenney UI Audio è distribuito con licenza CC0. Apri la licenza originale per il testo completo.</string>
+	<key>Kenney UI Audio license</key>
+	<string>Licenza Kenney UI Audio</string>
+	<key>Kenney UI Audio source</key>
+	<string>Fonte di Kenney UI Audio</string>
+	<key>Language</key>
+	<string>Lingua</string>
+	<key>Large</key>
+	<string>Grande</string>
+	<key>Last card</key>
+	<string>Ultima scheda</string>
+	<key>Launch WhiskyMac at login</key>
+	<string>Avvia WhiskyMac al login</string>
+	<key>Launch at login needs the installed WhiskyMac.app: %@</key>
+	<string>Per l’avvio al login serve WhiskyMac.app installata: %@</string>
+	<key>Legal file is unavailable.</key>
+	<string>Il file legale non è disponibile.</string>
+	<key>Let WhiskyMac read what you copy</key>
+	<string>Consenti a WhiskyMac di leggere ciò che copi</string>
+	<key>Licenses and notices</key>
+	<string>Licenze e note legali</string>
+	<key>Licenses and notices…</key>
+	<string>Licenze e note legali…</string>
+	<key>Lin Shay contact</key>
+	<string>Lin Shay contatto sviluppatore</string>
+	<key>Lin Shay on GitHub</key>
+	<string>Lin Shay su GitHub</string>
+	<key>LinShay (琳曦) independently maintains WhiskyMac, with a focus on a more comfortable clipboard experience on macOS.</key>
+	<string>LinShay (琳曦) sviluppa e mantiene WhiskyMac in modo indipendente per rendere più comodo l’uso degli appunti su macOS.</string>
+	<key>Lowercase</key>
+	<string>Minuscolo</string>
+	<key>Make the settings and clipboard cards feel at home.</key>
+	<string>Personalizza l’aspetto delle impostazioni e delle schede degli appunti.</string>
+	<key>Manage manual and automatic protection in Settings.</key>
+	<string>Gestisci la protezione manuale e automatica nelle Impostazioni.</string>
+	<key>Manual Privacy Mode</key>
+	<string>Modalità privacy manuale</string>
+	<key>Manual privacy: hover to reveal a small area</key>
+	<string>Privacy manuale: passa il puntatore per rivelare una piccola area</string>
+	<key>Medium</key>
+	<string>Media</string>
+	<key>Menu bar and Dock</key>
+	<string>Barra dei menu e Dock</string>
+	<key>Menu bar icon click</key>
+	<string>Clic sull’icona della barra dei menu</string>
+	<key>Menu bar icons</key>
+	<string>Icone della barra dei menu</string>
+	<key>More feedback and contact options will be added when their addresses are available.</key>
+	<string>Altri canali di feedback e contatto saranno aggiunti quando gli indirizzi saranno disponibili.</string>
+	<key>More than 1000 results. Choose a different rule.</key>
+	<string>Oltre 1000 risultati. Scegli un’altra regola.</string>
+	<key>Mouse press</key>
+	<string>Pressione mouse</string>
+	<key>Mouse release</key>
+	<string>Rilascio mouse</string>
+	<key>NORMAL</key>
+	<string>NORMALE</string>
+	<key>Never show</key>
+	<string>Non mostrare mai</string>
+	<key>Next card or chip</key>
+	<string>Scheda o filtro successivo</string>
+	<key>No excluded apps added.</key>
+	<string>Nessuna app esclusa aggiunta.</string>
+	<key>No matches</key>
+	<string>Nessun risultato</string>
+	<key>No matching settings</key>
+	<string>Nessuna impostazione corrispondente</string>
+	<key>No matching symbols</key>
+	<string>Nessun simbolo corrispondente</string>
+	<key>No pinned items</key>
+	<string>Nessun elemento fissato</string>
+	<key>No sensitive apps added.</key>
+	<string>Nessuna app sensibile aggiunta.</string>
+	<key>No split results. Try another rule.</key>
+	<string>Nessun risultato. Prova un’altra regola.</string>
+	<key>No supported toolbar detected. Other sharing or recording may still be active.</key>
+	<string>Nessuna barra degli strumenti supportata rilevata. Potrebbero essere ancora attive altre condivisioni o registrazioni.</string>
+	<key>Normal mode</key>
+	<string>Modalità normale</string>
+	<key>Note</key>
+	<string>Nota</string>
+	<key>Nothing selected</key>
+	<string>Nessuna selezione</string>
+	<key>One or two characters — a two-character binding like gg runs on the double tap. Esc, Tab, / and 1–9 are fixed.</key>
+	<string>Uno o due caratteri: una sequenza di due caratteri come gg si attiva premendoli due volte. Esc, Tab, / e 1–9 sono fissi.</string>
+	<key>Online content</key>
+	<string>Contenuti online</string>
+	<key>Only links (off: split text and links)</key>
+	<string>Solo link (disattivato: separa testo e link)</string>
+	<key>Only selected categories are reset.</key>
+	<string>Vengono ripristinate solo le categorie selezionate.</string>
+	<key>Open Link</key>
+	<string>Apri link</string>
+	<key>Open Pasteboard Settings</key>
+	<string>Apri le impostazioni degli appunti</string>
+	<key>Open history from the menu bar</key>
+	<string>Apri la cronologia dalla barra dei menu</string>
+	<key>Open source file</key>
+	<string>Apri il file sorgente</string>
+	<key>Open the selected link</key>
+	<string>Apri il link selezionato</string>
+	<key>Orange tag</key>
+	<string>Etichetta arancione</string>
+	<key>Original Whisk on GitHub</key>
+	<string>Whisk originale su GitHub</string>
+	<key>Original text</key>
+	<string>Testo originale</string>
+	<key>Overview</key>
+	<string>Panoramica</string>
+	<key>Paste</key>
+	<string>Incolla</string>
+	<key>Paste actions stay silent. Automatic sounds are muted during Privacy Mode; sensitive and excluded copies stay silent.</key>
+	<string>Le azioni di incolla non riproducono suoni. I suoni automatici sono disattivati in Modalità privacy; anche gli elementi sensibili ed esclusi restano silenziosi.</string>
+	<key>Paste as Plain Text</key>
+	<string>Incolla come testo semplice</string>
+	<key>Paste as plain text</key>
+	<string>Incolla come testo semplice</string>
+	<key>Paste as…</key>
+	<string>Incolla come…</string>
+	<key>Paste next from the stack</key>
+	<string>Incolla l’elemento successivo della pila</string>
+	<key>Paste stack position %lld</key>
+	<string>Posizione %lld nella pila di incolla</string>
+	<key>Paste stack — pop with the global shortcut</key>
+	<string>Coda di incolla: usa la scorciatoia globale per incollare gli elementi in sequenza</string>
+	<key>Paste the selection</key>
+	<string>Incolla la selezione</string>
+	<key>Paste to previous app</key>
+	<string>Incolla nell’app precedente</string>
+	<key>Pasting needs Accessibility permission. Without it, use Command-V after copying.</key>
+	<string>Per incollare serve l’autorizzazione Accessibilità. Senza di essa, copia il contenuto e usa Comando-V.</string>
+	<key>Pause Capture</key>
+	<string>Sospendi acquisizione</string>
+	<key>Pause over a card to preview it without clicking.</key>
+	<string>Fermati su una scheda per vederne l’anteprima senza fare clic.</string>
+	<key>Pin</key>
+	<string>Fissa</string>
+	<key>Pin / unpin the selection</key>
+	<string>Fissa o sblocca la selezione</string>
+	<key>Pin what you always need</key>
+	<string>Fissa ciò che ti serve sempre</string>
+	<key>Pin, delete and stack actions apply to the newest format.</key>
+	<string>Le azioni per fissare, eliminare e aggiungere alla pila si applicano al formato più recente.</string>
+	<key>Pinned</key>
+	<string>Fissati</string>
+	<key>Pinned card</key>
+	<string>Scheda fissata</string>
+	<key>Pinned cards survive Clear and retention, and one chip shows only them.</key>
+	<string>Le schede fissate restano dopo la cancellazione e la scadenza; un filtro mostra solo quelle.</string>
+	<key>Pinned item details…</key>
+	<string>Dettagli elemento fissato…</string>
+	<key>Pinned items</key>
+	<string>Elementi fissati</string>
+	<key>Pinned items are never expired or evicted.</key>
+	<string>Gli elementi fissati non scadono e non vengono rimossi per fare spazio.</string>
+	<key>Pinned items presentation</key>
+	<string>Visualizzazione elementi fissati</string>
+	<key>Pinned items, filter</key>
+	<string>Elementi fissati, filtro</string>
+	<key>Pinned window layout</key>
+	<string>Layout finestra separata</string>
+	<key>Plain text (discard formatting)</key>
+	<string>Testo semplice (scarta formattazione)</string>
+	<key>Play a sound when a new copy is recorded</key>
+	<string>Riproduci un suono quando viene registrato un nuovo elemento copiato</string>
+	<key>Play a sound when copying from history</key>
+	<string>Riproduci un suono quando copi dalla cronologia</string>
+	<key>Press %@</key>
+	<string>Premi %@</string>
+	<key>Press %@ to search</key>
+	<string>Premi %@ per cercare</string>
+	<key>Preview</key>
+	<string>Anteprima</string>
+	<key>Preview a size, then save it to keep the change.</key>
+	<string>Visualizza la dimensione in anteprima, poi salvala per mantenere la modifica.</string>
+	<key>Preview size…</key>
+	<string>Anteprima dimensione…</string>
+	<key>Preview sound</key>
+	<string>Ascolta il suono</string>
+	<key>Preview the selection</key>
+	<string>Mostra l’anteprima della selezione</string>
+	<key>Previous card or chip</key>
+	<string>Scheda o filtro precedente</string>
+	<key>Privacy</key>
+	<string>Privacy</string>
+	<key>Privacy Mode is on (manual)</key>
+	<string>La Modalità privacy è attiva (manualmente)</string>
+	<key>Privacy mode</key>
+	<string>Modalità privacy</string>
+	<key>Privacy mode icon</key>
+	<string>Icona della modalità privacy</string>
+	<key>Project notice</key>
+	<string>Nota sul progetto</string>
+	<key>Protected clipboard item</key>
+	<string>Elemento degli appunti protetto</string>
+	<key>Purple tag</key>
+	<string>Etichetta viola</string>
+	<key>Quit WhiskyMac</key>
+	<string>Esci da WhiskyMac</string>
+	<key>Read the licenses and notices included with WhiskyMac.</key>
+	<string>Leggi le licenze e le note legali incluse con WhiskyMac.</string>
+	<key>Reading mode</key>
+	<string>Modalità di lettura</string>
+	<key>Recording settings</key>
+	<string>Impostazioni di registrazione</string>
+	<key>Red tag</key>
+	<string>Etichetta rossa</string>
+	<key>Remove</key>
+	<string>Rimuovi</string>
+	<key>Remove from Paste Stack</key>
+	<string>Rimuovi dalla pila di incolla</string>
+	<key>Replace original card</key>
+	<string>Sostituisci scheda originale</string>
+	<key>Report a bug on GitHub</key>
+	<string>Segnala un bug su GitHub</string>
+	<key>Reset</key>
+	<string>Ripristina</string>
+	<key>Reset category</key>
+	<string>Categoria da ripristinare</string>
+	<key>Reset keyboard shortcuts</key>
+	<string>Ripristina le scorciatoie da tastiera</string>
+	<key>Reset keyboard shortcuts?</key>
+	<string>Ripristinare le scorciatoie da tastiera?</string>
+	<key>Reset to default</key>
+	<string>Ripristina il valore predefinito</string>
+	<key>Reset…</key>
+	<string>Ripristina…</string>
+	<key>Restore Defaults</key>
+	<string>Ripristina le impostazioni predefinite</string>
+	<key>Restore default size</key>
+	<string>Ripristina la dimensione predefinita</string>
+	<key>Restore default values</key>
+	<string>Ripristina valori predefiniti</string>
+	<key>Restores Vim bindings without changing Vim navigation.</key>
+	<string>Ripristina i tasti Vim senza modificare la navigazione Vim.</string>
+	<key>Restores global shortcuts and turns them off.</key>
+	<string>Ripristina i comandi rapidi globali e li disattiva.</string>
+	<key>Restores panel shortcuts.</key>
+	<string>Ripristina i comandi rapidi del pannello.</string>
+	<key>Results</key>
+	<string>Risultati</string>
+	<key>Resume Capture</key>
+	<string>Riprendi acquisizione</string>
+	<key>Return saves, Shift-Return breaks the line, Escape cancels.</key>
+	<string>Invio salva, Maiusc-Invio va a capo, Esc annulla.</string>
+	<key>Reveal a small area</key>
+	<string>Mostra una piccola area</string>
+	<key>Reveal in Finder</key>
+	<string>Mostra nel Finder</string>
+	<key>Reveal the selected files in Finder</key>
+	<string>Mostra i file selezionati nel Finder</string>
+	<key>Reverting in %d seconds</key>
+	<string>Ripristino della dimensione precedente tra %d secondi</string>
+	<key>Rich text</key>
+	<string>Testo formattato</string>
+	<key>Rich text could not be preserved. Enable Plain text to continue.</key>
+	<string>Impossibile mantenere il testo formattato. Attiva Testo semplice per continuare.</string>
+	<key>Right click</key>
+	<string>Clic destro</string>
+	<key>Right-click always opens the menu. Follow windows shows the Dock icon for Settings and welcome windows only.</key>
+	<string>Il clic destro apre sempre il menu. «Segui le finestre» mostra l’icona nel Dock solo per le finestre Impostazioni e di benvenuto.</string>
+	<key>Rollover tick</key>
+	<string>Tic al passaggio</string>
+	<key>SEARCH</key>
+	<string>RICERCA</string>
+	<key>SFX Kit is provided under CC0. Open the original license for its full text.</key>
+	<string>SFX Kit è distribuito con licenza CC0. Apri la licenza originale per il testo completo.</string>
+	<key>SFX Kit license</key>
+	<string>Licenza SFX Kit</string>
+	<key>SFX Kit source</key>
+	<string>Fonte di SFX Kit</string>
+	<key>Save</key>
+	<string>Salva</string>
+	<key>Save As…</key>
+	<string>Salva con nome…</string>
+	<key>Save as a card group</key>
+	<string>Salva come gruppo di schede</string>
+	<key>Save results</key>
+	<string>Salva risultati</string>
+	<key>Save the selection as a file</key>
+	<string>Salva la selezione come file</string>
+	<key>Screen privacy</key>
+	<string>Privacy dello schermo</string>
+	<key>Search</key>
+	<string>Cerca</string>
+	<key>Search SF Symbols by name</key>
+	<string>Cerca i simboli SF per nome</string>
+	<key>Search clipboard history</key>
+	<string>Cerca nella cronologia degli appunti</string>
+	<key>Search match</key>
+	<string>Corrispondenza di ricerca</string>
+	<key>Search mode</key>
+	<string>Modalità ricerca</string>
+	<key>Search pinned items</key>
+	<string>Cerca elementi fissati</string>
+	<key>Search settings</key>
+	<string>Cerca nelle impostazioni</string>
+	<key>Select a delimiter or enter a custom separator.</key>
+	<string>Scegli un separatore o inseriscine uno personalizzato.</string>
+	<key>Select at least one result.</key>
+	<string>Seleziona almeno un risultato.</string>
+	<key>Selected</key>
+	<string>Selezionato</string>
+	<key>Selected parts are combined in their original order with line breaks.</key>
+	<string>Le parti selezionate vengono unite nell’ordine originale con ritorni a capo.</string>
+	<key>Semicolon (; / ；)</key>
+	<string>Punto e virgola (; / ；)</string>
+	<key>Sensitive access</key>
+	<string>Accesso sensibile</string>
+	<key>Sensitive apps</key>
+	<string>App sensibili</string>
+	<key>Sensitive copies stay in memory, outside disk history, search and undo. They start hidden and can be shown for 10 seconds. They expire at the selected limit or sooner when the app quits, the Mac sleeps or the memory limit is reached. Expiration does not clear the system clipboard or copies held by other apps.</key>
+	<string>Le copie sensibili restano in memoria, fuori dalla cronologia su disco, dalla ricerca e dall’annullamento. Nascoste inizialmente, possono essere mostrate per 10 secondi. Scadono al limite scelto o prima quando l’app si chiude, il Mac va in stop o viene raggiunto il limite di memoria. La scadenza non cancella gli appunti di sistema né le copie conservate da altre app.</string>
+	<key>Sensitive copy</key>
+	<string>Copia sensibile</string>
+	<key>Sensitive copy actions</key>
+	<string>Azioni copia sensibile</string>
+	<key>Separate window</key>
+	<string>Finestra separata</string>
+	<key>Set up shortcuts for quick access and keyboard navigation.</key>
+	<string>Configura le scorciatoie per accedere rapidamente e navigare con la tastiera.</string>
+	<key>Settings layout</key>
+	<string>Layout delle impostazioni</string>
+	<key>Settings navigation</key>
+	<string>Navigazione nelle impostazioni</string>
+	<key>Settings…</key>
+	<string>Impostazioni…</string>
+	<key>Sharing toolbar detected. Content is hidden.</key>
+	<string>Barra di condivisione rilevata. Il contenuto è nascosto.</string>
+	<key>Shortcuts</key>
+	<string>Scorciatoie</string>
+	<key>Shortcuts reset</key>
+	<string>Scorciatoie ripristinate</string>
+	<key>Show / hide pinned items</key>
+	<string>Mostra / nascondi elementi fissati</string>
+	<key>Show / hide the panel</key>
+	<string>Mostra o nascondi il pannello</string>
+	<key>Show History</key>
+	<string>Mostra cronologia</string>
+	<key>Show clipboard cards</key>
+	<string>Mostra le schede degli appunti</string>
+	<key>Show fewer formats</key>
+	<string>Mostra meno formati</string>
+	<key>Show for 10 seconds</key>
+	<string>Mostra per 10 secondi</string>
+	<key>Show in Finder</key>
+	<string>Mostra nel Finder</string>
+	<key>Show menu</key>
+	<string>Mostra menu</string>
+	<key>Show source apps in Privacy Mode</key>
+	<string>Mostra le app di origine in Modalità privacy</string>
+	<key>Sidebar tabs</key>
+	<string>Schede laterali</string>
+	<key>Sidebar width</key>
+	<string>Larghezza della barra laterale</string>
+	<key>Single click</key>
+	<string>Clic singolo</string>
+	<key>Single line</key>
+	<string>Riga singola</string>
+	<key>Small</key>
+	<string>Piccola</string>
+	<key>Small bubble</key>
+	<string>Piccola bolla</string>
+	<key>Soft button</key>
+	<string>Pulsante delicato</string>
+	<key>Soft snap</key>
+	<string>Schiocco delicato</string>
+	<key>Soft tap</key>
+	<string>Tocco delicato</string>
+	<key>Sound volume</key>
+	<string>Volume del suono</string>
+	<key>Sounds and effects</key>
+	<string>Suoni ed effetti</string>
+	<key>Source repositories</key>
+	<string>Repository del codice</string>
+	<key>Split options</key>
+	<string>Opzioni di divisione</string>
+	<key>Split rule</key>
+	<string>Regola di divisione</string>
+	<key>Splitting is unavailable for this item.</key>
+	<string>Questo elemento non può essere diviso.</string>
+	<key>Split…</key>
+	<string>Dividi…</string>
+	<key>Start a search</key>
+	<string>Avvia una ricerca</string>
+	<key>Startup</key>
+	<string>Avvio</string>
+	<key>Storage management</key>
+	<string>Gestione dello spazio</string>
+	<key>Support development</key>
+	<string>Sostieni lo sviluppo</string>
+	<key>Switch click</key>
+	<string>Clic interruttore</string>
+	<key>Switch filter group</key>
+	<string>Cambia gruppo di filtri</string>
+	<key>Tab</key>
+	<string>Tabulazione</string>
+	<key>Thanks for opening this page &gt;&lt; I hope you enjoy my work! Wishing you happiness and success every day!</key>
+	<string>Grazie per aver aperto questa pagina &gt;&lt; Spero che ti piacciano le mie creazioni! Ti auguro felicità e che tutto vada bene ogni giorno!</string>
+	<key>The Whisk author grants additional App Store and TestFlight distribution permission.</key>
+	<string>Il titolare originale dei diritti di Whisk concede un permesso aggiuntivo per la distribuzione tramite App Store e TestFlight, alle condizioni indicate nel testo originale.</string>
+	<key>The WhiskyMac author grants additional App Store and TestFlight permission for their work.</key>
+	<string>L’autore di WhiskyMac concede un permesso aggiuntivo per App Store e TestFlight sui contributi che ha il diritto di concedere in licenza. Ambito e condizioni sono nel testo originale.</string>
+	<key>The accent color also highlights the selected clipboard card.</key>
+	<string>Il colore di accento evidenzia anche la scheda degli appunti selezionata.</string>
+	<key>The note stays visible. Copy and paste use the original; previews, editing, dragging and online link previews are blocked while hidden.</key>
+	<string>La nota resta visibile. Copia e incolla usano l’originale; anteprime, modifica, trascinamento e anteprime dei link online sono bloccati quando il contenuto è nascosto.</string>
+	<key>The original will be removed. Unselected content is not included in the new cards. Undo restores the original.</key>
+	<string>L’originale verrà rimosso. I contenuti non selezionati non saranno inclusi. Annulla ripristina l’originale.</string>
+	<key>The overview is a reading aid. Refer to the original text for the complete terms.</key>
+	<string>Questa panoramica facilita la lettura. Per le condizioni complete, consulta il testo originale.</string>
+	<key>The panel opens with letters as commands: %@ to search, %@ to move, %@ to paste, %@ to preview, %@ to close.</key>
+	<string>Quando apri il pannello, le lettere funzionano come comandi: %@ per cercare, %@ per spostarti, %@ per incollare, %@ per l’anteprima, %@ per chiudere.</string>
+	<key>The results could not be saved. Your history and draft were kept.</key>
+	<string>Salvataggio non riuscito. Cronologia e bozza sono state mantenute.</string>
+	<key>The rich text could not be saved.</key>
+	<string>Impossibile salvare il testo formattato.</string>
+	<key>The selected results do not fit the history capacity. Select fewer results or increase capacity.</key>
+	<string>I risultati superano la capacità della cronologia. Riduci la selezione o aumenta la capacità.</string>
+	<key>The separator cuts through a combined character. Choose another separator.</key>
+	<string>Il separatore divide un carattere composto. Scegline un altro.</string>
+	<key>The source changed or was removed. Reopen Split to continue.</key>
+	<string>La fonte è cambiata o è stata rimossa. Riapri Dividi.</string>
+	<key>The source exceeds the split size limit.</key>
+	<string>La fonte supera il limite di dimensione.</string>
+	<key>Third-party notices</key>
+	<string>Note di terze parti</string>
+	<key>This document lists third-party artwork and sounds, their licenses and sources.</key>
+	<string>Questo documento elenca le immagini e i suoni di terze parti inclusi, con autori, licenze e collegamenti alle fonti.</string>
+	<key>This document records the source and conversion details for the bundled Kenney UI sounds.</key>
+	<string>Questo documento riporta la provenienza e i dettagli di conversione dei suoni Kenney UI inclusi.</string>
+	<key>This document records the source and selected files for the bundled SFX Kit sounds.</key>
+	<string>Questo documento riporta la provenienza e i file selezionati dei suoni SFX Kit inclusi.</string>
+	<key>This global shortcut could not be registered. Choose another binding.</key>
+	<string>Impossibile registrare questa scorciatoia globale. Scegli un’altra combinazione.</string>
+	<key>This notice names the original authors, WhiskyMac modifications and third-party materials.</key>
+	<string>WhiskyMac si basa su Whisk. Questa nota indica gli autori originali, le modifiche di WhiskyMac e i materiali di terze parti inclusi.</string>
+	<key>This shortcut is used by another action</key>
+	<string>Questa scorciatoia è già usata da un’altra azione</string>
+	<key>Toggle manual Privacy Mode</key>
+	<string>Attiva o disattiva la Modalità privacy manuale</string>
+	<key>Toggle the selection in the paste stack</key>
+	<string>Aggiungi o rimuovi la selezione dalla pila di incolla</string>
+	<key>Top tabs</key>
+	<string>Schede in alto</string>
+	<key>Translation contributors</key>
+	<string>Collaboratori alle traduzioni</string>
+	<key>Trim surrounding whitespace</key>
+	<string>Rimuovi spazi iniziali e finali</string>
+	<key>Trimmed</key>
+	<string>Senza spazi iniziali e finali</string>
+	<key>Turn off manual protection</key>
+	<string>Disattiva la protezione manuale</string>
+	<key>Turn on manual protection</key>
+	<string>Attiva la protezione manuale</string>
+	<key>Two actions share the same shortcut.</key>
+	<string>Due azioni usano la stessa scorciatoia.</string>
+	<key>Type shortcut…</key>
+	<string>Premi la scorciatoia…</string>
+	<key>URL-decoded</key>
+	<string>Decodificato da URL</string>
+	<key>URL-encoded</key>
+	<string>Codificato per URL</string>
+	<key>Undo Last Change</key>
+	<string>Annulla l’ultima modifica</string>
+	<key>Undo reset</key>
+	<string>Annulla ripristino</string>
+	<key>Undo the last deletion or edit</key>
+	<string>Annulla l’ultima eliminazione o modifica</string>
+	<key>Unknown</key>
+	<string>Sconosciuto</string>
+	<key>Unlimited</key>
+	<string>Illimitata</string>
+	<key>Unpin</key>
+	<string>Sblocca</string>
+	<key>Update Available (v%@)…</key>
+	<string>Aggiornamento disponibile (v%@)…</string>
+	<key>Update available: %@</key>
+	<string>Aggiornamento disponibile: %@</string>
+	<key>Updates are downloaded from GitHub. Backup source is not configured.</key>
+	<string>Gli aggiornamenti provengono da GitHub. Fonte alternativa non configurata.</string>
+	<key>Uppercase</key>
+	<string>Maiuscolo</string>
+	<key>Use sidebar navigation</key>
+	<string>Usa la navigazione laterale</string>
+	<key>Use the pinned-items shortcut or menu item. In the clipboard panel it selects Pinned; a separate window only shows pinned items.</key>
+	<string>Usa il comando rapido o la voce di menu degli elementi fissati. Nel pannello viene selezionato il filtro; una finestra separata mostra solo gli elementi fissati.</string>
+	<key>Use top navigation</key>
+	<string>Usa la navigazione in alto</string>
+	<key>Uses the configured card action</key>
+	<string>Usa l’azione configurata per la scheda</string>
+	<key>Version</key>
+	<string>Versione</string>
+	<key>Version and introduction</key>
+	<string>Versione e introduzione</string>
+	<key>Vertical list at the pointer</key>
+	<string>Elenco verticale al puntatore</string>
+	<key>View profile links</key>
+	<string>Mostra i link del profilo</string>
+	<key>Vim Keybindings</key>
+	<string>Assegnazioni tasti Vim</string>
+	<key>Vim navigation in the panel</key>
+	<string>Navigazione Vim nel pannello</string>
+	<key>Visible during protection</key>
+	<string>Visibile durante la protezione</string>
+	<key>Waiting for a stable end. Content remains hidden.</key>
+	<string>In attesa che termini con certezza. Il contenuto resta nascosto.</string>
+	<key>Welcome</key>
+	<string>Benvenuto</string>
+	<key>Welcome to WhiskyMac</key>
+	<string>Benvenuto in WhiskyMac</string>
+	<key>WhiskyMac Settings</key>
+	<string>Impostazioni di WhiskyMac</string>
+	<key>WhiskyMac exception</key>
+	<string>Eccezione WhiskyMac</string>
+	<key>WhiskyMac is a native clipboard history app for macOS, based on Whisk.</key>
+	<string>WhiskyMac è un’app nativa per la cronologia degli appunti su macOS, basata su Whisk.</string>
+	<key>WhiskyMac is not allowed to read the clipboard.</key>
+	<string>WhiskyMac non è autorizzato a leggere gli appunti.</string>
+	<key>WhiskyMac needs your permission to read what you copy.</key>
+	<string>WhiskyMac ha bisogno del tuo permesso per leggere ciò che copi.</string>
+	<key>WhiskyMac on GitHub</key>
+	<string>WhiskyMac su GitHub</string>
+	<key>WhiskyMac uses the GNU GPL version 3 or later. Read the original for the complete terms.</key>
+	<string>WhiskyMac usa la GNU GPL versione 3 o successiva. La licenza disciplina uso, distribuzione, modifiche, disponibilità del codice sorgente e garanzie. Consulta il testo originale per le condizioni complete.</string>
+	<key>Without accents</key>
+	<string>Senza accenti</string>
+	<key>Yellow tag</key>
+	<string>Etichetta gialla</string>
+	<key>Your clipboard, remembered.</key>
+	<string>I tuoi appunti, sempre a portata di mano.</string>
+	<key>You’re up to date.</key>
+	<string>La versione è aggiornata.</string>
+	<key>clear history delete history empty history</key>
+	<string>cancella cronologia elimina cronologia svuota cronologia</string>
+	<key>code</key>
+	<string>codice</string>
+	<key>color</key>
+	<string>colore</string>
+	<key>files</key>
+	<string>file</string>
+	<key>global</key>
+	<string>globale</string>
+	<key>image</key>
+	<string>immagine</string>
+	<key>key %lld</key>
+	<string>tasto %lld</string>
+	<key>link</key>
+	<string>link</string>
+	<key>macOS asks before an app reads the clipboard. Click Allow Clipboard Access, choose Allow Paste, then set WhiskyMac to Allow under Paste from Other Apps.</key>
+	<string>macOS chiede conferma prima che un’app legga gli appunti. Fai clic su «Consenti accesso agli appunti», scegli «Consenti incolla», poi imposta WhiskyMac su «Consenti» in «Incolla da altre app».</string>
+	<key>minutes</key>
+	<string>minuti</string>
+	<key>now</key>
+	<string>ora</string>
+	<key>pt</key>
+	<string>pt</string>
+	<key>sidebar tabs navigation</key>
+	<string>barra laterale schede navigazione</string>
+	<key>size width preview restore default</key>
+	<string>dimensione larghezza anteprima ripristina predefinita</string>
+	<key>text</key>
+	<string>testo</string>
+	<key>volume audio mute</key>
+	<string>volume audio suono muto</string>
+	<key>⌘1…⌘9 paste the matching card directly.</key>
+	<string>⌘1…⌘9 incollano direttamente la scheda corrispondente.</string>
+</dict>
+</plist>

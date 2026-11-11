@@ -9,6 +9,17 @@ enum ContentCategory: String, CaseIterable, Equatable {
     case link
     case image
     case files
+
+    var symbolName: String {
+        switch self {
+        case .text: "text.alignleft"
+        case .code: "chevron.left.forwardslash.chevron.right"
+        case .color: "paintpalette"
+        case .link: "link"
+        case .image: "photo"
+        case .files: "folder"
+        }
+    }
 }
 
 extension Payload {

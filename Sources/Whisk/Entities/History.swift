@@ -23,12 +23,14 @@ struct History: Equatable {
         _ payload: Payload, from source: SourceApp?, rtf: Data? = nil, at date: Date, id: UUID = UUID()
     ) -> History {
         var next = self
-        if let index = next.items.firstIndex(where: { $0.payload == payload && $0.rtf == rtf }) {
+        if let index = next.items.firstIndex(where: { $0.splitGroup == nil && $0.payload == payload && $0.rtf == rtf })
+        {
             let previous = next.items.remove(at: index)
             let refreshed = ClipboardItem(
                 id: previous.id, payload: payload,
                 source: previous.source?.origin == source?.origin ? previous.source : source,
-                copiedAt: date, isPinned: previous.isPinned, rtf: rtf)
+                copiedAt: date, isPinned: previous.isPinned, rtf: rtf, pinnedMetadata: previous.pinnedMetadata,
+                splitSourceID: previous.splitSourceID)
             next.items.insert(refreshed, at: 0)
             return next
         }
@@ -52,6 +54,13 @@ struct History: Equatable {
         var next = self
         guard let index = next.items.firstIndex(where: { $0.id == id }) else { return self }
         next.items[index] = next.items[index].replacing(payload: payload)
+        return next
+    }
+
+    func updatingPinnedMetadata(_ id: UUID, value: PinnedMetadata) -> History {
+        var next = self
+        guard let index = items.firstIndex(where: { $0.id == id && $0.isPinned }) else { return self }
+        next.items[index] = items[index].withPinnedMetadata(value)
         return next
     }
 

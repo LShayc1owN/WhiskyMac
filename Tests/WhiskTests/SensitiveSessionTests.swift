@@ -6,6 +6,7 @@
 import AppKit
 import SwiftUI
 import Testing
+import Vision
 
 @testable import Whisk
 
@@ -158,18 +159,176 @@ import Testing
         #expect(session.ids.isEmpty)
     }
 
-    @Test func selected_sources_and_retention_are_opt_in_and_persist_independently() throws {
+    @Test func sensitive_rules_and_custom_retention_persist_without_a_second_opt_in() throws {
         let sandbox = try IsolatedDefaults()
         let general = GeneralSettingsStore(defaults: sandbox.defaults)
         #expect(general.sensitiveApps.isEmpty)
-        #expect(!general.retainSensitiveCopies)
-        general.sensitiveApps = [ExcludedApp(bundleID: "test.sensitive", name: "Synthetic")]
+        #expect(general.sensitiveRetentionMinutes == 2)
+        let app = ExcludedApp(bundleID: "test.sensitive", name: "Synthetic")
+        general.addSensitiveApp(app)
+        general.sensitiveRetentionMinutes = 7
         let restored = GeneralSettingsStore(defaults: sandbox.defaults)
         #expect(restored.sensitiveBundleIDs == ["test.sensitive"])
-        #expect(!restored.retainSensitiveCopies)
-        general.retainSensitiveCopies = true
-        #expect(GeneralSettingsStore(defaults: sandbox.defaults).retainSensitiveCopies)
-        #expect(general.excludedApps.isEmpty)
+        #expect(restored.sensitiveRetentionMinutes == 7)
+        #expect(restored.excludedApps.isEmpty)
+        restored.excludeApp(app)
+        #expect(restored.sensitiveApps.isEmpty)
+        #expect(restored.excludedBundleIDs == ["test.sensitive"])
+        restored.addSensitiveApp(app)
+        restored.addSensitiveApp(app)
+        #expect(restored.excludedApps.isEmpty)
+        #expect(restored.sensitiveApps == [app])
+    }
+
+    @Test func minute_input_is_bounded_and_invalid_drafts_do_not_become_preferences() throws {
+        #expect(SensitiveRetention.minutes(from: " 15 ") == 15)
+        #expect(SensitiveRetention.minutes(from: "0") == 1)
+        #expect(SensitiveRetention.minutes(from: "9999") == 1440)
+        for invalid in ["", "-2", "1.5", "nan", "∞", "9999999999999999999999999"] {
+            #expect(SensitiveRetention.minutes(from: invalid) == nil)
+        }
+        let sandbox = try IsolatedDefaults()
+        let settings = GeneralSettingsStore(defaults: sandbox.defaults)
+        settings.sensitiveRetentionMinutes = -5
+        #expect(settings.sensitiveRetentionMinutes == 1)
+        settings.sensitiveRetentionMinutes = Int.max
+        #expect(GeneralSettingsStore(defaults: sandbox.defaults).sensitiveRetentionMinutes == 1440)
+    }
+
+    @Test func custom_deadlines_delete_entries_and_never_restart_on_reveal_or_copy() throws {
+        var time: TimeInterval = 0
+        let session = SensitiveSessionStore(now: { time }, schedulesTimer: false)
+        session.setRetention(minutes: 3)
+        session.setPanelVisible(true)
+        var copied = 0
+        session.copyToPasteboard = { _, _ in copied += 1 }
+        session.receive(PasteboardSnapshot(payload: .text("SHORT-LIVED"), source: source))
+        let id = try #require(session.ids.first)
+        time = 179
+        session.reveal(id)
+        session.copy(id)
+        #expect(copied == 1)
+        time = 180
+        session.copy(id)
+        session.reveal(id)
+        #expect(copied == 1)
+        #expect(session.ids.isEmpty)
+        #expect(session.revealedPayload(id) == nil)
+        session.setRetention(minutes: 10)
+        session.setPanelVisible(true)
+        #expect(session.ids.isEmpty)
+        #expect(SensitiveSessionStore(schedulesTimer: false).ids.isEmpty)
+    }
+
+    @Test func lowering_retention_expires_old_copies_and_raising_it_does_not_extend_them() throws {
+        var time: TimeInterval = 0
+        let session = SensitiveSessionStore(now: { time }, schedulesTimer: false)
+        session.setPanelVisible(true)
+        session.setRetention(minutes: 5)
+        session.receive(PasteboardSnapshot(payload: .text("FIRST"), source: source))
+        let first = try #require(session.ids.first)
+        time = 119
+        session.reveal(first)
+        session.setRetention(minutes: 2)
+        time = 120
+        session.setRetention(minutes: 10)
+        #expect(session.ids.isEmpty)
+        #expect(session.revealedID == nil)
+        session.receive(PasteboardSnapshot(payload: .text("SECOND"), source: source))
+        let second = try #require(session.ids.first)
+        time = 719
+        session.sweep()
+        #expect(session.ids == [second])
+        time = 720
+        session.sweep()
+        #expect(session.ids.isEmpty)
+        session.setRetention(minutes: 1)
+        session.receive(PasteboardSnapshot(payload: .text("THIRD"), source: source))
+        time = 781
+        session.setRetention(minutes: 10)
+        #expect(session.ids.isEmpty)
+    }
+
+    @Test func sensitive_access_navigation_shows_both_rules_without_leaking_names_on_other_pages_or_during_protection()
+        throws
+    {
+        _ = NSApplication.shared
+        let previousLanguage = AppLocalization.language
+        AppLocalization.language = "en"
+        defer { AppLocalization.language = previousLanguage }
+        let sandbox = try IsolatedDefaults()
+        let general = GeneralSettingsStore(defaults: sandbox.defaults)
+        general.addSensitiveApp(ExcludedApp(bundleID: "test.sensitive", name: "SENSITIVE-APP-CANARY"))
+        general.excludeApp(ExcludedApp(bundleID: "test.excluded", name: "EXCLUDED-APP-CANARY"))
+        let appearance = AppearanceSettingsStore(defaults: sandbox.defaults)
+        let privacy = PrivacyController(defaults: sandbox.defaults)
+        for navigation in SettingsNavigation.allCases {
+            appearance.navigation = navigation
+            privacy.setProtected(false)
+            let host = NSHostingView(
+                rootView: SettingsView(
+                    store: KeyBindingsStore(defaults: sandbox.defaults), general: general,
+                    loginItem: LoginItemManager(),
+                    vimBindings: VimBindingsStore(defaults: sandbox.defaults), privacy: privacy, appearance: appearance,
+                    selectedPage: .privacy))
+            let window = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 960, height: 820),
+                styleMask: .borderless, backing: .buffered, defer: false)
+            window.isReleasedWhenClosed = false
+            defer { window.close() }
+            window.contentView = host
+            host.frame = window.contentLayoutRect
+            host.layoutSubtreeIfNeeded()
+            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+            NotificationCenter.default.post(
+                name: .settingsPageRequested,
+                object: SettingsDestination(section: .sensitiveAccess))
+            RunLoop.current.run(until: Date().addingTimeInterval(0.3))
+            host.layoutSubtreeIfNeeded()
+            func visibleText() throws -> String {
+                host.layoutSubtreeIfNeeded()
+                let bitmap = try #require(host.bitmapImageRepForCachingDisplay(in: host.bounds))
+                host.cacheDisplay(in: host.bounds, to: bitmap)
+                let image = try #require(bitmap.cgImage)
+                let request = VNRecognizeTextRequest()
+                request.recognitionLevel = .accurate
+                request.recognitionLanguages = ["en-US"]
+                request.usesLanguageCorrection = false
+                try VNImageRequestHandler(cgImage: image).perform([request])
+                return (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
+                    .joined().filter { $0.isLetter }.uppercased()
+            }
+            let visible = try visibleText()
+            #expect(visible.contains("SENSITIVEAPPCANARY"))
+            #expect(visible.contains("EXCLUDEDAPPCANARY"))
+            #expect(visible.contains("KEEPSENSITIVECOPIESFOR"))
+            let bitmap = try #require(host.bitmapImageRepForCachingDisplay(in: host.bounds))
+            host.cacheDisplay(in: host.bounds, to: bitmap)
+            if let output = ProcessInfo.processInfo.environment["WHISK_UI_ARTIFACTS"] {
+                let directory = URL(fileURLWithPath: output)
+                try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+                try bitmap.representation(using: .png, properties: [:])?.write(
+                    to: directory.appendingPathComponent("sensitive-access-\(navigation.rawValue).png"))
+            }
+            // Moving to another parent page must discard the app-list view,
+            // including after visiting another About subsection.
+            for (index, heading) in [(1, "ABOUTTHEDEVELOPER"), (2, "DOCUMENT")] {
+                NotificationCenter.default.post(
+                    name: .settingsPageRequested,
+                    object: SettingsDestination(page: .about, sectionIndex: index))
+                RunLoop.current.run(until: Date().addingTimeInterval(0.3))
+                let text = try visibleText()
+                #expect(text.contains(heading))
+                #expect(!text.contains("APPCANARY"))
+            }
+            NotificationCenter.default.post(
+                name: .settingsPageRequested,
+                object: SettingsDestination(section: .sensitiveAccess))
+            RunLoop.current.run(until: Date().addingTimeInterval(0.3))
+            privacy.setProtected(true)
+            RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+            #expect(try !visibleText().contains("APPCANARY"))
+        }
     }
 
     @Test func sensitive_exports_keep_no_record_markers_and_marked_input_is_always_refused() throws {

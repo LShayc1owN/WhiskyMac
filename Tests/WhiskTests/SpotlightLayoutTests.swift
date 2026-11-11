@@ -97,18 +97,28 @@ import Testing
                 point: CGPoint(x: side / 2, y: side / 2))
             host.layoutSubtreeIfNeeded()
             #expect(host.fittingSize == CGSize(width: side, height: side))
+            for settings in [
+                SpotlightPreferences(diameter: 40, blurRadius: 20),
+                SpotlightPreferences(diameter: 320, blurRadius: 0),
+            ] {
+                host.rootView = SpotlightCardSurface(
+                    side: side, payload: .text("synthetic"), point: CGPoint(x: side / 2, y: side / 2),
+                    spotlight: settings)
+                host.layoutSubtreeIfNeeded()
+                #expect(host.fittingSize == CGSize(width: side, height: side))
+            }
             host.rootView = SpotlightCardSurface(side: side)
             #expect(host.fittingSize == CGSize(width: side, height: side))
         }
     }
 
-    @Test func reveal_has_a_wider_soft_edge_but_remains_bounded() throws {
+    @Test func default_reveal_uses_150_point_diameter_and_50_point_soft_edge() throws {
         let bitmap = try render(
             SpotlightCanvas(payload: .text(""), point: CGPoint(x: 110, y: 110))
                 .frame(width: 220, height: 220), name: "spotlight-transition.png")
         let center = try #require(bitmap.colorAt(x: 110, y: 110))
-        let inner = try #require(bitmap.colorAt(x: 164, y: 110))
-        let transition = try #require(bitmap.colorAt(x: 178, y: 110))
+        let inner = try #require(bitmap.colorAt(x: 130, y: 110))
+        let transition = try #require(bitmap.colorAt(x: 160, y: 110))
         let outside = try #require(bitmap.colorAt(x: 200, y: 110))
         #expect(center.alphaComponent > 0.99)
         #expect(inner.alphaComponent > 0.99)
@@ -116,7 +126,32 @@ import Testing
         #expect(outside.alphaComponent == 0)
         #expect(
             SpotlightGeometry.revealBounds(around: CGPoint(x: 110, y: 110))
-                == CGRect(x: 30, y: 30, width: 160, height: 160))
+                == CGRect(x: 35, y: 35, width: 150, height: 150))
+    }
+
+    @Test func custom_range_and_blur_change_only_the_bounded_mask() throws {
+        func sample(_ settings: SpotlightPreferences, _ suffix: String) throws -> NSBitmapImageRep {
+            try render(
+                SpotlightCanvas(payload: .text(""), point: CGPoint(x: 140, y: 140), spotlight: settings)
+                    .frame(width: 280, height: 280), name: "spotlight-custom-\(suffix).png")
+        }
+        let small = try sample(SpotlightPreferences(diameter: 80, blurRadius: 10), "small")
+        let large = try sample(SpotlightPreferences(diameter: 200, blurRadius: 10), "large")
+        let soft = try sample(SpotlightPreferences(diameter: 200, blurRadius: 80), "soft")
+        let hard = try sample(SpotlightPreferences(diameter: 200, blurRadius: 0), "hard")
+        #expect(try #require(small.colorAt(x: 200, y: 140)).alphaComponent == 0)
+        #expect(try #require(large.colorAt(x: 200, y: 140)).alphaComponent > 0.99)
+        let featherAlpha = try #require(soft.colorAt(x: 200, y: 140)).alphaComponent
+        #expect(featherAlpha > 0.3 && featherAlpha < 0.7)
+        #expect(try #require(hard.colorAt(x: 235, y: 140)).alphaComponent > 0.99)
+        for bitmap in [small, large, soft, hard] {
+            #expect(try #require(bitmap.colorAt(x: 140, y: 140)).alphaComponent > 0.99)
+            #expect(try #require(bitmap.colorAt(x: 245, y: 140)).alphaComponent == 0)
+        }
+        #expect(
+            SpotlightGeometry.revealBounds(
+                around: CGPoint(x: 140, y: 140), spotlight: .init(diameter: 200, blurRadius: 80))
+                == CGRect(x: 40, y: 40, width: 200, height: 200))
     }
 
     @Test func long_text_keeps_the_first_line_at_its_natural_size() throws {

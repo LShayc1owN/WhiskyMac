@@ -4,12 +4,79 @@
 // LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
 
 import AppKit
+import CryptoKit
 import Testing
 
 @testable import Whisk
 
 @MainActor
 @Suite struct CopySoundFeedback {
+    private final class Playback: CopySoundPlayback {
+        var starts = 0
+        var stops = 0
+        var succeeds = true
+        func start() -> Bool { starts += 1; return succeeds }
+        func stop() { stops += 1 }
+    }
+
+    @Test func decoded_samples_are_cached_but_playback_is_disposed_on_finish_or_replace() throws {
+        let sample = try #require(CopySound.kenneyClick4.load())
+        var loads = 0
+        var players: [Playback] = []
+        var completions: [() -> Void] = []
+        var volumes: [Float] = []
+        let output = CopySoundAudioOutput(
+            load: { _ in
+                loads += 1; return sample
+            },
+            factory: { _, volume, finish in
+                let player = Playback()
+                players.append(player)
+                completions.append(finish)
+                volumes.append(volume)
+                return player
+            })
+        #expect(!output.play(.kenneyClick1, volume: 0))
+        #expect(!output.play(.kenneyClick1, volume: .nan))
+        #expect(loads == 0)
+        #expect(output.play(.kenneyClick1, volume: 0.2))
+        #expect(output.play(.kenneyClick1, volume: 0.4))
+        #expect(loads == 1 && players[0].stops == 1)
+        completions[0]()
+        #expect(players[1].stops == 0)
+        completions[1]()
+        #expect(players[1].stops == 1)
+        #expect(output.play(.tink, volume: 2))
+        #expect(loads == 2 && volumes == [0.2, 0.4, 1])
+        output.stop()
+        #expect(players[2].stops == 1)
+        completions[2]()
+        #expect(players[2].stops == 1)
+    }
+
+    @Test func missing_assets_and_failed_devices_stay_silent_and_teardown_stops_playback() throws {
+        let sample = try #require(CopySound.kenneyClick4.load())
+        let missing = CopySoundAudioOutput(
+            load: { _ in nil },
+            factory: { _, _, _ in
+                Issue.record("No device should be opened without audio"); return nil
+            })
+        #expect(!missing.play(.pop, volume: 1))
+        let unavailable = CopySoundAudioOutput(load: { _ in sample }, factory: { _, _, _ in nil })
+        #expect(!unavailable.play(.pop, volume: 1))
+        let failed = Playback()
+        failed.succeeds = false
+        let output = CopySoundAudioOutput(load: { _ in sample }, factory: { _, _, _ in failed })
+        #expect(!output.play(.pop, volume: 1))
+        #expect(failed.stops == 1)
+        let active = Playback()
+        var owner: CopySoundAudioOutput? = CopySoundAudioOutput(load: { _ in sample }, factory: { _, _, _ in active })
+        #expect(owner?.play(.pop, volume: 1) == true)
+        owner = nil
+        #expect(active.stops == 1)
+        #expect(CopySoundPCM.load(URL(fileURLWithPath: "/nonexistent-sound.wav")) == nil)
+    }
+
     @Test func sound_preferences_start_silent_and_persist_in_the_own_domain() throws {
         let sandbox = try IsolatedDefaults()
         let settings = GeneralSettingsStore(defaults: sandbox.defaults)
@@ -178,10 +245,53 @@ import Testing
         #expect(gateway.readIfChanged() == nil)
     }
 
-    @Test func selectable_sounds_load_from_bundled_or_system_resources() {
+    @Test func selectable_sounds_load_from_bundled_or_system_resources() throws {
+        var decodedBytes = 0
         for sound in CopySound.allCases {
             #expect(sound.id == sound.rawValue)
-            #expect(sound.load() != nil)  // Do not call play in tests.
+            #expect(!sound.label.isEmpty)
+            let restored = try JSONDecoder().decode(CopySound.self, from: JSONEncoder().encode(sound))
+            #expect(restored == sound)
+            let sample = try #require(sound.load())  // Decode only; never open audio output in tests.
+            decodedBytes += sample.bytes.count
+            #expect(!sample.bytes.isEmpty)
+            #expect(sample.format.mChannelsPerFrame == 1 || sample.format.mChannelsPerFrame == 2)
+            #expect(sample.format.mBytesPerFrame == sample.format.mChannelsPerFrame * 4)
+            #expect(sample.bytes.count % Int(sample.format.mBytesPerFrame) == 0)
+            if sound.bundledFilename != nil {
+                let frames = sample.bytes.count / Int(sample.format.mBytesPerFrame)
+                #expect(Double(frames) / sample.format.mSampleRate < 0.5)
+            }
         }
+        // Auditioning the complete menu must keep the existing sample cache small.
+        #expect(decodedBytes < 2 * 1024 * 1024)
+        let groups = CopySound.Collection.allCases.flatMap(\.sounds)
+        #expect(groups.count == Set(groups).count)
+        #expect(Set(groups) == Set(CopySound.allCases))
+        #expect(CopySound.Collection.allCases.allSatisfy { $0.id == $0.rawValue })
+    }
+
+    @Test func new_audio_bytes_match_the_pinned_upstream_assets() throws {
+        struct Asset: Decodable {
+            let target: String
+            let sha256: String
+            let bytes: Int
+        }
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+            .deletingLastPathComponent().deletingLastPathComponent()
+        let manifest = root.appendingPathComponent("docs/licenses/copy-sound-assets.json")
+        let assets = try JSONDecoder().decode([Asset].self, from: Data(contentsOf: manifest))
+        var seen = Set<String>()
+        for asset in assets {
+            let file = root.appendingPathComponent("Sources/Whisk/Resources/Sounds/\(asset.target)")
+            let data = try Data(contentsOf: file)
+            let hash = SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+            #expect(hash == asset.sha256)
+            #expect(seen.insert(hash).inserted)
+            #expect(data.count == asset.bytes)
+            #expect(
+                CopySound.allCases.contains { $0.bundledFilename == file.deletingPathExtension().lastPathComponent })
+        }
+        #expect(assets.reduce(0) { $0 + $1.bytes } < 128 * 1024)
     }
 }

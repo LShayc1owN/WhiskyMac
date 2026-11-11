@@ -19,7 +19,7 @@ swift test
 
 Edit `Sources/Whisk/Resources/Localizable.xcstrings` for translations, then run
 `./scripts/localizations.sh generate`. Commit the catalog and generated language
-resources together. The interface supports English, French, German and
+resources together. The interface supports English, French, German, Italian and
 Simplified Chinese. Custom symbol sources are in `Assets/Symbols`; compile them
 with `bash scripts/build-symbols.sh` when changing the artwork.
 

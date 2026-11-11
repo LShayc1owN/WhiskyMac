@@ -52,6 +52,8 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     private var activeSourceKeys: Set<String> = []
     private var activeCategories: Set<ContentCategory> = []
     private var pinnedOnly = false
+    private var pinnedWorkspace = false
+    private var activePinTags: Set<PinTagColor> = []
     private var retention: RetentionPolicy
     /// When the oldest unpinned item crosses the age limit. Any mutation
     /// re-arms it for the next tick: an unpin or a capture can change
@@ -62,6 +64,14 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     private var sensitiveBundleIDs: Set<String> = []
     var retainSensitive: (PasteboardSnapshot) -> Void = { _ in }
     var didRecord: () -> Void = {}
+    var hiddenLinksChanged: (Set<String>) -> Void = { _ in }
+    var hiddenLinkAddresses: Set<String> {
+        Set(
+            history.items.compactMap { item in
+                guard item.pinnedMetadata.hidesContent, case .link(let url) = item.payload else { return nil }
+                return url.absoluteString
+            })
+    }
     /// The access state the panel last saw; a change re-presents on its own,
     /// since granting access in System Settings mutates nothing else.
     private var presentedAccess: PasteboardAccess = .granted
@@ -78,6 +88,9 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     /// key press reads them instead of filtering the history again.
     private var cachedChips: [ChipEntry] = []
     private var cachedVisible: [ClipboardItem] = []
+
+    private let splitStore: Store
+    var requestGroupSelection: (UUID, Bool, Bool) -> Void = { _, _, _ in }
 
     private let capture: CaptureClipboardChange<Board, Time, Store>
     private let selectItem: SelectItem<Board, Time, Store>
@@ -111,6 +124,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         logger: Log,
         present: @escaping (HistoryViewState) -> Void
     ) {
+        self.splitStore = store
         self.clock = clock
         self.presenter = presenter
         self.pasteboard = pasteboard
@@ -222,8 +236,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     func activate(at index: Int) -> Bool {
         let items = visibleItems
         guard items.indices.contains(index) else { return false }
-        select(items[index].id, forPaste: true)
-        return true
+        return select(items[index].id, forPaste: true)
     }
 
     func refreshLocalization() {
@@ -263,7 +276,14 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     /// Adds a content category to the filter, or removes it when already
     /// selected — or toggles the pinned filter when given the pinned chip.
     func toggleCategoryFilter(_ rawCategory: String) {
+        if let tag = PinTagColor.allCases.first(where: { $0.filterKey == rawCategory }) {
+            if activePinTags.remove(tag) == nil { activePinTags.insert(tag) }
+            selectedID = nil
+            refresh()
+            return
+        }
         if rawCategory == allFiltersChipID {
+            activePinTags = []
             activeSourceKeys = []
             activeCategories = []
             pinnedOnly = false
@@ -298,21 +318,69 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
 
     func editRich(_ id: UUID, text: String, rtf: Data) {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-            let old = item(for: id)
+            let old = item(for: id), old.splitGroup == nil
         else { return }
         remember()
         mutate { history in
             let replacement = ClipboardItem(
                 id: id, payload: .text(text), source: old.source, copiedAt: old.copiedAt,
-                isPinned: old.isPinned, rtf: rtf)
+                isPinned: old.isPinned, rtf: rtf, pinnedMetadata: old.pinnedMetadata, splitSourceID: old.splitSourceID)
             let next = History(items: history.items.map { $0.id == id ? replacement : $0 }, capacity: history.capacity)
             _ = try self.restoreHistory(next)
             return next
         }
     }
 
-    func select(_ id: UUID, plain: Bool = false, forPaste: Bool = false) {
+    @discardableResult
+    func select(_ id: UUID, plain: Bool = false, forPaste: Bool = false) -> Bool {
+        guard let item = item(for: id) else { return false }
+        if item.splitGroup != nil {
+            requestGroupSelection(id, plain, forPaste)
+            return false
+        }
         mutate { try selectItem(id, in: $0, plain: plain, forPaste: forPaste) }
+        return true
+    }
+
+    func assessSplit(_ request: SplitSaveRequest) throws -> SplitSaveAssessment {
+        try SaveSplit.prepare(request, in: history, policy: retention, now: clock.now())
+    }
+
+    func saveSplit(_ request: SplitSaveRequest, confirmEviction: Bool) throws {
+        let assessment = try assessSplit(request)
+        guard assessment.evictedCount == 0 || confirmEviction else { throw SplitFailure.needsEvictionConfirmation }
+        let previous = history
+        do { try splitStore.save(assessment.history.items) } catch { throw SplitFailure.storage }
+        undoStack.append(previous)
+        if undoStack.count > Self.undoDepth { undoStack.removeFirst() }
+        history = assessment.history
+        nextExpiry = .distantPast
+        refresh()
+    }
+
+    func exportGroup(
+        _ expected: ClipboardItem, selected: Set<UUID>, original: Bool, plain: Bool, forPaste: Bool,
+        combine: ([SplitPart], Bool) throws -> (Payload, Data?)
+    ) throws {
+        guard item(for: expected.id) == expected, let group = expected.splitGroup else { throw SplitFailure.stale }
+        let output: (Payload, Data?)
+        if original {
+            guard selected.isEmpty else { throw SplitFailure.noSelection }
+            output = (expected.payload, plain ? nil : expected.rtf)
+        } else {
+            let parts = group.parts.filter { selected.contains($0.id) }
+            guard !parts.isEmpty, parts.count == selected.count else { throw SplitFailure.noSelection }
+            output = try combine(parts, plain || group.plainText)
+        }
+        if forPaste {
+            pasteboard.writeForPaste(output.0, rtf: output.1)
+        } else {
+            pasteboard.write(output.0, rtf: output.1)
+        }
+        let next = history.selecting(expected.id, at: clock.now())
+        try splitStore.save(next.items)
+        history = next
+        refresh()
     }
 
     /// Puts a rewritten copy of the card's text on the pasteboard. False
@@ -320,7 +388,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     /// written then, so the caller keeps the panel open.
     @discardableResult
     func select(_ id: UUID, transform: TextTransform) -> Bool {
-        guard let item = history.items.first(where: { $0.id == id }),
+        guard let item = history.items.first(where: { $0.id == id }), item.splitGroup == nil,
             let text = item.payload.transformableText,
             let rewritten = transform.apply(to: text)
         else { return false }
@@ -464,6 +532,8 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
                 toggleSourceFilter(source.filterKey)
             case .category(let category):
                 toggleCategoryFilter(category.rawValue)
+            case .tag(let tag):
+                toggleCategoryFilter(tag.filterKey)
             }
             return false
         }
@@ -474,8 +544,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     @discardableResult
     func activateSelected(plain: Bool = false, forPaste: Bool = false) -> Bool {
         guard let id = selectedID ?? visibleItems.first?.id else { return false }
-        select(id, plain: plain, forPaste: forPaste)
-        return true
+        return select(id, plain: plain, forPaste: forPaste)
     }
 
     /// Queues the highlighted card, or removes it when already queued; the
@@ -487,7 +556,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
 
     /// Queues a card, or removes it when already queued.
     func toggleStack(_ id: UUID) {
-        guard history.items.contains(where: { $0.id == id }) else { return }
+        guard history.items.contains(where: { $0.id == id && $0.splitGroup == nil }) else { return }
         if let index = pasteStack.firstIndex(of: id) {
             pasteStack.remove(at: index)
         } else {
@@ -502,7 +571,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     func popStack() -> Bool {
         while !pasteStack.isEmpty {
             let id = pasteStack.removeFirst()
-            if let item = history.items.first(where: { $0.id == id }) {
+            if let item = history.items.first(where: { $0.id == id && $0.splitGroup == nil }) {
                 pasteboard.writeForPaste(item.payload, rtf: item.rtf)
                 refresh()
                 return true
@@ -510,6 +579,31 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         }
         refresh()
         return false
+    }
+
+    func updatePinnedMetadata(_ id: UUID, value: PinnedMetadata) {
+        guard let item = item(for: id), item.isPinned, item.pinnedMetadata != value.normalized else { return }
+        mutate { history in
+            let next = history.updatingPinnedMetadata(id, value: value)
+            _ = try self.restoreHistory(next)
+            self.undoStack = self.undoStack.map { snapshot in
+                History(
+                    items: snapshot.items.map { $0.id == id ? $0.withPinnedMetadata(value) : $0 },
+                    capacity: snapshot.capacity)
+            }
+            return next
+        }
+    }
+
+    func openPinnedWorkspace(locked: Bool) {
+        pinnedWorkspace = locked
+        pinnedOnly = true
+        query = ""
+        activeSourceKeys = []
+        activeCategories = []
+        activePinTags = []
+        selectedID = nil
+        refresh()
     }
 
     func togglePin(_ id: UUID) {
@@ -545,6 +639,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     }
 
     func clear() {
+        guard !pinnedWorkspace else { return }
         remember()
         mutate { try clearUnpinned($0) }
     }
@@ -557,6 +652,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
 
     /// Removes every unpinned card copied from one application.
     func deleteAll(fromSource key: String) {
+        guard !pinnedWorkspace else { return }
         remember()
         mutate { try deleteMatching({ $0.source?.filterKey == key }, in: $0) }
     }
@@ -578,6 +674,8 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     }
 
     func panelWillShow() {
+        pinnedWorkspace = false
+        activePinTags = []
         query = ""
         activeSourceKeys = []
         activeCategories = []
@@ -625,11 +723,15 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     // (deletion, eviction) makes them impossible.
     private func computeFacets() -> Facets {
         let active = distinctSources(of: history.items).filter { activeSourceKeys.contains($0.filterKey) }
-        let underApps = filterHistory(history, filter: HistoryFilter(sources: active, pinnedOnly: pinnedOnly))
+        let underApps = filterHistory(
+            history,
+            filter: HistoryFilter(sources: active, pinnedOnly: pinnedOnly || pinnedWorkspace, tags: activePinTags))
         let reachable = Set(underApps.map(\.category))
         let activeCategories = self.activeCategories.intersection(reachable)
         let underCategories = filterHistory(
-            history, filter: HistoryFilter(categories: activeCategories, pinnedOnly: pinnedOnly))
+            history,
+            filter: HistoryFilter(
+                categories: activeCategories, pinnedOnly: pinnedOnly || pinnedWorkspace, tags: activePinTags))
         let scopedSources = distinctSources(of: underCategories)
         let strayActives = active.filter { stray in !scopedSources.contains { $0.filterKey == stray.filterKey } }
         let hasPinned = filterHistory(
@@ -664,7 +766,8 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
             query: query,
             sources: distinctSources(of: history.items).filter { activeSourceKeys.contains($0.filterKey) },
             categories: activeCategories,
-            pinnedOnly: pinnedOnly
+            pinnedOnly: pinnedOnly || pinnedWorkspace,
+            tags: activePinTags
         )
     }
 
@@ -685,6 +788,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     }
 
     private func refresh() {
+        hiddenLinksChanged(hiddenLinkAddresses)
         // App keys survive as long as the app exists in the history at all.
         activeSourceKeys = activeSourceKeys.filter { key in
             history.items.contains { $0.source?.filterKey == key }
@@ -695,7 +799,11 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
             facets = computeFacets()
         }
         activeCategories = facets.activeCategories
-        cachedChips = ChipEntry.row(hasPinned: facets.hasPinned, sources: facets.sources, categories: facets.categories)
+        cachedChips = ChipEntry.row(
+            hasPinned: facets.hasPinned, sources: facets.sources, categories: facets.categories,
+            tags: PinTagColor.allCases.filter { tag in
+                history.items.contains { $0.isPinned && $0.pinnedMetadata.tags.contains(tag) }
+            })
         focusedChipIndex = resolvedChipIndex(in: cachedChips)
         focusedChipID = cachedChips.indices.contains(focusedChipIndex) ? cachedChips[focusedChipIndex].id : nil
         if focusZone == .chips, cachedChips.isEmpty {
@@ -705,7 +813,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         if selectedID == nil || !visibleItems.contains(where: { $0.id == selectedID }) {
             selectedID = visibleItems.first?.id
         }
-        pasteStack.removeAll { id in !history.items.contains(where: { $0.id == id }) }
+        pasteStack.removeAll { id in !history.items.contains(where: { $0.id == id && $0.splitGroup == nil }) }
         present(
             presenter.present(
                 items: cachedVisible,
@@ -720,10 +828,12 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
                     chips: cachedChips,
                     activeSourceKeys: activeSourceKeys,
                     activeCategories: activeCategories,
-                    pinnedOnly: pinnedOnly,
-                    focusedChipID: focusZone == .chips ? focusedChipID : nil
+                    pinnedOnly: pinnedOnly || pinnedWorkspace,
+                    focusedChipID: focusZone == .chips ? focusedChipID : nil,
+                    activeTags: activePinTags
                 ),
-                clipboardAccess: pasteboard.access
+                clipboardAccess: pasteboard.access,
+                canClearHistory: history.items.contains { !$0.isPinned }
             )
         )
     }

@@ -109,6 +109,7 @@ cat > "$APP/Contents/Info.plist" << PLIST
         <string>en</string>
         <string>fr</string>
         <string>de</string>
+        <string>it</string>
         <string>zh-Hans</string>
     </array>
     <key>CFBundleName</key>

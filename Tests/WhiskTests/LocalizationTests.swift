@@ -9,7 +9,7 @@ import Testing
 @testable import Whisk
 
 @Suite struct LocalizationCatalogs {
-    private static let languages = ["en", "fr", "de", "zh-Hans"]
+    private static let languages = ["en", "fr", "de", "it", "zh-Hans"]
 
     private struct StringCatalog: Decodable {
         struct Unit: Decodable {
@@ -69,7 +69,7 @@ import Testing
     private func keysUsedInSources() throws -> [Set<String>] {
         let sources = root.appendingPathComponent("Sources/Whisk", isDirectory: true)
         let enumerator = try #require(FileManager.default.enumerator(at: sources, includingPropertiesForKeys: nil))
-        let call = try NSRegularExpression(pattern: #"localized\(\s*"((?:[^"\\]|\\.)*)"\s*\)"#)
+        let call = try NSRegularExpression(pattern: #"(?:localized|settingsSearchText)\(\s*"((?:[^"\\]|\\.)*)"\s*\)"#)
         let interpolation = try NSRegularExpression(pattern: #"\\\([^)]*\)"#)
         var used: [Set<String>] = []
         for case let file as URL in enumerator where file.pathExtension == "swift" {
@@ -148,10 +148,16 @@ import Testing
     }
 
     @Test func plural_forms_follow_the_count() {
-        #expect(["1 item", "1 élément", "1 Eintrag", "1 项"].contains(localized("\(1) items")))
-        #expect(["2 items", "2 éléments", "2 Einträge", "2 项"].contains(localized("\(2) items")))
-        #expect(["1 character", "1 caractère", "1 Zeichen", "1 个字符"].contains(localized("\(1) characters")))
-        #expect(["40 characters", "40 caractères", "40 Zeichen", "40 个字符"].contains(localized("\(40) characters")))
+        #expect(
+            ["1 item", "1 élément", "1 Eintrag", "1 elemento", "1 项"].contains(localized("\(1) items")))
+        #expect(
+            ["2 items", "2 éléments", "2 Einträge", "2 elementi", "2 项"].contains(localized("\(2) items")))
+        #expect(
+            ["1 character", "1 caractère", "1 Zeichen", "1 carattere", "1 个字符"]
+                .contains(localized("\(1) characters")))
+        #expect(
+            ["40 characters", "40 caractères", "40 Zeichen", "40 caratteri", "40 个字符"]
+                .contains(localized("\(40) characters")))
     }
 
     @Test(arguments: [0, 1, 2, 40])
@@ -168,6 +174,12 @@ import Testing
                 expected = [
                     "\(count) Eintr\(count == 1 ? "ag" : "äge")", "\(count) Zeichen",
                     "\(count) Karte\(count == 1 ? "" : "n") in der Einfügefolge",
+                ]
+            case "it":
+                expected = [
+                    "\(count) element\(count == 1 ? "o" : "i")",
+                    "\(count) caratter\(count == 1 ? "e" : "i")",
+                    "\(count) sched\(count == 1 ? "a" : "e") nella pila di incolla",
                 ]
             case "fr":
                 let plural = count > 1 ? "s" : ""
@@ -195,6 +207,7 @@ import Testing
                 .map { $0.lowercased() } == ["zh-hans"])
         #expect(Bundle.preferredLocalizations(from: languages, forPreferences: ["fr", "en"]) == ["fr"])
         #expect(Bundle.preferredLocalizations(from: languages, forPreferences: ["de-DE", "en"]) == ["de"])
+        #expect(Bundle.preferredLocalizations(from: languages, forPreferences: ["it-IT", "en"]) == ["it"])
         #expect(Bundle.preferredLocalizations(from: languages, forPreferences: ["es", "en"]) == ["en"])
     }
 }

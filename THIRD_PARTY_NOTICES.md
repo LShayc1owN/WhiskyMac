@@ -31,15 +31,30 @@ This attribution does not imply endorsement by Neovim or its contributors.
 
 ## Kenney UI Audio
 
-`Sources/Whisk/Resources/Sounds/kenney-click1.wav`,
-`kenney-click2.wav`, and `kenney-click4.wav` are UI sounds from Kenney UI
-Audio by Kenney Vleugels (Kenney.nl).
+`Sources/Whisk/Resources/Sounds/kenney-*.wav` are nine UI sounds from
+Kenney UI Audio by Kenney Vleugels (Kenney.nl): click1–5, mouseclick1,
+mouserelease1, rollover2 and switch14.
 
 - License: [Creative Commons Zero 1.0 Universal (CC0-1.0)](https://creativecommons.org/publicdomain/zero/1.0/).
 - Source: <https://kenney.nl/assets/ui-audio>.
 - Changes: converted from the source OGG files to WAV and renamed with the
   `kenney-` prefix; no other modifications.
 - Preserved source license and provenance: [docs/licenses/Kenney-UI-Audio.txt](docs/licenses/Kenney-UI-Audio.txt) and [docs/licenses/Kenney-UI-Audio-source.md](docs/licenses/Kenney-UI-Audio-source.md).
+
+CC0 does not require attribution; this notice is retained for provenance.
+
+## SFX Kit
+
+Four `Sources/Whisk/Resources/Sounds/sfx-*.wav` sounds from SFX Kit by Wyzowl:
+soft button, soft tap, soft snap and small bubble.
+
+- License: Creative Commons Zero 1.0 Universal (CC0-1.0).
+- Source: <https://github.com/wyzowl/sfx-kit> at
+  `92780e7ab0cdfb557497a988089c47f46e8c7412`.
+- Files are renamed only; audio bytes are unchanged. No upstream code is bundled.
+- License: [docs/licenses/SFX-Kit-CC0.txt](docs/licenses/SFX-Kit-CC0.txt).
+- Provenance: [docs/licenses/SFX-Kit-source.md](docs/licenses/SFX-Kit-source.md).
+- Import hashes: [docs/licenses/copy-sound-assets.json](docs/licenses/copy-sound-assets.json).
 
 CC0 does not require attribution; this notice is retained for provenance.
 

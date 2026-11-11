@@ -10,7 +10,7 @@ enum CardTrigger: String, CaseIterable, Codable {
 }
 
 enum CardAction: String, CaseIterable, Codable {
-    case paste, copy, preview, edit, menu, none
+    case paste, copy, preview, edit, split, menu, none
 }
 
 struct InteractionBindings: Codable, Equatable {

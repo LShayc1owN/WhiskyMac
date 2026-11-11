@@ -34,6 +34,23 @@ final class IsolatedDefaults {
 
 @MainActor
 @Suite struct KeyBindingsPersistence {
+    @Test func manual_privacy_defaults_to_command_option_p_without_overwriting_custom_bindings() throws {
+        let sandbox = try IsolatedDefaults()
+        let store = KeyBindingsStore(defaults: sandbox.defaults)
+        let expected = KeyBinding(
+            keyCode: KeyboardLayout.keyCode(for: "p", orANSI: kVK_ANSI_P), modifiers: [.command, .option])
+        #expect(store.binding(for: .togglePrivacy) == expected)
+        #expect(!store.isGlobalEnabled(.togglePrivacy))
+        let custom = KeyBinding(keyCode: UInt16(kVK_ANSI_P), modifiers: [.control, .option, .command])
+        store.set(custom, for: .togglePrivacy)
+        let restored = KeyBindingsStore(defaults: sandbox.defaults)
+        #expect(restored.binding(for: .togglePrivacy) == custom)
+        #expect(restored.isGlobalEnabled(.togglePrivacy))
+        restored.reset(.togglePrivacy)
+        #expect(restored.binding(for: .togglePrivacy) == expected)
+        #expect(KeyBindingsStore(defaults: sandbox.defaults).binding(for: .togglePrivacy) == expected)
+    }
+
     @Test func a_recorded_shortcut_persists_and_reloads() throws {
         let sandbox = try IsolatedDefaults()
         let recorded = KeyBinding(keyCode: UInt16(kVK_ANSI_K), modifiers: [.command, .shift])
@@ -80,6 +97,17 @@ final class IsolatedDefaults {
         #expect(store.label(for: .switchChipGroup) == "⌃⇥")
     }
 
+    @Test func menu_equivalent_tracks_recorded_and_reset_bindings() throws {
+        let sandbox = try IsolatedDefaults()
+        let store = KeyBindingsStore(defaults: sandbox.defaults)
+        let original = store.binding(for: .togglePanel).menuKeyEquivalent
+        store.set(KeyBinding(keyCode: UInt16(kVK_Return), modifiers: [.control, .shift]), for: .togglePanel)
+        #expect(store.binding(for: .togglePanel).menuKeyEquivalent == "\r")
+        #expect(store.binding(for: .togglePanel).modifiers == [.control, .shift])
+        store.reset(.togglePanel)
+        #expect(store.binding(for: .togglePanel).menuKeyEquivalent == original)
+    }
+
     @Test func stored_bindings_that_will_not_decode_fall_back_to_defaults_and_say_so() throws {
         let sandbox = try IsolatedDefaults()
         sandbox.defaults.set(Data("not json".utf8), forKey: "keyBindings")
@@ -122,12 +150,46 @@ final class IsolatedDefaults {
         #expect(store.recordingAction == nil)
     }
 
-    @Test func every_action_has_a_name_and_only_three_reach_outside_the_panel() {
+    @Test func pinned_shortcut_recording_persists_without_changing_the_panel_shortcut() throws {
+        _ = NSApplication.shared
+        let sandbox = try IsolatedDefaults()
+        let store = KeyBindingsStore(defaults: sandbox.defaults)
+        let original = store.binding(for: .togglePinned)
+        let panel = store.binding(for: .togglePanel)
+        let press = try #require(aKeyEvent(kVK_ANSI_K, [.control, .option, .command], typing: "k"))
+        let escape = try #require(aKeyEvent(kVK_Escape))
+        defer { store.endRecording() }
+
+        store.beginRecording(.togglePinned)
+        #expect(store.record(escape))
+        #expect(!store.isGlobalEnabled(.togglePinned))
+        #expect(store.binding(for: .togglePinned) == original)
+
+        store.beginRecording(.togglePinned)
+        #expect(store.record(press))
+        #expect(store.recordingAction == nil)
+        let restored = KeyBindingsStore(defaults: sandbox.defaults)
+        #expect(restored.isGlobalEnabled(.togglePinned))
+        #expect(restored.binding(for: .togglePinned) == KeyBinding(event: press))
+        #expect(restored.binding(for: .togglePanel) == panel)
+        #expect(!restored.isGlobalEnabled(.togglePanel))
+
+        store.setGlobalEnabled(false, for: .togglePinned)
+        #expect(!KeyBindingsStore(defaults: sandbox.defaults).isGlobalEnabled(.togglePinned))
+        #expect(store.binding(for: .togglePinned) == KeyBinding(event: press))
+        store.reset(.togglePinned)
+        #expect(store.binding(for: .togglePinned) == original)
+        #expect(!store.isGlobalEnabled(.togglePinned))
+        #expect(store.binding(for: .togglePanel) == panel)
+    }
+
+    @Test func every_action_has_a_name_and_only_four_reach_outside_the_panel() {
         let names = KeyAction.allCases.map(\.displayName)
 
         #expect(names.allSatisfy { !$0.isEmpty })
         #expect(Set(names).count == names.count)
-        #expect(KeyAction.allCases.filter(\.isGlobal) == [.togglePanel, .togglePrivacy, .pasteNextFromStack])
+        #expect(
+            KeyAction.allCases.filter(\.isGlobal) == [.togglePanel, .togglePinned, .togglePrivacy, .pasteNextFromStack])
         #expect(KeyAction.allCases.map(\.id) == KeyAction.allCases.map(\.rawValue))
     }
 
@@ -233,7 +295,7 @@ final class IsolatedDefaults {
         #expect(!store.checkForUpdates)
         #expect(!store.vimNavigation)
         #expect(!store.linkPreviews)
-        #expect(store.cardSize == .medium)
+        #expect(store.cardSide == 200)
         #expect(store.excludedApps.isEmpty)
         #expect(store.policy == .standard)
     }
@@ -259,7 +321,7 @@ final class IsolatedDefaults {
         first.checkForUpdates = false
         first.vimNavigation = true
         first.linkPreviews = false
-        first.cardSize = .large
+        first.setCardSide(217.5)
         first.excludedApps = [ExcludedApp(bundleID: "com.apple.keychainaccess", name: "Keychain Access")]
 
         let second = GeneralSettingsStore(defaults: sandbox.defaults)
@@ -269,7 +331,7 @@ final class IsolatedDefaults {
         #expect(!second.checkForUpdates)
         #expect(second.vimNavigation)
         #expect(!second.linkPreviews)
-        #expect(second.cardSize == .large)
+        #expect(second.cardSide == 217.5)
         #expect(second.excludedBundleIDs == ["com.apple.keychainaccess"])
     }
 
@@ -293,6 +355,51 @@ final class IsolatedDefaults {
         #expect(CardSize.medium.side == 200)
         #expect(Set(labels).count == labels.count)
         #expect(CardSize.allCases.map(\.id) == CardSize.allCases.map(\.rawValue))
+    }
+
+    @Test func continuous_card_size_loads_older_presets_and_bounds_invalid_values() throws {
+        let sandbox = try IsolatedDefaults()
+        sandbox.defaults.set("large", forKey: "cardSize")
+        let migrated = GeneralSettingsStore(defaults: sandbox.defaults)
+        #expect(migrated.cardSide == 250)
+
+        migrated.setCardSide(183.5)
+        #expect(GeneralSettingsStore(defaults: sandbox.defaults).cardSide == 183.5)
+
+        migrated.setCardSide(100)
+        #expect(migrated.cardSide == 160)
+        migrated.setCardSide(.infinity)
+        #expect(migrated.cardSide == 200)
+        migrated.setCardSide(400)
+        #expect(migrated.cardSide == 250)
+        #expect(GeneralSettingsStore(defaults: sandbox.defaults).cardSide == 250)
+    }
+
+    @Test func card_size_preview_only_persists_after_save_and_can_restore_default() throws {
+        let sandbox = try IsolatedDefaults()
+        let settings = GeneralSettingsStore(defaults: sandbox.defaults)
+        settings.beginCardSizePreview(237.25)
+        #expect(sandbox.defaults.object(forKey: "cardSide") == nil)
+        settings.cancelCardSizePreview()
+        #expect(settings.effectiveCardSide == GeneralSettingsStore.defaultCardSide)
+        settings.setCardSide(217.5)
+
+        settings.beginCardSizePreview(183.5)
+        #expect(settings.effectiveCardSide == 183.5)
+        #expect(settings.cardSide == 217.5)
+        #expect(GeneralSettingsStore(defaults: sandbox.defaults).cardSide == 217.5)
+
+        settings.cancelCardSizePreview()
+        #expect(settings.effectiveCardSide == 217.5)
+        settings.beginCardSizePreview(183.5)
+        settings.saveCardSizePreview()
+        #expect(settings.cardSide == 183.5)
+        #expect(GeneralSettingsStore(defaults: sandbox.defaults).cardSide == 183.5)
+
+        settings.beginCardSizePreview(GeneralSettingsStore.defaultCardSide)
+        settings.saveCardSizePreview()
+        #expect(settings.cardSide == GeneralSettingsStore.defaultCardSide)
+        #expect(GeneralSettingsStore(defaults: sandbox.defaults).cardSide == GeneralSettingsStore.defaultCardSide)
     }
 
     @Test func retention_periods_and_excluded_apps_identify_and_label_themselves() {

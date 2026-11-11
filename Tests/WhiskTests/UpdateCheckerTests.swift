@@ -94,3 +94,45 @@ import Testing
         #expect(UpdateChecker.releasesPage?.host == "github.com")
     }
 }
+
+@MainActor
+@Suite struct WhiskyUpdateSources {
+    @Test func malformed_and_preview_versions_are_not_stable_updates() {
+        for tag in ["1.x.3", "1.2-beta", "1..2", "", "1.2+build"] {
+            #expect(!UpdateChecker.isNewer(tag, than: "0.1.0"))
+        }
+        let preview = Data(#"{"tag_name":"v2.0.0","prerelease":true}"#.utf8)
+        #expect(UpdateChecker.latestVersion(data: preview, response: nil, error: nil) == .failure(.malformed))
+        #expect(UpdateChecker.isNewer("v1.2.0", than: "1.1.9"))
+    }
+
+    @Test func fallback_and_launch_throttle_use_isolated_preferences() async throws {
+        let domain = "test.update.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: domain))
+        defer { defaults.removePersistentDomain(forName: domain) }
+        let backup = try #require(URL(string: "https://updates.example.test/latest.json"))
+        var urls: [URL] = []
+        let checker = UpdateChecker(
+            currentVersion: "1.0.0",
+            fetch: { url, completion in
+                urls.append(url)
+                if url == backup {
+                    completion(Data(#"{"tag_name":"v2.0.0"}"#.utf8), nil, nil)
+                } else {
+                    completion(nil, nil, URLError(.notConnectedToInternet))
+                }
+            }, backupAPI: backup, defaults: defaults)
+        checker.checkNow(automatic: true)
+        checker.checkNow()
+        for _ in 0..<100 where checker.state == .checking { await Task.yield() }
+        #expect(checker.state == .available("2.0.0"))
+        #expect(urls.count == 2)
+        #expect(urls.first?.path == "/repos/LShayc1owN/WhiskyMac/releases/latest")
+        checker.checkNow(automatic: true)
+        #expect(urls.count == 2)
+        checker.checkNow()
+        for _ in 0..<100 where checker.state == .checking { await Task.yield() }
+        #expect(urls.count == 4)
+        #expect(UpdateChecker.backupAPI == nil)
+    }
+}

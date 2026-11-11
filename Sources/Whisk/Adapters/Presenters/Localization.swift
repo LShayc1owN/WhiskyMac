@@ -56,7 +56,7 @@ enum AppLocalization {
     }
     static func selectedBundle(in bundle: Bundle, language: String?) -> Bundle {
         guard bundle.bundleURL.pathExtension != "lproj", let language,
-            ["en", "fr", "de", "zh-Hans"].contains(language),
+            ["en", "fr", "de", "it", "zh-Hans"].contains(language),
             let resource = bundle.url(
                 forResource: "Localizable", withExtension: "strings",
                 subdirectory: nil, localization: language),

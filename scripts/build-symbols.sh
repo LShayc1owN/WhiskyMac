@@ -8,5 +8,6 @@ trap 'rm -rf "$SYMBOL_OUTPUT"' EXIT
 # SwiftPM's CLI copies resources without compiling asset catalogs.
 xcrun actool --compile "$SYMBOL_OUTPUT" --platform macosx \
   --minimum-deployment-target 15.0 --target-device mac \
-  "$ROOT/Assets/Symbols/WhiskyMac.xcassets"
+  "$ROOT/Assets/Symbols/WhiskyMac.xcassets" \
+  "$ROOT/Assets/Symbols/LemonSlice.xcassets"
 cp "$SYMBOL_OUTPUT/Assets.car" "$ROOT/Sources/Whisk/WhiskyMacSymbols.bundle/Contents/Resources/Assets.car"

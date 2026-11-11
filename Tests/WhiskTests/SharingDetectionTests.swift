@@ -14,6 +14,26 @@ import Testing
     private let clear = SharingReport(state: .clearWithinCoverage, reason: .noMatchingToolbar)
     private let unknown = SharingReport(state: .unknown, reason: .unavailable)
 
+    @Test func app_launch_starts_in_default_mode_until_sharing_is_detected() throws {
+        let sandbox = try IsolatedDefaults()
+        sandbox.defaults.set(true, forKey: "manualPrivacy")
+        sandbox.defaults.set(true, forKey: "automaticPrivacy")
+        let appearance = AppearanceSettingsStore(defaults: sandbox.defaults)
+        let privacy = PrivacyController(defaults: sandbox.defaults, schedulesTimer: false, startInDefaultMode: true)
+        #expect(!privacy.isProtected)
+        #expect(appearance.statusSymbolName(protected: privacy.isProtected, paused: false) == "WhiskyMac")
+        #expect(!privacy.isManuallyProtected)
+        #expect(privacy.automaticEnabled)
+        #expect(!sandbox.defaults.bool(forKey: "manualPrivacy"))
+        privacy.receive([unknown])
+        #expect(!privacy.isProtected)
+        privacy.receive([active])
+        #expect(privacy.isProtected)
+        #expect(appearance.statusSymbolName(protected: privacy.isProtected, paused: false) == "LemonSlice")
+        privacy.receive([unknown])
+        #expect(privacy.isProtected)
+    }
+
     @Test func manual_intent_survives_automatic_transitions_and_restart() throws {
         let sandbox = try IsolatedDefaults()
         var time: TimeInterval = 0

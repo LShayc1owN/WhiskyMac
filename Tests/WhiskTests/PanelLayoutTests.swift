@@ -56,7 +56,7 @@ private let displays: [Display] = [
 private let roomy = displays.filter {
     $0.screen.frame.height >= 1080 && !$0.name.contains("text")
 }
-private let sides = CardSize.allCases.map(\.side)
+private let sides = CardSize.allCases.map(\.side) + [183.5]
 
 private func within(_ tolerance: CGFloat, _ a: CGFloat, _ b: CGFloat) -> Bool {
     abs(a - b) <= tolerance

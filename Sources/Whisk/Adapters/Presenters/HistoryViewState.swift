@@ -13,6 +13,8 @@ struct HistoryViewState: Equatable {
     let query: String
     let selectedID: UUID?
     let stackCount: Int
+    /// Reflects all history, including items hidden by search or filters.
+    let canClearHistory: Bool
     let filters: FilterBarViewState
     /// What the rail says when it has no card to show; nil while it has.
     let emptyMessage: String?
@@ -28,13 +30,15 @@ struct HistoryViewState: Equatable {
         stackCount: Int = 0,
         filters: FilterBarViewState,
         emptyMessage: String? = nil,
-        accessPrompt: AccessPromptViewState? = nil
+        accessPrompt: AccessPromptViewState? = nil,
+        canClearHistory: Bool = false
     ) {
         self.cards = cards
         self.countLabel = countLabel
         self.query = query
         self.selectedID = selectedID
         self.stackCount = stackCount
+        self.canClearHistory = canClearHistory
         self.filters = filters
         self.emptyMessage = emptyMessage
         self.accessPrompt = accessPrompt
@@ -70,24 +74,29 @@ struct FilterBarViewState: Equatable {
     let pinned: [FilterChip]
     let apps: [FilterChip]
     let kinds: [FilterChip]
+    var tags: [FilterChip] = []
 
-    init(all: [FilterChip] = [], pinned: [FilterChip] = [], apps: [FilterChip], kinds: [FilterChip]) {
+    init(
+        all: [FilterChip] = [], pinned: [FilterChip] = [], apps: [FilterChip], kinds: [FilterChip],
+        tags: [FilterChip] = []
+    ) {
         self.all = all
         self.pinned = pinned
         self.apps = apps
         self.kinds = kinds
+        self.tags = tags
     }
 
     var isEmpty: Bool {
-        all.isEmpty && pinned.isEmpty && apps.isEmpty && kinds.isEmpty
+        all.isEmpty && pinned.isEmpty && apps.isEmpty && kinds.isEmpty && tags.isEmpty
     }
 
     var hasActiveChip: Bool {
-        (pinned + apps + kinds).contains(where: \.isActive)
+        (pinned + apps + kinds + tags).contains(where: \.isActive)
     }
 
     var focusedChipID: String? {
-        (all + pinned + apps + kinds).first(where: \.isFocused)?.id
+        (all + pinned + apps + kinds + tags).first(where: \.isFocused)?.id
     }
 
     static let empty = FilterBarViewState(apps: [], kinds: [])
@@ -132,6 +141,7 @@ struct CardViewState: Equatable, Identifiable {
     let sourceLabel: String
     let sourceBundleID: String?
     let kindLabel: String
+    let kindSymbol: String
     let timeLabel: String
     /// Extra footer fact, e.g. the character count of textual payloads.
     let detailLabel: String?
@@ -156,7 +166,13 @@ struct CardViewState: Equatable, Identifiable {
     /// Where the query's words landed in a textual preview, for the view
     /// to underline; empty without a live query.
     let matches: [MatchSpan]
+    /// Opaque bytes; decoded only by mounted rich-text card views.
+    let rtf: Data?
     let preview: CardPreview
+    var splitCount = 0
+    var isSplitGroup: Bool { splitCount > 0 }
+    var pinnedMetadata = PinnedMetadata()
+    var contentHidden: Bool { pinnedMetadata.hidesContent }
     var variantIDs: [UUID] = []
 
     init(
@@ -164,6 +180,7 @@ struct CardViewState: Equatable, Identifiable {
         sourceLabel: String,
         sourceBundleID: String?,
         kindLabel: String,
+        kindSymbol: String = "text.alignleft",
         timeLabel: String,
         detailLabel: String? = nil,
         isPinned: Bool,
@@ -176,12 +193,15 @@ struct CardViewState: Equatable, Identifiable {
         saveable: Bool = false,
         sourceKey: String? = nil,
         matches: [MatchSpan] = [],
-        preview: CardPreview
+        preview: CardPreview,
+        rtf: Data? = nil,
+        pinnedMetadata: PinnedMetadata = PinnedMetadata(), splitCount: Int = 0
     ) {
         self.id = id
         self.sourceLabel = sourceLabel
         self.sourceBundleID = sourceBundleID
         self.kindLabel = kindLabel
+        self.kindSymbol = kindSymbol
         self.timeLabel = timeLabel
         self.detailLabel = detailLabel
         self.isPinned = isPinned
@@ -195,6 +215,9 @@ struct CardViewState: Equatable, Identifiable {
         self.sourceKey = sourceKey
         self.matches = matches
         self.preview = preview
+        self.rtf = rtf
+        self.pinnedMetadata = pinnedMetadata
+        self.splitCount = splitCount
     }
 }
 

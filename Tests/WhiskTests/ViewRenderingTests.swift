@@ -125,6 +125,66 @@ enum ViewFixtures {
 
 @MainActor
 @Suite struct CardRendering {
+    @Test func grouped_cards_keep_their_rail_slot_and_reuse_the_front_glass() throws {
+        let item = anItem(.text("Project notes\nDesign review\nNext steps"), from: "Notes")
+        let spy = PanelActionSpy()
+        func descendants(_ view: NSView) -> [NSView] {
+            [view] + view.subviews.flatMap(descendants)
+        }
+        for selected in [false, true] {
+            let plain = try #require(
+                HistoryPresenter().present(
+                    items: [item], query: "", now: item.copiedAt,
+                    selectedID: selected ? item.id : nil
+                ).cards.first)
+            var grouped = plain
+            grouped.splitCount = 1000
+            for side in [160.0, 183.5, 250.0] {
+                let extent = side * HistoryViewStateStore.selectionZoom
+                let plainWindow = hostOffscreen(
+                    ItemCardView(card: plain, actions: spy.actions, side: side), extent, extent)
+                let groupWindow = hostOffscreen(
+                    ItemCardView(card: grouped, actions: spy.actions, side: side), extent, extent)
+                defer { plainWindow.close(); groupWindow.close() }
+                let plainHost = try #require(plainWindow.contentView)
+                let groupHost = try #require(groupWindow.contentView)
+                pump(plainHost); pump(groupHost)
+                #expect(groupHost.fittingSize == plainHost.fittingSize)
+                #expect(
+                    descendants(groupHost).filter { $0 is BackdropView }.count
+                        == descendants(plainHost).filter { $0 is BackdropView }.count)
+            }
+        }
+
+        if let output = ProcessInfo.processInfo.environment["WHISK_UI_ARTIFACTS"] {
+            let plain = try #require(
+                HistoryPresenter().present(items: [item], query: "", now: item.copiedAt).cards.first)
+            var grouped = plain
+            grouped.splitCount = 3
+            let directory = URL(fileURLWithPath: output)
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            for scheme in [ColorScheme.light, .dark] {
+                let board = HStack(alignment: .top, spacing: 28) {
+                    ItemCardView(card: plain, actions: spy.actions)
+                    ItemCardView(card: grouped, actions: spy.actions)
+                    CardGroupIndicator(count: 1000)
+                }
+                .padding(28)
+                .environment(\.colorScheme, scheme)
+                .background(Color(nsColor: .windowBackgroundColor))
+                let window = hostOffscreen(board, 620, 280)
+                defer { window.close() }
+                window.appearance = NSAppearance(named: scheme == .dark ? .darkAqua : .aqua)
+                let host = try #require(window.contentView)
+                pump(host)
+                let bitmap = try #require(host.bitmapImageRepForCachingDisplay(in: host.bounds))
+                host.cacheDisplay(in: host.bounds, to: bitmap)
+                try bitmap.representation(using: .png, properties: [:])?.write(
+                    to: directory.appendingPathComponent("card-group-\(scheme == .dark ? "dark" : "light").png"))
+            }
+        }
+    }
+
     @Test func every_card_kind_renders_selected_plain_and_hosted() {
         ViewFixtures.seedPreviews()
         let state = ViewFixtures.state()
@@ -143,9 +203,9 @@ enum ViewFixtures {
         let window = hostOffscreen(ViewFixtures.card(state.cards[0]), 210, 210)
         #expect(window.contentView != nil)
 
-        for size in CardSize.allCases {
-            let sized = ItemCardView(card: state.cards[0], actions: ViewFixtures.spy.actions, side: size.side)
-            #expect(render(sized, size.side * 1.05, size.side * 1.05) != nil, "card at \(size)")
+        for side in CardSize.allCases.map(\.side) + [183.5] {
+            let sized = ItemCardView(card: state.cards[0], actions: ViewFixtures.spy.actions, side: side)
+            #expect(render(sized, side * 1.05, side * 1.05) != nil, "card at \(side)")
         }
     }
 

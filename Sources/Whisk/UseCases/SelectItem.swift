@@ -24,7 +24,7 @@ struct SelectItem<Board: Pasteboard, Time: Clock, Store: HistoryStore> {
         _ id: UUID, in history: History, plain: Bool = false, writing replacement: Payload? = nil,
         forPaste: Bool = false
     ) throws -> History {
-        guard let item = history.items.first(where: { $0.id == id }) else { return history }
+        guard let item = history.items.first(where: { $0.id == id }), item.splitGroup == nil else { return history }
         let payload = replacement ?? item.payload
         let rtf = replacement != nil || plain ? nil : item.rtf
         if forPaste {

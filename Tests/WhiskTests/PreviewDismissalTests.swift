@@ -44,6 +44,36 @@ import Testing
         }
     }
 
+    @Test func clear_dismisses_previews_and_rejects_hidden_protected_editing_or_empty_panels() throws {
+        let f = Fixture()
+        var clears = 0
+        var actions = f.spy.actions
+        actions.clearHistory = {
+            #expect(f.store.previewItems.isEmpty)
+            #expect(f.store.previewOrigin == nil)
+            clears += 1
+        }
+        f.hover()
+        f.store.cardHoverChanged(f.items[0].id, inside: false)
+        let oldClose = try #require(f.scheduled.last?.1)
+        f.store.clearHistory(actions: actions)
+        #expect(clears == 1 && f.closes == 1)
+        oldClose.perform()
+        #expect(f.closes == 1)
+        f.store.setPanelVisible(false)
+        f.store.clearHistory(actions: actions)
+        f.store.setPanelVisible(true)
+        f.store.setPrivacy(true)
+        f.store.clearHistory(actions: actions)
+        f.store.setPrivacy(false)
+        f.store.beginEditing(f.card())
+        f.store.clearHistory(actions: actions)
+        f.store.endEditing()
+        f.store.update(.empty)
+        f.store.clearHistory(actions: actions)
+        #expect(clears == 1)
+    }
+
     @Test func leaving_hover_card_waits_exactly_point_four_seconds_then_closes() throws {
         let f = Fixture()
         f.hover()

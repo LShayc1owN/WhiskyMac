@@ -15,6 +15,7 @@ enum ChipGroup: Equatable {
     case pinned
     case apps
     case kinds
+    case tags
 }
 
 /// One chip of the filter row. The row's order is decided in `row` alone:
@@ -26,6 +27,7 @@ enum ChipEntry: Equatable {
     case pinned
     case app(SourceApp)
     case category(ContentCategory)
+    case tag(PinTagColor)
 
     var id: String {
         switch self {
@@ -33,6 +35,7 @@ enum ChipEntry: Equatable {
         case .pinned: pinnedChipID
         case .app(let source): source.filterKey
         case .category(let category): category.rawValue
+        case .tag(let tag): tag.filterKey
         }
     }
 
@@ -42,14 +45,18 @@ enum ChipEntry: Equatable {
         case .pinned: .pinned
         case .app: .apps
         case .category: .kinds
+        case .tag: .tags
         }
     }
 
     /// All first, then pinned and one chip per source application,
     /// then one per content category.
-    static func row(hasPinned: Bool, sources: [SourceApp], categories: [ContentCategory]) -> [ChipEntry] {
+    static func row(hasPinned: Bool, sources: [SourceApp], categories: [ContentCategory], tags: [PinTagColor] = [])
+        -> [ChipEntry]
+    {
         let entries =
             (hasPinned ? [ChipEntry.pinned] : []) + sources.map(ChipEntry.app) + categories.map(ChipEntry.category)
+            + tags.map(ChipEntry.tag)
         return entries.isEmpty ? [] : [.all] + entries
     }
 }
@@ -63,19 +70,22 @@ struct FilterContext: Equatable {
     let activeCategories: Set<ContentCategory>
     let pinnedOnly: Bool
     let focusedChipID: String?
+    var activeTags: Set<PinTagColor> = []
 
     init(
         chips: [ChipEntry] = [],
         activeSourceKeys: Set<String> = [],
         activeCategories: Set<ContentCategory> = [],
         pinnedOnly: Bool = false,
-        focusedChipID: String? = nil
+        focusedChipID: String? = nil,
+        activeTags: Set<PinTagColor> = []
     ) {
         self.chips = chips
         self.activeSourceKeys = activeSourceKeys
         self.activeCategories = activeCategories
         self.pinnedOnly = pinnedOnly
         self.focusedChipID = focusedChipID
+        self.activeTags = activeTags
     }
 
     static let empty = FilterContext()
@@ -118,7 +128,8 @@ final class HistoryPresenter {
         selectedID: UUID? = nil,
         stack: [UUID] = [],
         filters: FilterContext = .empty,
-        clipboardAccess: PasteboardAccess = .granted
+        clipboardAccess: PasteboardAccess = .granted,
+        canClearHistory: Bool? = nil
     ) -> HistoryViewState {
         presentedIDs = Set(items.map(\.id))
         let accessPrompt = Self.accessPrompt(for: clipboardAccess)
@@ -139,7 +150,8 @@ final class HistoryPresenter {
             filters: filterBar(from: filters),
             emptyMessage: items.isEmpty && accessPrompt == nil
                 ? Self.emptyMessage(query: query, filters: filters) : nil,
-            accessPrompt: accessPrompt
+            accessPrompt: accessPrompt,
+            canClearHistory: canClearHistory ?? items.contains { !$0.isPinned }
         )
     }
 
@@ -182,29 +194,48 @@ final class HistoryPresenter {
         let kind = Self.kindLabel(item.category)
         let source = Self.sourceLabel(item.source) ?? kind.capitalized
         let time = timeLabel(for: item, now: now)
-        let cardPreview = preview(for: item)
+        let hidden = item.pinnedMetadata.hidesContent
+        if hidden { previewCache[item.id] = nil }
+        let cardPreview: CardPreview = hidden ? .text(Self.hiddenSummary(item.payload)) : preview(for: item)
         return CardViewState(
             id: item.id,
             sourceLabel: source,
             sourceBundleID: item.source?.bundleID,
             kindLabel: kind,
+            kindSymbol: item.category.symbolName,
             timeLabel: time,
-            detailLabel: Self.detailLabel(for: item),
+            detailLabel: hidden ? nil : Self.detailLabel(for: item),
             isPinned: item.isPinned,
             isSelected: isSelected,
             stackPosition: stackPosition,
-            accessibilityLabel: Self.accessibilityLabel(source: source, kind: kind, preview: cardPreview),
+            accessibilityLabel: ([
+                item.pinnedMetadata.note, Self.accessibilityLabel(source: source, kind: kind, preview: cardPreview),
+            ]).filter { !$0.isEmpty }.joined(separator: ", "),
             accessibilityValue: Self.accessibilityValue(of: item, stackPosition: stackPosition, time: time),
-            dragPayload: Self.dragPayload(of: item),
-            transformable: item.payload.transformableText != nil,
+            dragPayload: hidden ? .text("") : Self.dragPayload(of: item),
+            transformable: !hidden && item.splitGroup == nil && item.payload.transformableText != nil,
             saveable: {
+                if hidden || item.splitGroup != nil { return false }
                 if case .fileReferences = item.payload { return false }
                 return true
             }(),
             sourceKey: item.source?.filterKey,
-            matches: Self.matchSpans(of: words, in: item),
-            preview: cardPreview
+            matches: hidden ? [] : Self.matchSpans(of: words, in: item),
+            preview: cardPreview,
+            rtf: {
+                if !hidden, case .text = item.payload { return item.rtf }; return nil
+            }(),
+            pinnedMetadata: item.pinnedMetadata, splitCount: item.splitGroup?.parts.count ?? 0
         )
+    }
+
+    static func hiddenSummary(_ payload: Payload) -> String {
+        guard case .link(let url) = payload else { return "••••••••" }
+        let scheme = url.scheme ?? "https"
+        let parts = url.host?.split(separator: ".") ?? []
+        let suffix = parts.count > 1 ? parts.last.map(String.init) : nil
+        let tld = suffix.flatMap { $0.allSatisfy({ $0.isLetter || $0 == "-" }) ? $0 : nil }
+        return scheme + "://••••••" + (tld.map { "." + $0 } ?? "")
     }
 
     /// Matching runs on the visible cards only and never on more than the
@@ -294,6 +325,7 @@ final class HistoryPresenter {
         if item.isPinned {
             parts.append(localized("Pinned card"))
         }
+        parts.append(contentsOf: PinTagColor.allCases.filter(item.pinnedMetadata.tags.contains).map(tagLabel))
         if let stackPosition {
             parts.append(localized("Paste stack position \(stackPosition)"))
         }
@@ -384,6 +416,7 @@ final class HistoryPresenter {
         var pinned: [FilterChip] = []
         var apps: [FilterChip] = []
         var kinds: [FilterChip] = []
+        var tags: [FilterChip] = []
         for entry in context.chips {
             let isFocused = entry.id == context.focusedChipID
             switch entry {
@@ -393,7 +426,7 @@ final class HistoryPresenter {
                         id: entry.id, label: localized("All"), sourceBundleID: nil,
                         icon: .symbol("square.grid.2x2"), accessibilityLabel: localized("All items, clear filters"),
                         isActive: context.activeSourceKeys.isEmpty && context.activeCategories.isEmpty
-                            && !context.pinnedOnly,
+                            && !context.pinnedOnly && context.activeTags.isEmpty,
                         isFocused: isFocused))
             case .pinned:
                 pinned.append(
@@ -419,6 +452,12 @@ final class HistoryPresenter {
                         isFocused: isFocused
                     )
                 )
+            case .tag(let tag):
+                tags.append(
+                    FilterChip(
+                        id: tag.filterKey, label: Self.tagLabel(tag), sourceBundleID: nil,
+                        icon: .symbol("circle.fill"), accessibilityLabel: Self.tagLabel(tag),
+                        isActive: context.activeTags.contains(tag), isFocused: isFocused))
             case .category(let category):
                 let label = Self.kindLabel(category).capitalized
                 kinds.append(
@@ -434,7 +473,19 @@ final class HistoryPresenter {
                 )
             }
         }
-        return FilterBarViewState(all: all, pinned: pinned, apps: apps, kinds: kinds)
+        return FilterBarViewState(all: all, pinned: pinned, apps: apps, kinds: kinds, tags: tags)
+    }
+
+    static func tagLabel(_ color: PinTagColor) -> String {
+        switch color {
+        case .red: localized("Red tag")
+        case .orange: localized("Orange tag")
+        case .yellow: localized("Yellow tag")
+        case .green: localized("Green tag")
+        case .blue: localized("Blue tag")
+        case .purple: localized("Purple tag")
+        case .gray: localized("Gray tag")
+        }
     }
 
     /// Sub-minute labels would churn every second and force every card to

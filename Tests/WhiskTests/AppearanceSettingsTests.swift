@@ -17,6 +17,7 @@ import Testing
         let appearance = AppearanceSettingsStore(defaults: sandbox.defaults)
         #expect(appearance.language == .system)
         #expect(appearance.navigation == .top)
+        #expect(appearance.sidebarWidth == AppearanceSettingsStore.defaultSidebarWidth)
         #expect(appearance.statusClick == .history)
         #expect(appearance.dockIcon == .followWindows)
         #expect(appearance.accentMode == .system)
@@ -26,6 +27,7 @@ import Testing
         appearance.changed = { changes += 1 }
         appearance.language = .simplifiedChinese
         appearance.navigation = .sidebar
+        appearance.sidebarWidth = 252
         appearance.statusClick = .menu
         appearance.dockIcon = .always
         appearance.accentMode = .custom
@@ -34,6 +36,7 @@ import Testing
         let restored = AppearanceSettingsStore(defaults: sandbox.defaults)
         #expect(restored.language == .simplifiedChinese)
         #expect(restored.navigation == .sidebar)
+        #expect(restored.sidebarWidth == 252)
         #expect(restored.statusClick == .menu)
         #expect(restored.dockIcon == .always)
         #expect(restored.accentMode == .custom)
@@ -87,6 +90,7 @@ import Testing
         for (language, copy, count) in [
             ("en", "Copy", "1 item"), ("fr", "Copier", "1 élément"),
             ("de", "Kopieren", "1 Eintrag"),
+            ("it", "Copia", "1 elemento"),
             ("zh-Hans", "拷贝", "1 项"),
         ] {
             let selected = AppLocalization.selectedBundle(in: .module, language: language)
@@ -100,6 +104,7 @@ import Testing
         #expect(AppLanguage.system.code == nil)
         #expect(AppLanguage.french.code == "fr")
         #expect(AppLanguage.german.code == "de")
+        #expect(AppLanguage.italian.code == "it")
     }
 
     @Test func settings_pages_render_both_layouts_with_custom_color_privacy_and_shortcuts() throws {
@@ -172,38 +177,43 @@ import Testing
         AppLocalization.language = "zh-Hans"
         defer { AppLocalization.language = previousLanguage }
 
-        func scrollView(in view: NSView) -> NSScrollView? {
-            if let scroll = view as? NSScrollView { return scroll }
-            return view.subviews.lazy.compactMap { scrollView(in: $0) }.first
+        func scrollViews(in view: NSView) -> [NSScrollView] {
+            let current = (view as? NSScrollView).map { [$0] } ?? []
+            return current + view.subviews.flatMap { scrollViews(in: $0) }
         }
 
         for navigation in SettingsNavigation.allCases {
             appearance.navigation = navigation
-            for height in [SettingsWindowSize.minimumHeight, SettingsWindowSize.height] {
-                let hosting = NSHostingController(
-                    rootView: SettingsView(
-                        store: KeyBindingsStore(defaults: sandbox.defaults),
-                        general: GeneralSettingsStore(defaults: sandbox.defaults), loginItem: LoginItemManager(),
-                        vimBindings: VimBindingsStore(defaults: sandbox.defaults),
-                        privacy: PrivacyController(defaults: sandbox.defaults), appearance: appearance,
-                        selectedPage: .shortcuts))
-                // Match AppDelegate's real window construction, including full-size content and its title bar.
-                let window = NSWindow(contentViewController: hosting)
-                window.isReleasedWhenClosed = false
-                defer { window.close() }
-                window.setContentSize(hosting.view.fittingSize)
-                window.styleMask.remove([.resizable, .miniaturizable])
-                SettingsWindowConfiguration.apply(to: window)
-                window.setContentSize(NSSize(width: SettingsWindowSize.width, height: height))
-                hosting.view.layoutSubtreeIfNeeded()
-                let scroll = try #require(scrollView(in: hosting.view))
-                let frame = scroll.convert(scroll.bounds, to: hosting.view)
-                let sidebarWidth: CGFloat = navigation == .sidebar ? 185 : 0
-                // A horizontal divider in the sidebar HStack used to steal half the content width.
-                #expect(abs(frame.minX - sidebarWidth) <= 2, "\(navigation), height \(height): \(frame)")
-                #expect(frame.width >= SettingsWindowSize.width - sidebarWidth - 2)
-                #expect(frame.maxX <= hosting.view.bounds.maxX + 1)
-                #expect(frame.height > 100)
+            for sidebarWidth in (navigation == .sidebar ? [CGFloat(220), 300] : [CGFloat(220)]) {
+                appearance.sidebarWidth = sidebarWidth
+                for height in [SettingsWindowSize.minimumHeight, SettingsWindowSize.height] {
+                    let hosting = NSHostingController(
+                        rootView: SettingsView(
+                            store: KeyBindingsStore(defaults: sandbox.defaults),
+                            general: GeneralSettingsStore(defaults: sandbox.defaults), loginItem: LoginItemManager(),
+                            vimBindings: VimBindingsStore(defaults: sandbox.defaults),
+                            privacy: PrivacyController(defaults: sandbox.defaults), appearance: appearance,
+                            selectedPage: .shortcuts))
+                    // Match AppDelegate's real window construction, including full-size content and its title bar.
+                    let window = NSWindow(contentViewController: hosting)
+                    window.isReleasedWhenClosed = false
+                    defer { window.close() }
+                    window.setContentSize(hosting.view.fittingSize)
+                    window.styleMask.remove([.resizable, .miniaturizable])
+                    SettingsWindowConfiguration.apply(to: window)
+                    window.setContentSize(NSSize(width: SettingsWindowSize.width, height: height))
+                    hosting.view.layoutSubtreeIfNeeded()
+                    let scroll = try #require(
+                        scrollViews(in: hosting.view).filter { $0.bounds.height > 100 }
+                            .max { $0.bounds.width < $1.bounds.width })
+                    let frame = scroll.convert(scroll.bounds, to: hosting.view)
+                    let expectedSidebarWidth: CGFloat = navigation == .sidebar ? sidebarWidth + 1 : 0
+                    // A horizontal divider in the sidebar HStack used to steal half the content width.
+                    #expect(abs(frame.minX - expectedSidebarWidth) <= 2, "\(navigation), height \(height): \(frame)")
+                    #expect(frame.width >= SettingsWindowSize.width - expectedSidebarWidth - 2)
+                    #expect(frame.maxX <= hosting.view.bounds.maxX + 1)
+                    #expect(frame.height > 100)
+                }
             }
         }
     }

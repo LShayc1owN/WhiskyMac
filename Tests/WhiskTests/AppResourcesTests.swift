@@ -3,13 +3,20 @@
 // Upstream attribution: NOTICE. Additional permissions:
 // LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
 
+import AppKit
 import Foundation
 import Testing
 
 @testable import Whisk
 
 @Suite struct PackagedResources {
-    @Test(arguments: ["en", "fr", "de", "zh-Hans"])
+    @Test func github_artwork_is_available_in_the_resource_bundle() throws {
+        let url = try #require(AppResources.bundle.url(forResource: "GitHub", withExtension: "png"))
+        let image = try #require(NSImage(contentsOf: url))
+        #expect(image.size.width > 0 && image.size.height > 0)
+    }
+
+    @Test(arguments: ["en", "fr", "de", "it", "zh-Hans"])
     func localization_loads_from_a_relocated_app_contents_resources_directory(language: String) throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("whisky-resource-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: root) }
@@ -31,7 +38,8 @@ import Testing
         let translation = try #require(Bundle(url: resource.deletingLastPathComponent()))
         let expected = [
             "en": ["Copy", "1 item"], "fr": ["Copier", "1 élément"],
-            "de": ["Kopieren", "1 Eintrag"], "zh-Hans": ["拷贝", "1 项"],
+            "de": ["Kopieren", "1 Eintrag"], "it": ["Copia", "1 elemento"],
+            "zh-Hans": ["拷贝", "1 项"],
         ]
         #expect(localized("Copy", bundle: translation) == expected[language]?[0])
         #expect(localized("\(1) items", bundle: translation) == expected[language]?[1])
@@ -43,7 +51,7 @@ import Testing
 
     @Test func the_runtime_resolver_finds_the_catalogs_without_a_build_path() throws {
         #expect(AppResources.bundle.bundleURL.lastPathComponent == AppResources.name)
-        for language in ["en", "fr", "de", "zh-Hans"] {
+        for language in ["en", "fr", "de", "it", "zh-Hans"] {
             #expect(
                 AppResources.bundle.url(
                     forResource: "Localizable", withExtension: "strings", subdirectory: nil, localization: language)
