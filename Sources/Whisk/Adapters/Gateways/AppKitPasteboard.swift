@@ -18,6 +18,9 @@ final class AppKitPasteboard: Whisk.Pasteboard {
     private let board: NSPasteboard
     private var lastChangeCount: Int
     private let didWrite: () -> Void
+    private let readQueue = DispatchQueue(label: "dev.whisky.maclx.pasteboard-read", qos: .utility)
+    private var failedReadCount = 0
+    private var retryChangeCount: Int?
 
     init(board: NSPasteboard = .general, didWrite: @escaping () -> Void = {}) {
         self.board = board
@@ -58,6 +61,46 @@ final class AppKitPasteboard: Whisk.Pasteboard {
         let count = board.changeCount
         guard count != lastChangeCount else { return nil }
         lastChangeCount = count
+        return snapshot(for: count)
+    }
+
+    /// The worker can remain blocked in a Continuity read; callers never enqueue
+    /// another read until this one returns. Writes remain responsive on main.
+    func readIfChangedAsync(_ completion: @escaping (PasteboardSnapshot?) -> Void) {
+        precondition(Thread.isMainThread)
+        guard access == .granted else { completion(nil); return }
+        let count = board.changeCount
+        guard count != lastChangeCount else { completion(nil); return }
+        if retryChangeCount != count {
+            retryChangeCount = count
+            failedReadCount = 0
+        }
+        readQueue.async { [self] in
+            let result = snapshot(for: count)
+            DispatchQueue.main.async { [self] in
+                // A selection made while the worker was reading supersedes its result.
+                guard board.changeCount == count, lastChangeCount != count else {
+                    completion(nil)
+                    return
+                }
+                if result != nil {
+                    lastChangeCount = count
+                    failedReadCount = 0
+                    retryChangeCount = nil
+                } else {
+                    failedReadCount += 1
+                    if failedReadCount >= 3 {
+                        lastChangeCount = count
+                        failedReadCount = 0
+                        retryChangeCount = nil
+                    }
+                }
+                completion(result)
+            }
+        }
+    }
+
+    private func snapshot(for count: Int) -> PasteboardSnapshot? {
         guard !holdsConcealedContent(), let payload = readPayload() else { return nil }
         let types = board.types ?? []
         let app = Self.sourceApplication()
@@ -108,6 +151,8 @@ final class AppKitPasteboard: Whisk.Pasteboard {
             succeeded = board.writeObjects(paths.map { NSURL(fileURLWithPath: $0) })
         }
         lastChangeCount = board.changeCount
+        retryChangeCount = nil
+        failedReadCount = 0
         if succeeded, notify { didWrite() }
     }
 
@@ -118,6 +163,8 @@ final class AppKitPasteboard: Whisk.Pasteboard {
         board.setData(Data(), forType: NSPasteboard.PasteboardType("org.nspasteboard.ConcealedType"))
         board.setData(Data(), forType: NSPasteboard.PasteboardType("org.nspasteboard.TransientType"))
         lastChangeCount = board.changeCount
+        retryChangeCount = nil
+        failedReadCount = 0
     }
 
     private static func sourceApplication() -> NSRunningApplication? {

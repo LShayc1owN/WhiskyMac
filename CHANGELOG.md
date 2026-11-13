@@ -61,6 +61,8 @@ live in the commit history.
   including when the preview is reopened while the actions are visible.
 
 ### Changed
+- Use the same frosted surfaces and controls on all supported macOS versions;
+  remove the macOS 26 Liquid Glass treatment and its dedicated transitions.
 - Copy sounds use short-lived AudioToolbox queues instead of NSSound, keeping
   volume control and disposing playback resources after completion.
 - Privacy hover reveal defaults to a 150-point diameter and 50-point soft edge.
@@ -74,8 +76,8 @@ live in the commit history.
 - Settings group related controls, explain each page, separate global and panel
   shortcuts, and confirm before resetting keyboard bindings. Privacy details
   expand on demand, and hover timing appears only when preview is enabled.
-- Settings now use frosted glass on macOS 15 and native Liquid Glass on macOS 26,
-  with animated navigation, page changes and expandable options. Reduced motion,
+- Settings use frosted surfaces with animated navigation, page changes and
+  expandable options on all supported macOS versions. Reduced motion,
   reduced transparency and increased contrast follow system preferences.
 
 ## [1.0.3] - 2026-10-21

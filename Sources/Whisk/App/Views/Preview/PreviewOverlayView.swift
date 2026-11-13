@@ -55,7 +55,7 @@ struct PreviewOverlayView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .liquidGlass(in: RoundedRectangle(cornerRadius: 24, style: .continuous), cornerRadius: 24)
+        .frostedSurface(in: RoundedRectangle(cornerRadius: 24, style: .continuous), cornerRadius: 24)
     }
 
     private var richVersions: some View {

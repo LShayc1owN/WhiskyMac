@@ -19,7 +19,7 @@ struct SettingsNavigationControl: View {
             .beButton {
                 appearance.navigation = appearance.navigation == .top ? .sidebar : .top
             }
-            .buttonStyle(SettingsGlassButtonStyle())
+            .buttonStyle(SettingsSurfaceButtonStyle())
             .help(title)
             .accessibilityLabel(title)
             .frame(width: 40, height: 28)

@@ -181,9 +181,9 @@ struct AboutSettingsView: View {
             VStack(alignment: .leading, spacing: 10) { content() }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(16)
-                .settingsGlass(
-                    in: RoundedRectangle(cornerRadius: SettingsGlass.groupCornerRadius, style: .continuous))
+                .settingsSurface(
+                    in: RoundedRectangle(cornerRadius: SettingsSurface.groupCornerRadius, style: .continuous))
         }
-        .buttonStyle(SettingsGlassButtonStyle())
+        .buttonStyle(SettingsSurfaceButtonStyle())
     }
 }

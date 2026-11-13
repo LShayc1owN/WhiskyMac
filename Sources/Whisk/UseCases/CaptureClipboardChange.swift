@@ -21,9 +21,9 @@ struct CaptureClipboardChange<Board: Pasteboard, Time: Clock, Store: HistoryStor
         into history: History, excluding excludedBundleIDs: Set<String> = [],
         sensitiveBundleIDs: Set<String> = [],
         retainSensitive: (PasteboardSnapshot) -> Void = { _ in },
-        didRecord: () -> Void = {}
+        didRecord: () -> Void = {}, snapshot suppliedSnapshot: PasteboardSnapshot? = nil
     ) throws -> History {
-        guard let snapshot = pasteboard.readIfChanged() else { return history }
+        guard let snapshot = suppliedSnapshot ?? pasteboard.readIfChanged() else { return history }
         if let bundleID = snapshot.source?.bundleID, excludedBundleIDs.contains(bundleID) {
             return history
         }

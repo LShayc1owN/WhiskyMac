@@ -8,10 +8,37 @@ import Testing
 @testable import Whisk
 
 @Suite struct ClipboardControllerBehaviour {
+    private final class DelayedPasteboard: Pasteboard {
+        var access: PasteboardAccess = .granted
+        var completions: [(PasteboardSnapshot?) -> Void] = []
+        func readIfChanged() -> PasteboardSnapshot? { nil }
+        func readIfChangedAsync(_ completion: @escaping (PasteboardSnapshot?) -> Void) {
+            completions.append(completion)
+        }
+        func requestAccess() {}
+        func write(_ payload: Payload, rtf: Data?) {}
+    }
+
     final class StateSpy {
         private(set) var states: [HistoryViewState] = []
         var last: HistoryViewState { states.last ?? .empty }
         func record(_ state: HistoryViewState) { states.append(state) }
+    }
+
+    @Test func asynchronous_poll_coalesces_ticks_and_records_after_read_finishes() {
+        let board = DelayedPasteboard()
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: board, store: InMemoryHistoryStore(), clock: FakeClock(), present: spy.record)
+        controller.pollTickAsync()
+        controller.pollTickAsync()
+        #expect(board.completions.count == 1)
+        #expect(spy.last.cards.isEmpty)
+
+        board.completions.removeFirst()(PasteboardSnapshot(payload: .text("remote"), source: nil))
+        #expect(spy.last.cards.first?.preview == .text("remote"))
+        controller.pollTickAsync()
+        #expect(board.completions.count == 1)
     }
 
     @Test func a_poll_tick_with_a_change_presents_the_new_card_first() {

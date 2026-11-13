@@ -286,7 +286,7 @@ struct SettingsSearchResults: View {
                 }
             }
         }
-        .settingsGlass(in: RoundedRectangle(cornerRadius: 10))
+        .settingsSurface(in: RoundedRectangle(cornerRadius: 10))
     }
 
     private func highlightedText(_ value: String, secondary: Bool) -> Text {

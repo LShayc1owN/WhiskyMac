@@ -41,7 +41,7 @@ struct CardSizePreview: View {
         .padding(.top, 12)
         .padding(.bottom, 12)
         .frame(width: side, height: side)
-        .liquidGlass(
+        .frostedSurface(
             in: RoundedRectangle(cornerRadius: 18, style: .continuous), cornerRadius: 18,
             tint: SourceAppStyle.resolve(bundleID: nil).surfaceTint(dark: scheme == .dark)
         )

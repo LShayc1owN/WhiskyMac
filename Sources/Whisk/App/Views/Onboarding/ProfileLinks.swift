@@ -79,7 +79,7 @@ struct HoverProfileLink: View {
                     ExternalHomepageLink(title: homepage.title, destination: homepage.destination)
                 }
             }
-            .buttonStyle(SettingsGlassButtonStyle())
+            .buttonStyle(SettingsSurfaceButtonStyle())
             .padding(12)
             .onHover { inside in
                 if inside { dismissal?.cancel() } else { scheduleDismissal() }

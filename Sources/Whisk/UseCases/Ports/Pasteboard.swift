@@ -37,6 +37,8 @@ protocol Pasteboard {
     /// A snapshot when the pasteboard changed since the previous call and
     /// the app may read it, nil otherwise.
     func readIfChanged() -> PasteboardSnapshot?
+    /// Delivers a read on the main thread. System adapters may perform it on a worker.
+    func readIfChangedAsync(_ completion: @escaping (PasteboardSnapshot?) -> Void)
     func write(_ payload: Payload, rtf: Data?)
     /// Stages a paste without copy-only feedback.
     func writeForPaste(_ payload: Payload, rtf: Data?)
@@ -46,5 +48,8 @@ protocol Pasteboard {
 }
 
 extension Pasteboard {
+    func readIfChangedAsync(_ completion: @escaping (PasteboardSnapshot?) -> Void) {
+        completion(readIfChanged())
+    }
     func writeForPaste(_ payload: Payload, rtf: Data?) { write(payload, rtf: rtf) }
 }

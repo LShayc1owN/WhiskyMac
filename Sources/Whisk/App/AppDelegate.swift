@@ -476,7 +476,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func startPolling(_ clipboard: Controller) {
         let timer = Timer(timeInterval: 0.25, repeats: true) { _ in
-            clipboard.pollTick()
+            clipboard.pollTickAsync()
         }
         RunLoop.main.add(timer, forMode: .common)
         pollTimer = timer

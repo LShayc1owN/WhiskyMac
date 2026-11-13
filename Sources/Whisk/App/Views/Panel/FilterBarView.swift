@@ -248,7 +248,7 @@ private struct ChipButton<Label: View>: View {
             GeometryReader { proxy in
                 if isPanelVisible && glassMounted {
                     Color.clear
-                        .liquidGlass(
+                        .frostedSurface(
                             in: Capsule(),
                             tint: chip.isActive ? Color.matcha.opacity(0.28) : baseTint
                         )

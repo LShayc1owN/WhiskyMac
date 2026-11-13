@@ -616,20 +616,20 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
     @Test func the_blur_veil_and_the_glass_surfaces_take_a_window() {
         let veil = hostOffscreen(GradientBlurVeil(), 800, 430)
         let glass = hostOffscreen(
-            Text("glass").padding().liquidGlass(in: Capsule()).padding().liquidGlass(
+            Text("glass").padding().frostedSurface(in: Capsule()).padding().frostedSurface(
                 in: RoundedRectangle(cornerRadius: 12), cornerRadius: 12, tint: .red), 300, 120)
-        let settingsGlass = hostOffscreen(
-            Text("Settings").padding().settingsGlass(
-                in: RoundedRectangle(cornerRadius: SettingsGlass.groupCornerRadius, style: .continuous)),
+        let settingsSurface = hostOffscreen(
+            Text("Settings").padding().settingsSurface(
+                in: RoundedRectangle(cornerRadius: SettingsSurface.groupCornerRadius, style: .continuous)),
             300, 120)
         let reducedGlass = hostOffscreen(
-            Text("Reduced transparency").padding().settingsGlass(in: Capsule())
+            Text("Reduced transparency").padding().settingsSurface(in: Capsule())
                 .environment(\.settingsAccessibilityOverride, SettingsAccessibilityValues(reduceTransparency: true)),
             300, 120)
 
         #expect(veil.contentView != nil)
         #expect(glass.contentView != nil)
-        #expect(settingsGlass.contentView != nil)
+        #expect(settingsSurface.contentView != nil)
         #expect(reducedGlass.contentView != nil)
         #expect(BackdropView().material == .appearanceBased)
     }

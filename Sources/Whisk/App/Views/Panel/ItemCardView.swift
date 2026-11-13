@@ -70,7 +70,7 @@ struct ItemCardView: View, Equatable {
     private var backdrop: some View {
         Color.clear
             .frame(width: selectedSide, height: selectedSide)
-            .liquidGlass(
+            .frostedSurface(
                 in: Self.shape,
                 cornerRadius: 18,
                 tint: SourceAppStyle.resolve(bundleID: card.sourceBundleID)

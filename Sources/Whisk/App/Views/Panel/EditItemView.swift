@@ -62,7 +62,7 @@ struct EditItemView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding(8)
-            .liquidGlass(in: RoundedRectangle(cornerRadius: 14, style: .continuous), cornerRadius: 14)
+            .frostedSurface(in: RoundedRectangle(cornerRadius: 14, style: .continuous), cornerRadius: 14)
         }
         .padding(.horizontal, 16)
         .onAppear { focused = true }

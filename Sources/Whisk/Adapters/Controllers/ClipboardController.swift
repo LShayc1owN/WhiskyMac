@@ -60,6 +60,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     /// which item expires first.
     private var nextExpiry: Date = .distantPast
     private var isPaused = false
+    private var asyncReadInFlight = false
     private var excludedBundleIDs: Set<String> = []
     private var sensitiveBundleIDs: Set<String> = []
     var retainSensitive: (PasteboardSnapshot) -> Void = { _ in }
@@ -168,6 +169,33 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         }
         guard retention.maxAge != nil, clock.now() >= nextExpiry else { return }
         enforceRetentionNow()
+    }
+
+    /// Production polling keeps potentially remote pasteboard reads off the UI thread.
+    func pollTickAsync() {
+        if pasteboard.access != presentedAccess {
+            presentedAccess = pasteboard.access
+            refresh()
+        }
+        if retention.maxAge != nil, clock.now() >= nextExpiry {
+            enforceRetentionNow()
+        }
+        guard !asyncReadInFlight else { return }
+        asyncReadInFlight = true
+        let pausedAtStart = isPaused
+        pasteboard.readIfChangedAsync { [weak self] snapshot in
+            guard let self else { return }
+            self.asyncReadInFlight = false
+            if !pausedAtStart, !self.isPaused, let snapshot {
+                self.mutate {
+                    try self.capture(
+                        into: $0, excluding: self.excludedBundleIDs,
+                        sensitiveBundleIDs: self.sensitiveBundleIDs,
+                        retainSensitive: self.retainSensitive, didRecord: self.didRecord,
+                        snapshot: snapshot)
+                }
+            }
+        }
     }
 
     /// Whether the system lets Whisk read what is copied.

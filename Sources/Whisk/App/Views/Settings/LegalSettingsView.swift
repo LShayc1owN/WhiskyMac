@@ -54,8 +54,8 @@ struct LegalSettingsView: View {
                     .padding(16)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .settingsGlass(
-                in: RoundedRectangle(cornerRadius: SettingsGlass.groupCornerRadius, style: .continuous))
+            .settingsSurface(
+                in: RoundedRectangle(cornerRadius: SettingsSurface.groupCornerRadius, style: .continuous))
 
             if let fileURL {
                 Text(fileURL.path)
@@ -78,7 +78,7 @@ struct LegalSettingsView: View {
                     }
                     .beButton { NSWorkspace.shared.activateFileViewerSelecting([fileURL]) }
                 }
-                .buttonStyle(SettingsGlassButtonStyle())
+                .buttonStyle(SettingsSurfaceButtonStyle())
             }
         }
         .padding(.horizontal, 24)

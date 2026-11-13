@@ -102,7 +102,7 @@ struct HistoryPanelView: View {
                 Image(systemName: "arrow.left.to.line")
                     .font(.system(size: 14, weight: .semibold))
                     .frame(width: 36, height: 36)
-                    .liquidGlass(in: Circle())
+                    .frostedSurface(in: Circle())
                     .beButton { returnToLatestRevision += 1 }
                     .buttonStyle(.plain)
                     .disabled(store.state.cards.isEmpty || store.editing != nil)
@@ -224,7 +224,7 @@ struct HistoryPanelView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
-        .liquidGlass(in: Capsule())
+        .frostedSurface(in: Capsule())
         // The capsule lights up as it stretches: a crisp matcha rim, the
         // same language as the cards' selection ring. Plain opacity (not
         // if/else) so the outer animation carries the fade.
@@ -375,7 +375,7 @@ struct HistoryPanelView: View {
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .liquidGlass(in: RoundedRectangle(cornerRadius: 22, style: .continuous), cornerRadius: 22)
+        .frostedSurface(in: RoundedRectangle(cornerRadius: 22, style: .continuous), cornerRadius: 22)
         .padding(.horizontal, 16)
     }
 
@@ -394,7 +394,7 @@ struct HistoryPanelView: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .liquidGlass(in: RoundedRectangle(cornerRadius: 22, style: .continuous), cornerRadius: 22)
+        .frostedSurface(in: RoundedRectangle(cornerRadius: 22, style: .continuous), cornerRadius: 22)
         .padding(.horizontal, 16)
     }
 }

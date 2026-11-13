@@ -6,57 +6,30 @@
 import AppKit
 import SwiftUI
 
-enum SettingsGlass {
+enum SettingsSurface {
     static let groupCornerRadius: CGFloat = 14
     static let controlCornerRadius: CGFloat = 8
 
 }
 
 extension View {
-    func settingsGlass(
-        in shape: some Shape,
-        interactive: Bool = false
+    func settingsSurface(
+        in shape: some Shape
     ) -> some View {
-        modifier(SettingsGlassModifier(shape: AnyShape(shape), interactive: interactive))
+        modifier(SettingsSurfaceModifier(shape: AnyShape(shape)))
     }
 
-    @ViewBuilder
-    func settingsGlassContainer<Content: View>(
-        spacing: CGFloat = 12,
-        @ViewBuilder content: () -> Content
-    ) -> some View {
-        if #available(macOS 26.0, *) {
-            GlassEffectContainer(spacing: spacing) { content() }
-        } else {
-            content()
-        }
-    }
-
-    @ViewBuilder
-    func settingsGlassID(_ id: some Hashable & Sendable, in namespace: Namespace.ID) -> some View {
-        if #available(macOS 26.0, *) {
-            self.glassEffectID(id, in: namespace)
-                .glassEffectTransition(.matchedGeometry)
-        } else {
-            self
-        }
-    }
 }
 
-private struct SettingsGlassModifier: ViewModifier {
+private struct SettingsSurfaceModifier: ViewModifier {
     @SettingsAccessibility private var accessibility
     @Environment(\.colorScheme) private var colorScheme
     let shape: AnyShape
-    let interactive: Bool
 
     func body(content: Content) -> some View {
         if accessibility.reduceTransparency {
             content
                 .background(Color(nsColor: .controlBackgroundColor), in: shape)
-                .overlay(shape.stroke(borderColor, lineWidth: borderWidth))
-        } else if #available(macOS 26.0, *) {
-            content
-                .glassEffect(.regular.interactive(interactive && !accessibility.reduceMotion), in: shape)
                 .overlay(shape.stroke(borderColor, lineWidth: borderWidth))
         } else {
             content
@@ -93,12 +66,6 @@ struct SettingsWindowBackdrop: View {
 
 private struct SettingsBackdropView: NSViewRepresentable {
     func makeNSView(context: Context) -> NSView {
-        if #available(macOS 26.0, *) {
-            let view = NSGlassEffectView()
-            view.style = .regular
-            view.tintColor = NSColor.windowBackgroundColor.withAlphaComponent(0.16)
-            return view
-        }
         let view = NSVisualEffectView()
         view.material = .underWindowBackground
         view.blendingMode = .behindWindow
@@ -119,7 +86,7 @@ enum SettingsWindowConfiguration {
     }
 }
 
-struct SettingsGlassButtonStyle: ButtonStyle {
+struct SettingsSurfaceButtonStyle: ButtonStyle {
     @SettingsAccessibility private var accessibility
     @State private var isHovering = false
 
@@ -127,13 +94,12 @@ struct SettingsGlassButtonStyle: ButtonStyle {
         configuration.label
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
-            .settingsGlass(
-                in: RoundedRectangle(cornerRadius: SettingsGlass.controlCornerRadius, style: .continuous),
-                interactive: true
+            .settingsSurface(
+                in: RoundedRectangle(cornerRadius: SettingsSurface.controlCornerRadius, style: .continuous)
             )
             .background(
                 Color.primary.opacity(isHovering ? 0.07 : 0),
-                in: RoundedRectangle(cornerRadius: SettingsGlass.controlCornerRadius, style: .continuous)
+                in: RoundedRectangle(cornerRadius: SettingsSurface.controlCornerRadius, style: .continuous)
             )
             .scaleEffect(configuration.isPressed && !accessibility.reduceMotion ? 0.98 : 1)
             .animation(accessibility.reduceMotion ? nil : .easeOut(duration: 0.12), value: isHovering)
@@ -151,7 +117,7 @@ struct SettingsHoverButtonStyle: ButtonStyle {
         configuration.label
             .background(
                 Color.primary.opacity(isHovering && !isSelected ? 0.065 : 0),
-                in: RoundedRectangle(cornerRadius: SettingsGlass.controlCornerRadius, style: .continuous)
+                in: RoundedRectangle(cornerRadius: SettingsSurface.controlCornerRadius, style: .continuous)
             )
             .opacity(configuration.isPressed ? 0.72 : 1)
             .scaleEffect(configuration.isPressed && !accessibility.reduceMotion ? 0.98 : 1)

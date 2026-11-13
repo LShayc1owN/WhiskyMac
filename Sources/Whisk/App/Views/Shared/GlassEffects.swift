@@ -14,16 +14,16 @@ import SwiftUI
 /// the blur — so the rounding happens on the effect view's own layer.
 /// A nil corner radius means capsule (half the height).
 extension View {
-    func liquidGlass(
+    func frostedSurface(
         in shape: some Shape, cornerRadius: CGFloat? = nil, tint: Color? = nil
     ) -> some View {
         modifier(
-            LiquidGlassModifier(shape: AnyShape(shape), cornerRadius: cornerRadius, tint: tint)
+            FrostedSurfaceModifier(shape: AnyShape(shape), cornerRadius: cornerRadius, tint: tint)
         )
     }
 }
 
-private struct LiquidGlassModifier: ViewModifier {
+private struct FrostedSurfaceModifier: ViewModifier {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     let shape: AnyShape

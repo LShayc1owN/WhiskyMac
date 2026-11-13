@@ -60,31 +60,29 @@ struct SettingsView: View {
     }
 
     var body: some View {
-        settingsGlassContainer(spacing: 16) {
-            ZStack {
-                SettingsWindowBackdrop()
-                    .ignoresSafeArea()
-                VStack(spacing: 0) {
-                    if appearance.navigation == .top {
-                        topPageNavigation
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 8)
-                        SettingsDivider()
-                        topNavigation
-                            .transition(.opacity)
-                        SettingsDivider()
-                    }
-                    HStack(spacing: 0) {
-                        if appearance.navigation == .sidebar {
-                            sidebarNavigation
-                                .transition(.opacity.combined(with: .move(edge: .leading)))
-                            sidebarResizeHandle
-                        }
-
-                        pageContent
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        ZStack {
+            SettingsWindowBackdrop()
+                .ignoresSafeArea()
+            VStack(spacing: 0) {
+                if appearance.navigation == .top {
+                    topPageNavigation
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 8)
+                    SettingsDivider()
+                    topNavigation
+                        .transition(.opacity)
+                    SettingsDivider()
                 }
+                HStack(spacing: 0) {
+                    if appearance.navigation == .sidebar {
+                        sidebarNavigation
+                            .transition(.opacity.combined(with: .move(edge: .leading)))
+                        sidebarResizeHandle
+                    }
+
+                    pageContent
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
         }
         .environment(\.settingsSearchHighlight, search.highlightedAnchor)
@@ -210,7 +208,7 @@ struct SettingsView: View {
                     .padding(.vertical, 9)
                     .background {
                         if selectedPage == page {
-                            RoundedRectangle(cornerRadius: SettingsGlass.controlCornerRadius)
+                            RoundedRectangle(cornerRadius: SettingsSurface.controlCornerRadius)
                                 .fill(appearance.accent.opacity(0.18))
                         }
                     }
@@ -279,7 +277,7 @@ struct SettingsView: View {
                 .padding(.vertical, 7)
                 .background {
                     if selectedSectionID == section {
-                        RoundedRectangle(cornerRadius: SettingsGlass.controlCornerRadius)
+                        RoundedRectangle(cornerRadius: SettingsSurface.controlCornerRadius)
                             .fill(Color.primary.opacity(0.08))
                     }
                 }
@@ -313,23 +311,13 @@ struct SettingsView: View {
 
     @ViewBuilder
     private func navigationSelection() -> some View {
-        if #available(macOS 26.0, *) {
-            Color.clear
-                .settingsGlass(
-                    in: RoundedRectangle(cornerRadius: SettingsGlass.controlCornerRadius, style: .continuous),
-                    interactive: true
-                )
-                .settingsGlassID("selection", in: navigationNamespace)
-                .matchedGeometryEffect(id: "selection", in: navigationNamespace)
-        } else {
-            RoundedRectangle(cornerRadius: SettingsGlass.controlCornerRadius, style: .continuous)
-                .fill(Color.primary.opacity(0.09))
-                .overlay(
-                    RoundedRectangle(cornerRadius: SettingsGlass.controlCornerRadius, style: .continuous)
-                        .strokeBorder(Color.primary.opacity(0.09), lineWidth: 0.5)
-                )
-                .matchedGeometryEffect(id: "selection", in: navigationNamespace)
-        }
+        RoundedRectangle(cornerRadius: SettingsSurface.controlCornerRadius, style: .continuous)
+            .fill(Color.primary.opacity(0.09))
+            .overlay(
+                RoundedRectangle(cornerRadius: SettingsSurface.controlCornerRadius, style: .continuous)
+                    .strokeBorder(Color.primary.opacity(0.09), lineWidth: 0.5)
+            )
+            .matchedGeometryEffect(id: "selection", in: navigationNamespace)
     }
 
     private var pageContent: some View {
@@ -447,7 +435,7 @@ struct SettingsView: View {
         SettingsSearchScrollView(search: search, section: selectedSectionID) {
             Group(sections: sections) { pageSections in
                 if !pageSections.isEmpty {
-                    SettingsGlassGroup(section: pageSections[min(selectedSectionIndex, pageSections.count - 1)])
+                    SettingsSurfaceGroup(section: pageSections[min(selectedSectionIndex, pageSections.count - 1)])
                         .transition(pageTransition)
                 }
             }
@@ -1298,7 +1286,7 @@ private struct SettingsDivider: View {
     }
 }
 
-private struct SettingsGlassGroup: View {
+private struct SettingsSurfaceGroup: View {
     let section: SectionConfiguration
 
     var body: some View {
@@ -1326,8 +1314,8 @@ private struct SettingsGlassGroup: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .settingsGlass(
-                in: RoundedRectangle(cornerRadius: SettingsGlass.groupCornerRadius, style: .continuous)
+            .settingsSurface(
+                in: RoundedRectangle(cornerRadius: SettingsSurface.groupCornerRadius, style: .continuous)
             )
             if !section.footer.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
@@ -1363,7 +1351,7 @@ private struct VimKeyField: View {
             .frame(width: 44)
             .padding(.horizontal, 5)
             .padding(.vertical, 4)
-            .settingsGlass(in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .settingsSurface(in: RoundedRectangle(cornerRadius: 6, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
                     .strokeBorder(focused ? Color.matcha : .clear, lineWidth: 1.5)
@@ -1408,7 +1396,7 @@ private struct ShortcutRecorder: View {
             .frame(minWidth: 76)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            .settingsGlass(in: RoundedRectangle(cornerRadius: 6, style: .continuous), interactive: true)
+            .settingsSurface(in: RoundedRectangle(cornerRadius: 6, style: .continuous))
             .background(
                 Color.matcha.opacity(isRecording ? 0.2 : (isHovering ? 0.055 : 0)),
                 in: RoundedRectangle(cornerRadius: 6, style: .continuous)
