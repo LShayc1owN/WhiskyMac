@@ -53,11 +53,13 @@ import Testing
         debounce.flush()
         #expect(state.protectedCardIDs == [alpha.id])
         #expect(state.protectedSourceLabel(for: alpha.id) == nil)
+        #expect(state.protectedSourceKeys(in: 0..<2).isEmpty)
         #expect(state.state.cards.isEmpty && state.previewItems.isEmpty)
         state.preparePreview()
         #expect(state.previewItems.isEmpty)
         state.setPrivacyPermissions(allowSearch: true, showSourceApps: true)
         #expect(state.protectedSourceLabel(for: alpha.id) == "SOURCE-ALPHA")
+        #expect(state.protectedSourceKeys(in: 0..<10).isEmpty)
         #expect(state.protectedSourceLabel(for: beta.id) == nil)
         #expect(state.spotlightPayload(for: alpha.id) == nil)
         state.setPrivacyPermissions(allowSearch: false, showSourceApps: true)
@@ -65,6 +67,7 @@ import Testing
         #expect(Set(state.protectedCardIDs) == [alpha.id, beta.id])
         #expect(storage.saveCount == 0)
         state.setPrivacy(false)
+        #expect(state.protectedSourceKeys(in: 0..<2).isEmpty)
         #expect(state.protectedSourceLabel(for: alpha.id) == nil)
     }
 

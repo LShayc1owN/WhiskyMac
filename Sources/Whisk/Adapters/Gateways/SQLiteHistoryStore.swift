@@ -13,18 +13,29 @@ private let sqliteTransient = unsafeBitCast(-1, to: sqlite3_destructor_type.self
 /// when it changes; the small ordering table is rewritten on each save,
 /// all inside one transaction.
 final class SQLiteHistoryStore: HistoryStore {
-    private var db: OpaquePointer?
+    var db: OpaquePointer?
+    /// The ids whose content rows the last save actually wrote, in order.
+    /// Tests watch this to prove the changed-set gate works.
+    private(set) var lastContentWriteIDs: [UUID] = []
 
-    init(databaseURL: URL) throws {
+    private(set) var contentStorage: SQLiteContentStorage!
+
+    init(databaseURL: URL, contentCacheBytes: Int = 24 * 1024 * 1024) throws {
         try FileManager.default.createDirectory(
             at: databaseURL.deletingLastPathComponent(), withIntermediateDirectories: true)
         guard sqlite3_open(databaseURL.path, &db) == SQLITE_OK else {
+            sqlite3_close_v2(db)
+            db = nil
             throw HistoryStoreError.unwritable("cannot open \(databaseURL.lastPathComponent)")
         }
+        var opened = false
+        defer { if !opened { sqlite3_close_v2(db); db = nil } }
         // Another connection mid-write — a second Whisk, a backup tool —
         // makes a save wait its turn instead of failing on the spot.
         sqlite3_busy_timeout(db, 2_000)
         try execute("PRAGMA journal_mode=WAL")
+        try execute("PRAGMA cache_size=-2048")
+        try execute("PRAGMA mmap_size=0")
         try execute(
             """
             CREATE TABLE IF NOT EXISTS content (
@@ -62,6 +73,9 @@ final class SQLiteHistoryStore: HistoryStore {
         }
         sqlite3_finalize(schema)
         if !hasOrigin { try execute("ALTER TABLE content ADD COLUMN source_origin TEXT") }
+        try prepareContentStorage()
+        contentStorage = try SQLiteContentStorage.shared(at: databaseURL, byteLimit: contentCacheBytes)
+        opened = true
     }
 
     deinit {
@@ -71,11 +85,14 @@ final class SQLiteHistoryStore: HistoryStore {
         sqlite3_close_v2(db)
     }
 
-    func load() throws -> [ClipboardItem] {
+    func load() throws -> [ClipboardItem] { try loadList().map { try $0.materialized() } }
+
+    func loadList() throws -> [ClipboardItem] {
         let sql = """
-            SELECT c.id, c.kind, c.text, c.link, c.image, c.rtf, c.files, c.source_app, c.source_bundle,
-                   o.copied_at_ms, o.is_pinned, c.source_origin, p.metadata, g.data, d.source_id
+            SELECT c.id, c.kind, c.text, c.link, c.image_ref, c.rtf_ref, c.files, c.source_app, c.source_bundle,
+                   o.copied_at_ms, o.is_pinned, c.source_origin, p.metadata, g.data, d.source_id, bi.size, br.size
             FROM ordering o JOIN content c ON c.id = o.id LEFT JOIN pin_details p ON p.id = c.id LEFT JOIN split_groups g ON g.id = c.id LEFT JOIN split_origins d ON d.id = c.id
+            LEFT JOIN binary_content bi ON bi.key = c.image_ref LEFT JOIN binary_content br ON br.key = c.rtf_ref
             ORDER BY o.position ASC
             """
         var statement: OpaquePointer?
@@ -100,10 +117,10 @@ final class SQLiteHistoryStore: HistoryStore {
         return items
     }
 
-    func save(_ items: [ClipboardItem]) throws {
+    func save(_ items: [ClipboardItem], changedContentIDs: Set<UUID>? = nil) throws {
         try execute("BEGIN IMMEDIATE")
         do {
-            try saveContent(items)
+            try saveContent(items, changedContentIDs: changedContentIDs)
             try savePinnedMetadata(items)
             try saveSplitGroups(items)
             try saveSplitOrigins(items)
@@ -113,6 +130,7 @@ final class SQLiteHistoryStore: HistoryStore {
             try execute("DELETE FROM pin_details WHERE id NOT IN (SELECT id FROM ordering)")
             try execute("DELETE FROM split_groups WHERE id NOT IN (SELECT id FROM ordering)")
             try execute("DELETE FROM split_origins WHERE id NOT IN (SELECT id FROM ordering)")
+            try collectUnusedContent()
             try execute("COMMIT")
         } catch {
             try? execute("ROLLBACK")
@@ -124,19 +142,20 @@ final class SQLiteHistoryStore: HistoryStore {
 
     // One statement per batch. The NULL-safe comparison allows edits and
     // RTF removal without rewriting unchanged blobs on reorder/pin saves.
-    private func saveContent(_ items: [ClipboardItem]) throws {
+    private func saveContent(_ items: [ClipboardItem], changedContentIDs: Set<UUID>?) throws {
+        lastContentWriteIDs = []
         let sql = """
             INSERT INTO content
-            (id, kind, text, link, image, rtf, files, source_app, source_bundle, source_origin)
+            (id, kind, text, link, image_ref, rtf_ref, files, source_app, source_bundle, source_origin)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 kind = excluded.kind, text = excluded.text, link = excluded.link,
-                image = excluded.image, rtf = excluded.rtf, files = excluded.files,
+                image_ref = excluded.image_ref, rtf_ref = excluded.rtf_ref, files = excluded.files,
                 source_app = excluded.source_app, source_bundle = excluded.source_bundle,
                 source_origin = excluded.source_origin
             WHERE content.kind IS NOT excluded.kind
                 OR content.text IS NOT excluded.text OR content.link IS NOT excluded.link
-                OR content.image IS NOT excluded.image OR content.rtf IS NOT excluded.rtf
+                OR content.image_ref IS NOT excluded.image_ref OR content.rtf_ref IS NOT excluded.rtf_ref
                 OR content.files IS NOT excluded.files OR content.source_app IS NOT excluded.source_app
                 OR content.source_bundle IS NOT excluded.source_bundle
                 OR content.source_origin IS NOT excluded.source_origin
@@ -147,16 +166,18 @@ final class SQLiteHistoryStore: HistoryStore {
         }
         defer { sqlite3_finalize(statement) }
         for item in items {
+            guard changedContentIDs?.contains(item.id) ?? true else { continue }
             sqlite3_reset(statement)
             sqlite3_clear_bindings(statement)
-            bindContent(of: item, to: statement)
+            try bindContent(of: item, to: statement)
             guard sqlite3_step(statement) == SQLITE_DONE else {
                 throw HistoryStoreError.unwritable(lastMessage())
             }
+            lastContentWriteIDs.append(item.id)
         }
     }
 
-    private func bindContent(of item: ClipboardItem, to statement: OpaquePointer?) {
+    private func bindContent(of item: ClipboardItem, to statement: OpaquePointer?) throws {
         bindText(statement, 1, item.id.uuidString)
         switch item.payload {
         case .text(let value):
@@ -167,15 +188,18 @@ final class SQLiteHistoryStore: HistoryStore {
             bindText(statement, 4, url.absoluteString)
         case .image(let data):
             bindText(statement, 2, "image")
-            bindBlob(statement, 5, data)
+            bindText(statement, 5, try insertBinary(.inline(data)))
+        case .storedImage(let reference):
+            bindText(statement, 2, "image")
+            bindText(statement, 5, try insertBinary(.stored(reference)))
         case .fileReferences(let paths):
             bindText(statement, 2, "files")
             if let encoded = try? JSONEncoder().encode(paths) {
                 bindText(statement, 7, String(decoding: encoded, as: UTF8.self))
             }
         }
-        if let rtf = item.rtf {
-            bindBlob(statement, 6, rtf)
+        if let richText = item.richText {
+            bindText(statement, 6, try insertBinary(richText))
         }
         if let name = item.source?.name {
             bindText(statement, 8, name)
@@ -227,8 +251,6 @@ final class SQLiteHistoryStore: HistoryStore {
             throw HistoryStoreError.unwritable(lastMessage())
         }
         defer { sqlite3_finalize(deletion) }
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = .sortedKeys
         for item in items {
             let statement = item.splitGroup == nil ? deletion : upsert
             sqlite3_reset(statement)
@@ -236,7 +258,8 @@ final class SQLiteHistoryStore: HistoryStore {
             bindText(statement, 1, item.id.uuidString)
             if let group = item.splitGroup {
                 guard group.isValid else { throw HistoryStoreError.unwritable("invalid split group") }
-                bindBlob(statement, 2, try encoder.encode(group))
+                bindBlob(statement, 2, try encodeGroup(group))
+                try saveGroupLinks(id: item.id.uuidString, group: group)
             }
             guard sqlite3_step(statement) == SQLITE_DONE else { throw HistoryStoreError.unwritable(lastMessage()) }
         }
@@ -320,8 +343,11 @@ final class SQLiteHistoryStore: HistoryStore {
             guard let link = columnText(statement, 3), let url = URL(string: link) else { return nil }
             payload = .link(url)
         case "image":
-            guard let data = columnBlob(statement, 4) else { return nil }
-            payload = .image(data)
+            guard let key = columnText(statement, 4), sqlite3_column_type(statement, 15) != SQLITE_NULL else {
+                throw HistoryStoreError.unreadable("image original is missing")
+            }
+            payload = .storedImage(
+                contentStorage.reference(key: key, byteCount: Int(sqlite3_column_int64(statement, 15))))
         case "files":
             guard let encoded = columnText(statement, 6),
                 let paths = try? JSONDecoder().decode([String].self, from: Data(encoded.utf8))
@@ -332,10 +358,7 @@ final class SQLiteHistoryStore: HistoryStore {
         }
         let group: SplitGroup?
         if let data = columnBlob(statement, 13) {
-            guard let decoded = try? JSONDecoder().decode(SplitGroup.self, from: data), decoded.isValid else {
-                throw HistoryStoreError.unreadable("invalid split group")
-            }
-            group = decoded
+            group = try decodeGroup(data)
         } else {
             group = nil
         }
@@ -348,6 +371,15 @@ final class SQLiteHistoryStore: HistoryStore {
         } else {
             metadata = PinnedMetadata()
         }
+        let richText: BinaryContent?
+        if let key = columnText(statement, 5) {
+            guard sqlite3_column_type(statement, 16) != SQLITE_NULL else {
+                throw HistoryStoreError.unreadable("rich text original is missing")
+            }
+            richText = .stored(contentStorage.reference(key: key, byteCount: Int(sqlite3_column_int64(statement, 16))))
+        } else {
+            richText = nil
+        }
         return ClipboardItem(
             id: id,
             payload: payload,
@@ -356,25 +388,24 @@ final class SQLiteHistoryStore: HistoryStore {
                 origin: SourceApp.Origin(rawValue: columnText(statement, 11) ?? "") ?? .observedApplication),
             copiedAt: Date(timeIntervalSince1970: Double(sqlite3_column_int64(statement, 9)) / 1000),
             isPinned: sqlite3_column_int64(statement, 10) == 1,
-            rtf: columnBlob(statement, 5),
             pinnedMetadata: metadata, splitGroup: group,
-            splitSourceID: columnText(statement, 14).flatMap(UUID.init(uuidString:))
+            splitSourceID: columnText(statement, 14).flatMap(UUID.init(uuidString:)), richText: richText
         )
     }
 
     // MARK: - SQLite helpers
 
-    private func execute(_ sql: String) throws {
+    func execute(_ sql: String) throws {
         guard sqlite3_exec(db, sql, nil, nil, nil) == SQLITE_OK else {
             throw HistoryStoreError.unwritable(lastMessage())
         }
     }
 
-    private func bindText(_ statement: OpaquePointer?, _ index: Int32, _ value: String) {
+    func bindText(_ statement: OpaquePointer?, _ index: Int32, _ value: String) {
         sqlite3_bind_text(statement, index, value, -1, sqliteTransient)
     }
 
-    private func bindBlob(_ statement: OpaquePointer?, _ index: Int32, _ data: Data) {
+    func bindBlob(_ statement: OpaquePointer?, _ index: Int32, _ data: Data) {
         guard !data.isEmpty else {
             sqlite3_bind_zeroblob(statement, index, 0)
             return
@@ -384,12 +415,12 @@ final class SQLiteHistoryStore: HistoryStore {
         }
     }
 
-    private func columnText(_ statement: OpaquePointer?, _ index: Int32) -> String? {
+    func columnText(_ statement: OpaquePointer?, _ index: Int32) -> String? {
         guard let pointer = sqlite3_column_text(statement, index) else { return nil }
         return String(cString: pointer)
     }
 
-    private func columnBlob(_ statement: OpaquePointer?, _ index: Int32) -> Data? {
+    func columnBlob(_ statement: OpaquePointer?, _ index: Int32) -> Data? {
         guard sqlite3_column_type(statement, index) != SQLITE_NULL else { return nil }
         guard sqlite3_column_bytes(statement, index) > 0 else { return Data() }
         guard let pointer = sqlite3_column_blob(statement, index) else { return nil }

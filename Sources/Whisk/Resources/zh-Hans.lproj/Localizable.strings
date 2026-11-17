@@ -58,18 +58,22 @@
 	<string>允许访问剪贴板</string>
 	<key>Allow Clipboard Access…</key>
 	<string>允许访问剪贴板…</string>
-	<key>Allow filtering in Privacy Mode</key>
-	<string>允许在隐私模式下筛选</string>
+	<key>Allow app filtering in Privacy Mode</key>
+	<string>隐私模式下允许 App 筛选</string>
 	<key>Allow removal of %lld older history items</key>
 	<string>允许移除 %lld 条较早的历史记录</string>
 	<key>Allow search in Privacy Mode</key>
 	<string>隐私模式下允许搜索</string>
+	<key>Allow type and tag filtering in Privacy Mode</key>
+	<string>隐私模式下允许类型与标签筛选</string>
 	<key>Always hide content</key>
 	<string>始终隐藏内容</string>
 	<key>Always show</key>
 	<string>始终显示</string>
 	<key>App Store exception</key>
 	<string>App Store 例外许可</string>
+	<key>App filters show application names in the filter bar, independently of source labels on cards. Clipboard content stays hidden.</key>
+	<string>App 筛选会在筛选栏显示应用名称，与卡片来源显示独立控制。剪贴板内容仍保持遮盖。</string>
 	<key>Appearance</key>
 	<string>外观</string>
 	<key>Application filter trigger</key>
@@ -150,6 +154,10 @@
 	<string>剪贴板卡片</string>
 	<key>Close the panel</key>
 	<string>关闭面板</string>
+	<key>Collapse apps</key>
+	<string>收起应用</string>
+	<key>Collapsed</key>
+	<string>已收起</string>
 	<key>Color tags</key>
 	<string>彩色标签</string>
 	<key>Colors</key>
@@ -248,6 +256,8 @@
 	<string>排除所选项目的来源应用</string>
 	<key>Excluded apps</key>
 	<string>已排除的应用</string>
+	<key>Expanded</key>
+	<string>已展开</string>
 	<key>Explicit no-record markers and excluded apps always win. Existing normal history is not reclassified. An app can belong to only one list; adding it moves it from the other list. Source attribution is best effort.</key>
 	<string>明确的不可记录标记和排除规则始终优先。已有普通历史不会被重新归类。一个应用只能属于一个列表，添加时会从另一列表移出。来源应用的识别可能存在偏差。</string>
 	<key>Extract links</key>
@@ -256,8 +266,6 @@
 	<string>反馈</string>
 	<key>Fetch link previews</key>
 	<string>获取链接预览</string>
-	<key>Filtering keeps content hidden. Application filters require Show source apps in Privacy Mode.</key>
-	<string>筛选时内容保持遮盖。APP 筛选需要同时开启“在隐私模式下显示来源应用”。</string>
 	<key>Filters</key>
 	<string>筛选器</string>
 	<key>First card</key>
@@ -386,6 +394,8 @@
 	<string>单击菜单栏图标</string>
 	<key>Menu bar icons</key>
 	<string>状态栏图标</string>
+	<key>More apps</key>
+	<string>更多应用</string>
 	<key>More feedback and contact options will be added when their addresses are available.</key>
 	<string>其他反馈与联系入口将在地址确定后开放。</string>
 	<key>More than 1000 results. Choose a different rule.</key>

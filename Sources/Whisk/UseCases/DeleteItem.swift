@@ -10,7 +10,7 @@ struct DeleteItem<Store: HistoryStore> {
 
     func callAsFunction(_ id: UUID, in history: History) throws -> History {
         let next = history.deleting(id)
-        try store.save(next.items)
-        return next
+        try store.save(next.items, changedContentIDs: [])
+        return History(items: try store.compact(next.items), capacity: next.capacity)
     }
 }

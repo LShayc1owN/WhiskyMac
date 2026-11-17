@@ -25,15 +25,15 @@ struct SelectItem<Board: Pasteboard, Time: Clock, Store: HistoryStore> {
         forPaste: Bool = false
     ) throws -> History {
         guard let item = history.items.first(where: { $0.id == id }), item.splitGroup == nil else { return history }
-        let payload = replacement ?? item.payload
-        let rtf = replacement != nil || plain ? nil : item.rtf
+        let payload = try (replacement ?? item.payload).materialized()
+        let rtf = try (replacement != nil || plain ? nil : item.richText?.read())
         if forPaste {
             pasteboard.writeForPaste(payload, rtf: rtf)
         } else {
             pasteboard.write(payload, rtf: rtf)
         }
         let next = history.selecting(id, at: clock.now())
-        try store.save(next.items)
-        return next
+        try store.save(next.items, changedContentIDs: [])
+        return History(items: try store.compact(next.items), capacity: next.capacity)
     }
 }

@@ -58,18 +58,22 @@
 	<string>Consenti accesso agli appunti</string>
 	<key>Allow Clipboard Access…</key>
 	<string>Consenti accesso agli appunti…</string>
-	<key>Allow filtering in Privacy Mode</key>
-	<string>Consenti i filtri in modalità privacy</string>
+	<key>Allow app filtering in Privacy Mode</key>
+	<string>Consenti filtri per app in modalità Privacy</string>
 	<key>Allow removal of %lld older history items</key>
 	<string>Consenti la rimozione di %lld elementi meno recenti</string>
 	<key>Allow search in Privacy Mode</key>
 	<string>Consenti la ricerca in Modalità privacy</string>
+	<key>Allow type and tag filtering in Privacy Mode</key>
+	<string>Consenti filtri per tipo e tag in modalità Privacy</string>
 	<key>Always hide content</key>
 	<string>Nascondi sempre il contenuto</string>
 	<key>Always show</key>
 	<string>Mostra sempre</string>
 	<key>App Store exception</key>
 	<string>Eccezione App Store</string>
+	<key>App filters show application names in the filter bar, independently of source labels on cards. Clipboard content stays hidden.</key>
+	<string>I filtri mostrano i nomi delle app nella barra dei filtri, indipendentemente dalle origini sulle schede. Il contenuto degli appunti rimane nascosto.</string>
 	<key>Appearance</key>
 	<string>Aspetto</string>
 	<key>Application filter trigger</key>
@@ -150,6 +154,10 @@
 	<string>Schede degli appunti</string>
 	<key>Close the panel</key>
 	<string>Chiudi il pannello</string>
+	<key>Collapse apps</key>
+	<string>Comprimi app</string>
+	<key>Collapsed</key>
+	<string>Compresso</string>
 	<key>Color tags</key>
 	<string>Etichette colorate</string>
 	<key>Colors</key>
@@ -248,6 +256,8 @@
 	<string>Escludi l’app della selezione</string>
 	<key>Excluded apps</key>
 	<string>App escluse</string>
+	<key>Expanded</key>
+	<string>Espanso</string>
 	<key>Explicit no-record markers and excluded apps always win. Existing normal history is not reclassified. An app can belong to only one list; adding it moves it from the other list. Source attribution is best effort.</key>
 	<string>I marcatori espliciti di non registrazione e le app escluse hanno sempre la precedenza. La cronologia normale esistente non viene riclassificata. Un’app può appartenere a una sola lista; aggiungerla la rimuove dall’altra. L’attribuzione della fonte può essere imprecisa.</string>
 	<key>Extract links</key>
@@ -256,8 +266,6 @@
 	<string>Feedback</string>
 	<key>Fetch link previews</key>
 	<string>Recupera le anteprime dei link</string>
-	<key>Filtering keeps content hidden. Application filters require Show source apps in Privacy Mode.</key>
-	<string>Il contenuto resta nascosto durante il filtraggio. I filtri per app richiedono l’opzione Mostra app di origine in modalità privacy.</string>
 	<key>Filters</key>
 	<string>Filtri</string>
 	<key>First card</key>
@@ -386,6 +394,8 @@
 	<string>Clic sull’icona della barra dei menu</string>
 	<key>Menu bar icons</key>
 	<string>Icone della barra dei menu</string>
+	<key>More apps</key>
+	<string>Altre app</string>
 	<key>More feedback and contact options will be added when their addresses are available.</key>
 	<string>Altri canali di feedback e contatto saranno aggiunti quando gli indirizzi saranno disponibili.</string>
 	<key>More than 1000 results. Choose a different rule.</key>

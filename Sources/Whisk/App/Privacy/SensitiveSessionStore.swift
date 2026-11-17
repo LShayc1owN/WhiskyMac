@@ -154,6 +154,7 @@ final class SensitiveSessionStore: ObservableObject {
         case .text(let value): value.utf8.count
         case .link(let url): url.absoluteString.utf8.count
         case .image(let data): data.count
+        case .storedImage(let reference): reference.byteCount
         case .fileReferences(let paths): paths.reduce(0) { $0 + $1.utf8.count }
         }
     }

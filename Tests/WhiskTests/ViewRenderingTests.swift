@@ -125,6 +125,24 @@ enum ViewFixtures {
 
 @MainActor
 @Suite struct CardRendering {
+    @Test func oversized_size_preview_keeps_its_actual_dimensions_in_a_bounded_viewport() async throws {
+        let window = hostOffscreen(CardSizePreviewViewport(side: 1000), 332, 336)
+        defer { window.close() }
+        let host = try #require(window.contentView)
+        try await Task.sleep(for: .milliseconds(350))
+        host.layoutSubtreeIfNeeded()
+        let scroll = try #require(firstScrollView(in: host))
+        let document = try #require(scroll.documentView)
+        #expect(document.frame.width >= 1000)
+        #expect(document.frame.height >= 1000)
+        #expect(scroll.contentView.bounds.width <= 332)
+        #expect(scroll.contentView.bounds.height <= 336)
+        scroll.contentView.scroll(to: NSPoint(x: 500, y: 500))
+        scroll.reflectScrolledClipView(scroll.contentView)
+        #expect(scroll.contentView.bounds.minX >= 500)
+        #expect(scroll.contentView.bounds.minY >= 500)
+    }
+
     @Test func grouped_cards_keep_their_rail_slot_and_reuse_the_front_glass() throws {
         let item = anItem(.text("Project notes\nDesign review\nNext steps"), from: "Notes")
         let spy = PanelActionSpy()
@@ -188,7 +206,6 @@ enum ViewFixtures {
     @Test func every_card_kind_renders_selected_plain_and_hosted() {
         ViewFixtures.seedPreviews()
         let state = ViewFixtures.state()
-        ItemCardView.prewarm(state.cards)
 
         for card in state.cards {
             #expect(render(ViewFixtures.card(card), 210, 210) != nil, "card \(card.kindLabel)")

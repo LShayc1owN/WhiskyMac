@@ -17,7 +17,7 @@ struct EnforceRetention<Store: HistoryStore> {
         // A capacity that merely changed is adopted without a write: only
         // the items decide whether the store has anything new to hold.
         guard next.items != history.items else { return next }
-        try store.save(next.items)
-        return next
+        try store.save(next.items, changedContentIDs: [])
+        return History(items: try store.compact(next.items), capacity: next.capacity)
     }
 }

@@ -11,7 +11,6 @@ import SwiftUI
 final class SettingsSearchToolbar: NSObject, NSToolbarDelegate {
     static let itemID = NSToolbarItem.Identifier("WhiskyMac.settingsSearch")
     static let navigationID = NSToolbarItem.Identifier("WhiskyMac.settingsNavigation")
-    static let brandID = NSToolbarItem.Identifier("WhiskyMac.settingsBrand")
     private weak var window: NSWindow?
     private let search: SettingsSearchModel
     private let appearance: AppearanceSettingsStore
@@ -74,7 +73,7 @@ final class SettingsSearchToolbar: NSObject, NSToolbarDelegate {
     }
 
     func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        [Self.navigationID, Self.itemID, .flexibleSpace, Self.brandID]
+        [Self.navigationID, Self.itemID, .flexibleSpace]
     }
 
     func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
@@ -95,13 +94,11 @@ final class SettingsSearchToolbar: NSObject, NSToolbarDelegate {
             let host = NSHostingView(rootView: SettingsNavigationControl(appearance: appearance))
             host.frame.size = NSSize(width: 40, height: 28)
             item.view = host
-        case Self.brandID:
-            item.label = AppIdentity.displayName
-            let host = NSHostingView(rootView: SettingsToolbarBrand(appearance: appearance))
-            host.frame.size = host.fittingSize
-            item.view = host
         default: return nil
         }
+        // Hosted SwiftUI controls provide their own appearance; avoid a second
+        // system-drawn button background around the controls.
+        item.isBordered = false
         return item
     }
 
@@ -123,13 +120,17 @@ final class SettingsSearchToolbar: NSObject, NSToolbarDelegate {
             }
         } else if search.isPresented, event.window !== resultsPanel {
             let point = fieldHost.convert(event.locationInWindow, from: nil)
-            if event.window !== window || !fieldHost.bounds.contains(point) { search.dismiss() }
+            if event.window !== window || !fieldHost.bounds.contains(point) {
+                search.dismiss()
+            }
         }
         return event
     }
 
     private func hideResults() {
-        guard let panel = resultsPanel else { return }
+        guard let panel = resultsPanel else {
+            return
+        }
         window?.removeChildWindow(panel)
         panel.orderOut(nil)
     }
@@ -189,28 +190,35 @@ struct SettingsSearchField: View {
                 .textFieldStyle(.plain)
                 .focused($focused)
                 .accessibilityIdentifier("settingsSearchField")
-                .onSubmit { search.activateSelection() }
+                .onSubmit {
+                    search.activateSelection()
+                }
                 .onKeyPress(.downArrow) {
-                    guard !hasMarkedText else { return .ignored }
+                    guard !hasMarkedText else {
+                        return .ignored
+                    }
                     search.move(1)
                     return .handled
                 }
                 .onKeyPress(.upArrow) {
-                    guard !hasMarkedText else { return .ignored }
+                    guard !hasMarkedText else {
+                        return .ignored
+                    }
                     search.move(-1)
                     return .handled
                 }
                 .onExitCommand {
                     search.dismiss(); focused = false
                 }
+
             if !search.query.isEmpty {
-                Button {
-                    search.query = ""; focused = true
-                } label: {
-                    Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(localized("Clear the search"))
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundStyle(.secondary)
+                    .beButton {
+                        search.query = ""; focused = true
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(localized("Clear the search"))
             }
         }
         .font(.system(size: 12))
@@ -218,10 +226,18 @@ struct SettingsSearchField: View {
         .frame(width: 260, height: 28)
         .background(.quaternary.opacity(0.5), in: Capsule())
         .overlay(Capsule().strokeBorder(Color.primary.opacity(0.12)))
-        .onChange(of: search.focusRevision) { _, _ in focused = true }
-        .onChange(of: search.navigationRevision) { _, _ in focused = false }
+        .onChange(of: search.focusRevision) { _, _ in
+            focused = true
+        }
+        .onChange(of: search.navigationRevision) { _, _ in
+            focused = false
+        }
         .onChange(of: focused) { _, value in
-            if value { search.focus() } else { search.dismiss() }
+            if value {
+                search.focus()
+            } else {
+                search.dismiss()
+            }
         }
     }
 }
@@ -242,33 +258,32 @@ struct SettingsSearchResults: View {
                     ScrollView {
                         LazyVStack(spacing: 0) {
                             ForEach(Array(search.results.enumerated()), id: \.element.id) { index, entry in
-                                Button {
-                                    search.activate(entry.id)
-                                } label: {
-                                    HStack(alignment: .center, spacing: 10) {
-                                        Image(systemName: entry.symbol)
-                                            .font(.system(size: 17))
-                                            .foregroundStyle(appearance.accent)
-                                            .frame(width: 22)
-                                            .accessibilityHidden(true)
-                                        VStack(alignment: .leading, spacing: 3) {
-                                            highlightedText(entry.title.localized, secondary: false)
-                                                .font(.system(size: 13, weight: .medium))
-                                                .lineLimit(2)
-                                                .fixedSize(horizontal: false, vertical: true)
-                                            highlightedText(entry.path, secondary: true)
-                                                .font(.system(size: 11)).lineLimit(1)
-                                        }
-                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                HStack(alignment: .center, spacing: 10) {
+                                    Image(systemName: entry.symbol)
+                                        .font(.system(size: 17))
+                                        .foregroundStyle(appearance.accent)
+                                        .frame(width: 22)
+                                        .accessibilityHidden(true)
+                                    VStack(alignment: .leading, spacing: 3) {
+                                        highlightedText(entry.title.localized, secondary: false)
+                                            .font(.system(size: 13, weight: .medium))
+                                            .lineLimit(2)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                        highlightedText(entry.path, secondary: true)
+                                            .font(.system(size: 11)).lineLimit(1)
                                     }
-                                    .frame(height: Self.rowHeight - 32)
-                                    .padding(10)
-                                    .contentShape(Rectangle())
-                                    .background(
-                                        appearance.accent.opacity(search.selectedIndex == index ? 0.15 : 0),
-                                        in: RoundedRectangle(cornerRadius: 8)
-                                    )
-                                    .padding(6)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                                .frame(height: Self.rowHeight - 32)
+                                .padding(10)
+                                .contentShape(Rectangle())
+                                .background(
+                                    appearance.accent.opacity(search.selectedIndex == index ? 0.15 : 0),
+                                    in: RoundedRectangle(cornerRadius: 8)
+                                )
+                                .padding(6)
+                                .beButton {
+                                    search.activate(entry.id)
                                 }
                                 .buttonStyle(.plain)
                                 .onContinuousHover { phase in

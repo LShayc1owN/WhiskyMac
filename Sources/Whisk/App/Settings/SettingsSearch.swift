@@ -135,7 +135,8 @@ enum SettingsSearchIndex {
             "accessibility", .screenPrivacy, settingsSearchText("Allow Accessibility for toolbar detection…"),
             anchor: context.automaticProtection ? nil : "automaticPrivacy")
         add("privacySearch", .privacyVisibility, settingsSearchText("Allow search in Privacy Mode"))
-        add("privacyFilters", .privacyVisibility, settingsSearchText("Allow filtering in Privacy Mode"))
+        add("privacyFilters", .privacyVisibility, settingsSearchText("Allow type and tag filtering in Privacy Mode"))
+        add("privacyAppFilters", .privacyVisibility, settingsSearchText("Allow app filtering in Privacy Mode"))
         add("privacySources", .privacyVisibility, settingsSearchText("Show source apps in Privacy Mode"))
         add(
             "diameter", .privacyInteractions, settingsSearchText("Diameter"),

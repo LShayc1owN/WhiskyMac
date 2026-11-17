@@ -9,6 +9,6 @@ struct LoadHistory<Store: HistoryStore> {
     }
 
     func callAsFunction() throws -> History {
-        History(items: try store.load(), capacity: capacity)
+        History(items: try store.loadList(), capacity: capacity)
     }
 }

@@ -9,5 +9,9 @@ trap 'rm -rf "$SYMBOL_OUTPUT"' EXIT
 xcrun actool --compile "$SYMBOL_OUTPUT" --platform macosx \
   --minimum-deployment-target 15.0 --target-device mac \
   "$ROOT/Assets/Symbols/WhiskyMac.xcassets" \
-  "$ROOT/Assets/Symbols/LemonSlice.xcassets"
+  "$ROOT/Assets/Symbols/LemonSlice.xcassets" \
+  "$ROOT/Assets/Symbols/LemonOpenSlice.xcassets" \
+  "$ROOT/Assets/Symbols/CitrusLeaf.xcassets" \
+  "$ROOT/Assets/Symbols/LemonLeaf.xcassets" \
+  "$ROOT/Assets/Symbols/LemonFruit.xcassets"
 cp "$SYMBOL_OUTPUT/Assets.car" "$ROOT/Sources/Whisk/WhiskyMacSymbols.bundle/Contents/Resources/Assets.car"

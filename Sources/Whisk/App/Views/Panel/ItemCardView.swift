@@ -20,6 +20,7 @@ struct ItemCardView: View, Equatable {
     /// The card's side before the selection zoom.
     var side: CGFloat = 200
     var interactions = InteractionBindings()
+    var isPanelVisible = true
     var canExport: () -> Bool = { true }
     var onInteraction: ((CardAction) -> Void)? = nil
     var onHoverPreview: (() -> Void)? = nil
@@ -46,6 +47,7 @@ struct ItemCardView: View, Equatable {
     static func == (lhs: ItemCardView, rhs: ItemCardView) -> Bool {
         lhs.card == rhs.card && lhs.showsSelection == rhs.showsSelection && lhs.side == rhs.side
             && lhs.interactions == rhs.interactions
+            && lhs.isPanelVisible == rhs.isPanelVisible
     }
 
     @Environment(\.colorScheme) private var scheme
@@ -134,7 +136,6 @@ struct ItemCardView: View, Equatable {
                 }
             }
         }
-        .onAppear { Self.prewarm([card]) }
         .onChange(of: editingPin) { _, value in actions.metadataEditorChanged(value) }
         .onChange(of: showingMenu) { _, shown in
             actions.cardMenuChanged(shown)
@@ -248,13 +249,15 @@ struct ItemCardView: View, Equatable {
     @ViewBuilder private var preview: some View {
         if card.contentHidden {
             HiddenPinnedContent(card: card).padding(.horizontal, 14)
-        } else if let rtf = card.rtf, case .text(let fallback) = card.dragPayload {
-            RichTextCardView(data: rtf, fallback: fallback, matches: card.matches)
-                .padding(.horizontal, 14)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                .mask(bottomFade)
-                .allowsHitTesting(false)
-                .accessibilityHidden(true)
+        } else if let richText = card.richText, case .text(let fallback) = card.dragPayload {
+            DeferredRichTextCardView(
+                content: richText, fallback: fallback, matches: card.matches, isActive: isPanelVisible
+            )
+            .padding(.horizontal, 14)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .mask(bottomFade)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
         } else {
             switch card.preview {
             case .text(let value):
@@ -289,27 +292,20 @@ struct ItemCardView: View, Equatable {
             case .link(let address):
                 LinkPreviewView(address: address, size: .card)
                     .padding(.horizontal, 14)
-            case .image(let data):
-                if let image = Self.decodedImage(for: card.id, data: data) {
-                    // Color.clear takes exactly the offered space; the filling
-                    // image lives in an overlay so its ideal size can never
-                    // inflate the layout, and the clip keeps it inside.
-                    Color.clear
-                        .overlay(
-                            Image(nsImage: image)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                        .padding(.horizontal, 14)
-                } else {
-                    Text(localized("Image"))
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 14)
-                }
-            case .files(let names, let overflow, let thumbnailPath):
-                FilePreviewView(names: names, overflow: overflow, thumbnailPath: thumbnailPath, size: .card)
+            case .storedImage(let reference):
+                ImageThumbnailView(id: card.id, content: .stored(reference), fills: true, isActive: isPanelVisible)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                     .padding(.horizontal, 14)
+            case .image(let data):
+                ImageThumbnailView(id: card.id, data: data, fills: true, isActive: isPanelVisible)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .padding(.horizontal, 14)
+            case .files(let names, let overflow, let thumbnailPath):
+                FilePreviewView(
+                    names: names, overflow: overflow, thumbnailPath: thumbnailPath, size: .card,
+                    isActive: isPanelVisible
+                )
+                .padding(.horizontal, 14)
             }
         }
     }
@@ -354,11 +350,21 @@ struct ItemCardView: View, Equatable {
             return NSItemProvider(object: value as NSString)
         case .link(let url):
             return NSItemProvider(object: url as NSURL)
+        case .storedImage(let reference):
+            guard let data = try? reference.read() else { return NSItemProvider() }
+            return dragProvider(for: .image(data))
         case .image(let data):
-            if let image = NSImage(data: data) {
-                return NSItemProvider(object: image)
+            guard
+                let source = CGImageSourceCreateWithData(
+                    data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary),
+                let type = CGImageSourceGetType(source)
+            else { return NSItemProvider() }
+            let provider = NSItemProvider()
+            provider.registerDataRepresentation(forTypeIdentifier: type as String, visibility: .all) { completion in
+                completion(data, nil)
+                return nil
             }
-            return NSItemProvider()
+            return provider
         case .files(let paths):
             // One provider per drag session: the first file travels.
             if let path = paths.first,
@@ -370,54 +376,4 @@ struct ItemCardView: View, Equatable {
         }
     }
 
-    // Decoding image bytes during a body evaluation is visible as a flash,
-    // so each card decodes once into a card-sized thumbnail — and the rail
-    // prewarms the whole batch off the main thread, so a card entering the
-    // scroll window arrives already decoded.
-    private static let imageCache: NSCache<NSUUID, NSImage> = {
-        let cache = NSCache<NSUUID, NSImage>()
-        // A few screens' worth of thumbnails; the rest decode again on demand.
-        cache.countLimit = 512
-        return cache
-    }()
-    private static let thumbnailMaxDimension = 480
-    private static let prewarmQueue = DispatchQueue(label: "whisk.card-prewarm", qos: .utility)
-
-    /// Decodes the thumbnails of every image card in the background, ahead
-    /// of the card being mounted.
-    static func prewarm(_ cards: [CardViewState]) {
-        for card in cards where !card.contentHidden {
-            guard case .image(let data) = card.preview else { continue }
-            let key = card.id as NSUUID
-            guard imageCache.object(forKey: key) == nil else { continue }
-            prewarmQueue.async {
-                guard imageCache.object(forKey: key) == nil,
-                    let thumbnail = thumbnail(from: data)
-                else { return }
-                imageCache.setObject(thumbnail, forKey: key)
-            }
-        }
-    }
-
-    private static func decodedImage(for id: UUID, data: Data) -> NSImage? {
-        let key = id as NSUUID
-        if let cached = imageCache.object(forKey: key) {
-            return cached
-        }
-        guard let thumbnail = thumbnail(from: data) else { return nil }
-        imageCache.setObject(thumbnail, forKey: key)
-        return thumbnail
-    }
-
-    private static func thumbnail(from data: Data) -> NSImage? {
-        let options: [CFString: Any] = [
-            kCGImageSourceCreateThumbnailFromImageAlways: true,
-            kCGImageSourceCreateThumbnailWithTransform: true,
-            kCGImageSourceThumbnailMaxPixelSize: thumbnailMaxDimension,
-        ]
-        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
-            let image = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary)
-        else { return nil }
-        return NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
-    }
 }

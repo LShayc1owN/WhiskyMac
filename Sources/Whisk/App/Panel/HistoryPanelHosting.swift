@@ -11,10 +11,13 @@ enum HistoryPanelHosting {
         store: HistoryViewStateStore, actions: PanelActions, keyBindings: KeyBindingsStore? = nil
     ) -> NSHostingView<HistoryPanelView> {
         let host = NSHostingView(rootView: HistoryPanelView(store: store, actions: actions, keyBindings: keyBindings))
+        // The panel frame is authoritative; do not measure a full scroll
+        // document as an intrinsic window size before the viewport exists.
+        host.sizingOptions = []
         if store.isProtected {
             host.setAccessibilityLabel(localized("Content hidden by Privacy Mode"))
             if store.protectedCardIDs.isEmpty, !store.privacyAllowsSearch,
-                !store.privacyShowsSourceApps, !store.privacyAllowsFiltering
+                !store.privacyShowsSourceApps, !store.privacyAllowsFiltering, !store.privacyAllowsAppFiltering
             {
                 host.setAccessibilityElement(true)
                 host.setAccessibilityRole(.group)

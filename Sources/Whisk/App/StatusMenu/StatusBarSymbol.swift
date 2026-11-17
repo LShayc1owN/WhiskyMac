@@ -7,7 +7,7 @@ import AppKit
 import Symbols
 
 final class StatusBarSymbol {
-    static let pointSize: CGFloat = 17
+    static let pointSize: CGFloat = 18
 
     let imageView: NSImageView = ClickThroughSymbolView()
     private(set) var wigglesForward = false

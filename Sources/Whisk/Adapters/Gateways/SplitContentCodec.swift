@@ -14,7 +14,7 @@ enum SplitContentCodec {
         else { throw SplitFailure.unavailable }
         guard text.utf16.count <= SplitLimits.maximumUTF16 else { throw SplitFailure.tooLarge }
         var attributed: NSAttributedString?
-        if let data = item.rtf {
+        if let data = try item.richText?.read() {
             if data.count <= SplitLimits.maximumRTFBytes,
                 let decoded = try? NSAttributedString(
                     data: data,
@@ -68,13 +68,13 @@ enum SplitContentCodec {
 
     static func combine(_ parts: [SplitPart], plainText: Bool) throws -> (Payload, Data?) {
         guard !parts.isEmpty else { throw SplitFailure.noSelection }
-        if parts.count == 1 { return (parts[0].payload, plainText ? nil : parts[0].rtf) }
+        if parts.count == 1 { return (parts[0].payload, try (plainText ? nil : parts[0].richText?.read())) }
         let text = parts.map(\.text).joined(separator: "\n")
         if plainText { return (.text(text), nil) }
         let result = NSMutableAttributedString(string: "")
         for (index, part) in parts.enumerated() {
             if index > 0 { result.append(NSAttributedString(string: "\n")) }
-            if let data = part.rtf {
+            if let data = try part.richText?.read() {
                 guard
                     let decoded = try? NSAttributedString(
                         data: data,

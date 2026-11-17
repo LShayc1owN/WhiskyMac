@@ -21,7 +21,7 @@ struct CardRailWindow: Equatable {
     }
 }
 
-private struct RailFilter: Equatable {
+struct RailFilter: Equatable {
     let query: String
     let activeChips: [String]
 
@@ -39,9 +39,6 @@ struct HistoryPanelView: View {
     @FocusState private var searchFocused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    /// Keep nearby cards ready without retaining glass across several screens.
-    @State private var railWindow = CardRailWindow()
-
     /// The rail runs edge to edge, but what replaces it is bounded and
     /// centered: on an ultra-wide monitor an editor spanning the screen
     /// would set 400-character lines, and the empty-state slab would be a
@@ -54,6 +51,7 @@ struct HistoryPanelView: View {
     /// follows after the debounce, so the text must live here.
     @State private var searchText = ""
     @State private var returnToLatestRevision = 0
+    @State private var appScope = FilterAppScope(visibleSourceKeys: [])
 
     private var queryBinding: Binding<String> {
         Binding(
@@ -117,6 +115,7 @@ struct HistoryPanelView: View {
             if !store.state.filters.isEmpty {
                 FilterBarView(
                     filters: store.state.filters,
+                    appScope: appScope,
                     cursorSuppressed: cursorOnSearch,
                     appTrigger: store.appFilterTrigger,
                     hoverEnabled: store.panelVisible,
@@ -263,106 +262,10 @@ struct HistoryPanelView: View {
                 .frame(maxWidth: Self.emptyStateMaxWidth)
                 .frame(maxWidth: .infinity)
         } else {
-            ScrollViewReader { proxy in
-                rail
-                    // The rail spans the full screen width; margins live
-                    // inside the scroll content so cards travel all the way
-                    // to the edges, and the clip is lifted so the selection
-                    // halo and zoom are never shaved off.
-                    .contentMargins(.horizontal, 16, for: .scrollContent)
-                    .scrollClipDisabled()
-                    .onChange(of: store.state.selectedID) { _, selectedID in
-                        guard let selectedID else { return }
-                        // No anchor: scroll the minimum needed to reveal the
-                        // card instead of recentring on every key press.
-                        withAnimation(reduceMotion ? nil : .easeOut(duration: 0.15)) {
-                            proxy.scrollTo(selectedID)
-                        }
-                    }
-                    .onChange(of: store.closeRevision) {
-                        // Rewind while hidden: the next open starts at zero,
-                        // never showing the carousel travel back.
-                        guard let first = store.state.cards.first?.id else { return }
-                        var transaction = Transaction()
-                        transaction.disablesAnimations = true
-                        withTransaction(transaction) {
-                            proxy.scrollTo(first, anchor: .leading)
-                        }
-                    }
-                    .onChange(of: returnToLatestRevision) {
-                        guard let first = store.state.cards.first?.id else { return }
-                        withAnimation(reduceMotion ? nil : .easeOut(duration: 0.24)) {
-                            proxy.scrollTo(first, anchor: .leading)
-                        }
-                    }
-            }
+            HistoryCardRail(
+                store: store, actions: actions, keyBindings: keyBindings,
+                returnToLatestRevision: returnToLatestRevision, appScope: appScope)
         }
-    }
-
-    @ViewBuilder private var rail: some View {
-        let scrollView = ScrollView(.horizontal, showsIndicators: false) {
-            // Eager sizing on purpose: a lazy stack materializes cards at
-            // the viewport's edge, which pops them in during fast scrolls.
-            // Every slot is laid out; only the windowed ones carry glass.
-            HStack(spacing: HistoryViewStateStore.cardGap) {
-                let selectedIndex = store.state.cards.firstIndex { $0.id == store.state.selectedID }
-                IndexedForEach(store.state.cards) { index, card in
-                    Group {
-                        if isMounted(index, selectedIndex: selectedIndex) {
-                            ItemCardView(
-                                card: card,
-                                actions: actions,
-                                keyBindings: keyBindings,
-                                showsSelection: !cursorOnSearch,
-                                side: store.cardSide,
-                                interactions: store.interactions,
-                                canExport: { !store.isProtected },
-                                onInteraction: { action in store.interact(card, action: action, actions: actions) },
-                                onHoverPreview: { store.hoverPreview(card, actions: actions) },
-                                onHoverChanged: { inside in store.cardHoverChanged(card.id, inside: inside) }
-                            )
-                            .equatable()
-                        } else {
-                            railPlaceholder
-                        }
-                    }
-                    .id(card.id)
-                    .transition(.opacity.combined(with: .scale(scale: 0.98)))
-                }
-            }
-            .padding(.vertical, 8)
-            .animation(
-                reduceMotion || !store.panelVisible ? nil : .easeInOut(duration: 0.18),
-                value: RailFilter(store.state)
-            )
-        }
-        if #available(macOS 15.0, *) {
-            let stride = store.cardStride
-            scrollView
-                .onScrollGeometryChange(for: CardRailWindow.self) { geometry in
-                    CardRailWindow(
-                        leading: max(0, Int(geometry.contentOffset.x / stride)),
-                        capacity: Int(geometry.containerSize.width / stride) + 1
-                    )
-                } action: { _, window in
-                    railWindow = window
-                }
-        } else {
-            scrollView
-        }
-    }
-
-    private func isMounted(_ index: Int, selectedIndex: Int?) -> Bool {
-        // Without scroll geometry (macOS 14) every slot mounts, as before.
-        guard #available(macOS 15.0, *) else { return true }
-        return railWindow.contains(index, selectedIndex: selectedIndex)
-    }
-
-    // Off-window slots display nothing at all — they only hold the scroll
-    // extent steady.
-    private var railPlaceholder: some View {
-        Color.clear
-            .frame(width: store.zoomedCardSide, height: store.zoomedCardSide)
     }
 
     private func emptyState(_ message: String) -> some View {

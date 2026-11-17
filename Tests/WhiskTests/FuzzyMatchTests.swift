@@ -50,4 +50,17 @@ import Testing
 
         #expect(late == tight)
     }
+
+    @Test func non_ascii_text_keeps_character_positions_and_case_rules() throws {
+        let hit = try #require(FuzzyMatch.match(pattern: "éllo", in: "Héllo"))
+        #expect(hit.positions == [1, 2, 3, 4])
+        #expect(FuzzyMatch.score(pattern: "h", in: "HÉLLO") != nil)
+        #expect(FuzzyMatch.score(pattern: "ÉLLO", in: "héllo") == nil)
+    }
+
+    @Test func substrings_match_with_offsets_inside_them() throws {
+        let text = "prefix xaxxb"
+        let rest = text.dropFirst("prefix ".count)
+        #expect(FuzzyMatch.match(pattern: "ab", in: rest)?.positions == [1, 4])
+    }
 }

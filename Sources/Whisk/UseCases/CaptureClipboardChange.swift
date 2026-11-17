@@ -33,9 +33,11 @@ struct CaptureClipboardChange<Board: Pasteboard, Time: Clock, Store: HistoryStor
             retainSensitive(snapshot)
             return history
         }
-        let next = history.recording(snapshot.payload, from: snapshot.source, rtf: snapshot.rtf, at: clock.now())
-        try store.save(next.items)
+        let outcome = history.recordingReportingChange(
+            snapshot.payload, from: snapshot.source, rtf: snapshot.rtf, at: clock.now(),
+            matches: store.duplicateMatcher(payload: snapshot.payload, rtf: snapshot.rtf))
+        try store.save(outcome.history.items, changedContentIDs: outcome.contentChanged ? [outcome.recordedID] : [])
         didRecord()
-        return next
+        return History(items: try store.compact(outcome.history.items), capacity: outcome.history.capacity)
     }
 }

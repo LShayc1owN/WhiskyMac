@@ -26,7 +26,7 @@ extension Payload {
     var category: ContentCategory {
         switch self {
         case .link: return .link
-        case .image: return .image
+        case .image, .storedImage: return .image
         case .fileReferences: return .files
         case .text(let value):
             if ParsedColor.parse(value) != nil { return .color }

@@ -14,7 +14,7 @@ import Testing
         let symbol = try #require(
             NSImage(symbolName: "WhiskyMac", bundle: bundle, variableValue: 0))
         #expect(symbol.size.width > 0 && symbol.size.height > 0)
-        let image = try #require(AppSymbol.image())
+        let image = try #require(AppSymbol.image(named: AppSymbol.brandName))
         #expect(image.isTemplate)
         #expect(image.size.width > 0 && image.size.width <= 22)
         #expect(image.size.height > 0 && image.size.height <= 22)

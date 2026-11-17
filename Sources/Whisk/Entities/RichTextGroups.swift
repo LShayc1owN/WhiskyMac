@@ -11,7 +11,7 @@ enum RichTextGroups {
         var result: [[ClipboardItem]] = []
         var indices: [String: Int] = [:]
         for item in items {
-            if case .text(let text) = item.payload, item.rtf != nil, !item.isPinned, item.splitGroup == nil,
+            if case .text(let text) = item.payload, item.hasRichText, !item.isPinned, item.splitGroup == nil,
                 item.splitSourceID == nil,
                 item.pinnedMetadata == PinnedMetadata()
             {

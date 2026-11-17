@@ -1,8 +1,3 @@
-// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
-// SPDX-License-Identifier: GPL-3.0-or-later
-// Upstream attribution: NOTICE. Additional permissions:
-// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
-
 import AppKit
 import LinkPresentation
 import SwiftUI
@@ -21,7 +16,9 @@ struct LinkPreview {
 
 /// Fetches and caches link metadata through LinkPresentation. Frameworks
 /// ring: it touches the network, so nothing below the views knows about it.
-/// Failures are cached too, so a dead link is only fetched once.
+/// Failures are cached too, so a dead link is only fetched once. Images are
+/// shrunk to display size before they land in the cache, and the cache is
+/// bounded by both entry count and decoded bytes.
 @MainActor
 final class LinkPreviewStore: ObservableObject {
     static let shared = LinkPreviewStore()
@@ -35,6 +32,21 @@ final class LinkPreviewStore: ObservableObject {
     private var isPrivate = false
     private var hiddenAddresses: Set<String> = []
     private var inFlight: Set<String> = []
+    private var costs: [String: Int] = [:]
+    private var accessOrder: [String: UInt64] = [:]
+    private var accessCounter: UInt64 = 0
+    private let countLimit: Int
+    private let byteLimit: Int
+    private(set) var cachedBytes = 0
+
+    nonisolated static let maximumCount = 96
+    nonisolated static let maximumBytes = 24 * 1024 * 1024
+    nonisolated static let maximumImageDimension: CGFloat = 640
+
+    init(countLimit: Int = LinkPreviewStore.maximumCount, byteLimit: Int = LinkPreviewStore.maximumBytes) {
+        self.countLimit = max(1, countLimit)
+        self.byteLimit = max(0, byteLimit)
+    }
 
     func setEnabled(_ enabled: Bool) {
         isEnabled = enabled
@@ -44,16 +56,21 @@ final class LinkPreviewStore: ObservableObject {
     func setPrivacy(_ protected: Bool) {
         isPrivate = protected
         if protected {
-            cancelRequests()
-            previews.removeAll()
+            releaseCache()
         }
+    }
+
+    func releaseCache() {
+        cancelRequests()
+        previews.removeAll(); costs.removeAll(); accessOrder.removeAll(); cachedBytes = 0
     }
 
     func setHiddenAddresses(_ addresses: Set<String>) {
         guard hiddenAddresses != addresses else { return }
         hiddenAddresses = addresses
         cancelRequests()
-        previews = previews.filter { !addresses.contains($0.key) }
+        let removed = previews.keys.filter(addresses.contains)
+        for address in removed { remove(address) }
     }
 
     private func cancelRequests() {
@@ -64,7 +81,11 @@ final class LinkPreviewStore: ObservableObject {
     }
 
     func preview(for address: String) -> LinkPreview? {
-        isEnabled && !isPrivate && !hiddenAddresses.contains(address) ? previews[address] : nil
+        guard isEnabled && !isPrivate && !hiddenAddresses.contains(address) else { return nil }
+        guard previews[address] != nil else { return nil }
+        accessCounter &+= 1
+        accessOrder[address] = accessCounter
+        return previews[address]
     }
 
     func load(_ address: String) {
@@ -89,19 +110,74 @@ final class LinkPreviewStore: ObservableObject {
     }
 
     /// Keeps a preview for an address — fetched in production, canned in
-    /// tests — and lets the address be fetched again later.
+    /// tests — and lets the address be fetched again later. Count and
+    /// decoded-byte budgets evict the least recently used entries; one
+    /// image larger than the whole byte budget is not kept at all.
     func store(_ preview: LinkPreview, for address: String) {
         guard !isPrivate, !hiddenAddresses.contains(address) else { return }
-        if previews.count >= Self.limit {
-            previews.removeAll()
+        remove(address)
+        let resized = LinkPreview(
+            title: preview.title, host: preview.host,
+            icon: preview.icon.map(Self.downscaled),
+            image: preview.image.map(Self.downscaled))
+        let cost = Self.cost(of: resized)
+        guard cost <= byteLimit else { return }
+        previews[address] = resized
+        costs[address] = cost
+        cachedBytes += cost
+        accessCounter &+= 1
+        accessOrder[address] = accessCounter
+        evictIfNeeded()
+    }
+
+    private func evictIfNeeded() {
+        while !previews.isEmpty, cachedBytes > byteLimit || previews.count > countLimit {
+            guard let oldest = accessOrder.min(by: { $0.value < $1.value })?.key else { break }
+            remove(oldest)
         }
-        previews[address] = preview
+    }
+
+    private func remove(_ address: String) {
+        guard previews[address] != nil else { return }
+        previews[address] = nil
+        if let cost = costs.removeValue(forKey: address) { cachedBytes -= cost }
+        accessOrder[address] = nil
         inFlight.remove(address)
     }
 
-    /// Distinct links seen in a session; past it the oldest go together —
-    /// a refetch costs one request, an unbounded dictionary costs memory.
-    static let limit = 512
+    static func cost(of preview: LinkPreview) -> Int {
+        (preview.icon.map(pixelBytes) ?? 0) + (preview.image.map(pixelBytes) ?? 0)
+    }
+
+    /// The decoded pixel storage an image is holding right now.
+    static func pixelBytes(_ image: NSImage) -> Int {
+        if let cg = image.cgImage(forProposedRect: nil, context: nil, hints: nil) {
+            return cg.bytesPerRow * cg.height
+        }
+        return max(0, Int(image.size.width * image.size.height * 4))
+    }
+
+    /// LinkPresentation hands over original-size bitmaps; the largest card
+    /// or overlay display is far smaller, so store only what can be shown.
+    static func downscaled(_ image: NSImage) -> NSImage {
+        guard let cg = image.cgImage(forProposedRect: nil, context: nil, hints: nil), cg.width > 0, cg.height > 0
+        else { return image }
+        let scale = maximumImageDimension / CGFloat(max(cg.width, cg.height))
+        guard scale < 1 else { return image }
+        let width = max(1, Int((CGFloat(cg.width) * scale).rounded()))
+        let height = max(1, Int((CGFloat(cg.height) * scale).rounded()))
+        guard
+            let context = CGContext(
+                data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
+                space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+        else { return image }
+        context.interpolationQuality = .high
+        context.draw(cg, in: CGRect(x: 0, y: 0, width: width, height: height))
+        guard let bitmap = context.makeImage() else { return image }
+        // A standalone bitmap; a drawing-handler NSImage would capture and
+        // retain the original, defeating the cache's decoded-byte budget.
+        return NSImage(cgImage: bitmap, size: NSSize(width: width, height: height))
+    }
 
     nonisolated static func assemble(
         metadata: LPLinkMetadata?,

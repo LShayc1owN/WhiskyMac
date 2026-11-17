@@ -18,19 +18,27 @@ final class AppKitPasteboard: Whisk.Pasteboard {
     private let board: NSPasteboard
     private var lastChangeCount: Int
     private let didWrite: () -> Void
-    private let readQueue = DispatchQueue(label: "dev.whisky.maclx.pasteboard-read", qos: .utility)
+    private let readQueue: DispatchQueue
+    private var lastKnownAccess: PasteboardAccess
+    private var readRevision: UInt64 = 0
     private var failedReadCount = 0
     private var retryChangeCount: Int?
 
-    init(board: NSPasteboard = .general, didWrite: @escaping () -> Void = {}) {
+    init(
+        board: NSPasteboard = .general, readQueue: DispatchQueue? = nil, didWrite: @escaping () -> Void = {}
+    ) {
         self.board = board
         self.didWrite = didWrite
+        self.readQueue = readQueue ?? DispatchQueue(label: "dev.whisky.maclx.pasteboard-read", qos: .utility)
         lastChangeCount = board.changeCount
+        lastKnownAccess = Self.systemAccess(board)
     }
 
     /// The system's stance on reads that no paste of the user triggered.
     /// Systems without the notion let every read through.
-    var access: PasteboardAccess {
+    var access: PasteboardAccess { lastKnownAccess }
+
+    private static func systemAccess(_ board: NSPasteboard) -> PasteboardAccess {
         if #available(macOS 15.4, *) {
             return Self.access(for: board.accessBehavior)
         }
@@ -51,37 +59,47 @@ final class AppKitPasteboard: Whisk.Pasteboard {
     /// the read that makes it ask, and the app is listed in System
     /// Settings from then on; elsewhere it is a no-op.
     func requestAccess() {
+        readRevision &+= 1
         _ = board.string(forType: .string)
+        lastKnownAccess = Self.systemAccess(board)
     }
 
     /// A read the system would answer with an alert would stop the app
     /// in its tracks at every change, so the poll never makes one.
     func readIfChanged() -> PasteboardSnapshot? {
-        guard access == .granted else { return nil }
+        readRevision &+= 1
+        lastKnownAccess = Self.systemAccess(board)
+        guard lastKnownAccess == .granted else { return nil }
         let count = board.changeCount
         guard count != lastChangeCount else { return nil }
         lastChangeCount = count
         return snapshot(for: count)
     }
 
-    /// The worker can remain blocked in a Continuity read; callers never enqueue
-    /// another read until this one returns. Writes remain responsive on main.
+    /// The worker can remain blocked in a Continuity read; the controller never
+    /// starts another read until this one returns.
     func readIfChangedAsync(_ completion: @escaping (PasteboardSnapshot?) -> Void) {
         precondition(Thread.isMainThread)
-        guard access == .granted else { completion(nil); return }
-        let count = board.changeCount
-        guard count != lastChangeCount else { completion(nil); return }
-        if retryChangeCount != count {
-            retryChangeCount = count
-            failedReadCount = 0
-        }
+        let revision = readRevision
+        let previousCount = lastChangeCount
+        // Even accessBehavior and changeCount cross into the pasteboard
+        // service. A poll must not wait for that service on the UI thread.
         readQueue.async { [self] in
-            let result = snapshot(for: count)
+            let access = Self.systemAccess(board)
+            let count = access == .granted ? board.changeCount : previousCount
+            let result = access == .granted && count != previousCount ? snapshot(for: count) : nil
             DispatchQueue.main.async { [self] in
-                // A selection made while the worker was reading supersedes its result.
-                guard board.changeCount == count, lastChangeCount != count else {
+                // Own writes and explicit synchronous reads supersede the
+                // worker. Validate local state here; never call the service.
+                guard revision == readRevision else { completion(nil); return }
+                lastKnownAccess = access
+                guard access == .granted, count != lastChangeCount else {
                     completion(nil)
                     return
+                }
+                if retryChangeCount != count {
+                    retryChangeCount = count
+                    failedReadCount = 0
                 }
                 if result != nil {
                     lastChangeCount = count
@@ -101,11 +119,13 @@ final class AppKitPasteboard: Whisk.Pasteboard {
     }
 
     private func snapshot(for count: Int) -> PasteboardSnapshot? {
-        guard !holdsConcealedContent(), let payload = readPayload() else { return nil }
-        let types = board.types ?? []
+        guard let types = board.types,
+            !types.contains(where: { Self.concealedTypes.contains($0.rawValue) }),
+            let payload = readPayload(availableTypes: Set(types))
+        else { return nil }
         let app = Self.sourceApplication()
         var rtf: Data?
-        if case .text = payload {
+        if case .text = payload, types.contains(.rtf) {
             rtf = board.data(forType: .rtf)
         }
         guard board.changeCount == count else { return nil }
@@ -135,9 +155,16 @@ final class AppKitPasteboard: Whisk.Pasteboard {
     }
 
     private func write(_ payload: Payload, rtf: Data?, notify: Bool) {
+        if case .storedImage(let reference) = payload {
+            guard let data = try? reference.read() else { return }
+            write(.image(data), rtf: rtf, notify: notify)
+            return
+        }
+        readRevision &+= 1
         board.clearContents()
         let succeeded: Bool
         switch payload {
+        case .storedImage: return
         case .text(let value):
             succeeded = board.setString(value, forType: .string)
             if let rtf {
@@ -187,22 +214,19 @@ final class AppKitPasteboard: Whisk.Pasteboard {
         return menuBarOwner ?? frontmost
     }
 
-    private func holdsConcealedContent() -> Bool {
-        guard let types = board.types else { return false }
-        return types.contains { Self.concealedTypes.contains($0.rawValue) }
-    }
-
-    private func readPayload() -> Payload? {
-        if let urls = board.readObjects(
-            forClasses: [NSURL.self],
-            options: [.urlReadingFileURLsOnly: true]
-        ) as? [URL], !urls.isEmpty {
+    private func readPayload(availableTypes types: Set<NSPasteboard.PasteboardType>) -> Payload? {
+        if types.contains(.fileURL),
+            let urls = board.readObjects(
+                forClasses: [NSURL.self],
+                options: [.urlReadingFileURLsOnly: true]
+            ) as? [URL], !urls.isEmpty
+        {
             return .fileReferences(urls.map(\.path))
         }
-        if let png = imageData() {
+        if let png = imageData(availableTypes: types) {
             return .image(png)
         }
-        if let string = board.string(forType: .string), !string.isEmpty {
+        if types.contains(.string), let string = board.string(forType: .string), !string.isEmpty {
             if let url = webLink(in: string) {
                 return .link(url)
             }
@@ -211,11 +235,11 @@ final class AppKitPasteboard: Whisk.Pasteboard {
         return nil
     }
 
-    private func imageData() -> Data? {
-        if let png = board.data(forType: .png) {
+    private func imageData(availableTypes types: Set<NSPasteboard.PasteboardType>) -> Data? {
+        if types.contains(.png), let png = board.data(forType: .png) {
             return png
         }
-        if let tiff = board.data(forType: .tiff),
+        if types.contains(.tiff), let tiff = board.data(forType: .tiff),
             let bitmap = NSBitmapImageRep(data: tiff),
             let png = bitmap.representation(using: .png, properties: [:])
         {

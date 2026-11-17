@@ -100,9 +100,10 @@ enum RichTextCardContent {
     static let maximumUTF16 = 4000
 
     static func decode(_ data: Data, fallback: String) -> NSAttributedString {
+        let excerpt = String(fallback.prefix(maximumUTF16))
         let decoded =
             data.count <= maximumBytes
-            ? RichTextCodec.decode(data, fallback: fallback) : NSAttributedString(string: fallback)
+            ? RichTextCodec.decode(data, fallback: excerpt) : NSAttributedString(string: excerpt)
         let end =
             decoded.length > maximumUTF16
             ? (decoded.string as NSString).rangeOfComposedCharacterSequence(at: maximumUTF16).location : decoded.length
@@ -184,5 +185,38 @@ struct RichTextCardView: NSViewRepresentable {
             base = nil
             text = NSAttributedString(string: "")
         }
+    }
+}
+
+/// Only mounted, visible rich-text cards request their original formatting.
+struct DeferredRichTextCardView: View {
+    let content: BinaryContent
+    let fallback: String
+    let matches: [MatchSpan]
+    let isActive: Bool
+    @State private var data: Data?
+
+    private struct Request: Equatable {
+        let content: BinaryContent
+        let active: Bool
+    }
+
+    var body: some View {
+        Group {
+            if let data, isActive {
+                RichTextCardView(data: data, fallback: fallback, matches: matches)
+            } else {
+                RichTextCardView(data: Data(), fallback: fallback, matches: matches)
+            }
+        }
+        .task(id: Request(content: content, active: isActive)) {
+            data = nil
+            guard isActive, content.byteCount <= RichTextCardContent.maximumBytes else { return }
+            let source = content
+            let value = await Task.detached(priority: .utility) { try? source.read() }.value
+            guard !Task.isCancelled else { return }
+            data = value
+        }
+        .onDisappear { data = nil }
     }
 }

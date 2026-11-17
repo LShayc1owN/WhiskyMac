@@ -19,6 +19,7 @@ struct FilterBarView: View {
     @Namespace private var viewportSpace
     private static let horizontalMargin: CGFloat = 16
     let filters: FilterBarViewState
+    @ObservedObject var appScope = FilterAppScope()
     /// One cursor at a time: vim's search mode swallows the chip focus.
     var cursorSuppressed = false
     var appTrigger = AppFilterTrigger.click
@@ -29,6 +30,20 @@ struct FilterBarView: View {
     let onToggleKind: (String) -> Void
     let onFocusApp: (String) -> Void
     let onFocusKind: (String) -> Void
+
+    private var displayedApps: [FilterChip] {
+        FilterAppScope.apps(filters.apps, visibleKeys: appScope.visibleSourceKeys, expanded: appScope.isExpanded)
+    }
+
+    private var canCollapseApps: Bool {
+        guard appScope.visibleSourceKeys != nil else { return false }
+        return FilterAppScope.apps(filters.apps, visibleKeys: appScope.visibleSourceKeys, expanded: false).count
+            < filters.apps.count
+    }
+
+    private var appExpansionAnimation: Animation? {
+        reduceMotion || !isPanelVisible ? nil : .easeInOut(duration: 0.22)
+    }
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -65,7 +80,24 @@ struct FilterBarView: View {
                     if !filters.pinned.isEmpty && !(filters.apps.isEmpty && filters.kinds.isEmpty) {
                         separator
                     }
-                    ForEach(filters.apps) { chip in
+                    if canCollapseApps || appScope.isExpanded {
+                        HStack(spacing: 5) {
+                            Text(appScope.isExpanded ? localized("Collapse apps") : localized("More apps"))
+                                .contentTransition(.opacity)
+                            Image(systemName: "chevron.right")
+                                .font(.caption2.weight(.semibold))
+                                .rotationEffect(.degrees(appScope.isExpanded ? 180 : 0))
+                                .accessibilityHidden(true)
+                        }
+                        .beButton {
+                            withAnimation(appExpansionAnimation) {
+                                appScope.isExpanded.toggle()
+                            }
+                        }
+                        .buttonStyle(FilterChipStyle(isActive: false, isFocused: false))
+                        .accessibilityValue(appScope.isExpanded ? localized("Expanded") : localized("Collapsed"))
+                    }
+                    ForEach(displayedApps) { chip in
                         ChipButton(
                             chip: chip,
                             viewportWidth: rowWidth, viewportSpace: viewportSpace, isPanelVisible: isPanelVisible,
@@ -86,6 +118,7 @@ struct FilterBarView: View {
                             }
                         }
                         .id(chip.id)
+                        .transition(.opacity)
                     }
                     if !filters.apps.isEmpty && !filters.kinds.isEmpty {
                         separator
@@ -111,24 +144,40 @@ struct FilterBarView: View {
                     }
                 }
                 .padding(.vertical, 3)
-                // Centered under the search capsule while the chips fit: a
-                // scroll view hugs the leading edge otherwise. Stretched to
-                // the viewport, the stack centers its content; a wider row
-                // scrolls as before.
-                .frame(minWidth: max(0, rowWidth - 2 * Self.horizontalMargin))
+                .frame(minWidth: max(0, rowWidth - 2 * Self.horizontalMargin), alignment: .leading)
                 // Keep insets inside the measured document: macOS 15's
                 // scroll contentMargins can expand the viewport unevenly.
                 .padding(.horizontal, Self.horizontalMargin)
             }
             .scrollClipDisabled()
-            .defaultScrollAnchor(.center)
+            .defaultScrollAnchor(.leading)
             .coordinateSpace(name: viewportSpace)
             .readSize { rowWidth = $0.width }
+            .onChange(of: isPanelVisible) { _, _ in
+                appScope.isExpanded = false
+                rewind(proxy)
+            }
+            .onChange(of: appScope.isExpanded) { _, expanded in
+                if !expanded { rewind(proxy, animated: true) }
+            }
             .onChange(of: filters.focusedChipID) { _, id in
                 guard let id else { return }
                 withAnimation(reduceMotion ? nil : .easeOut(duration: 0.12)) {
                     proxy.scrollTo(id)
                 }
+            }
+        }
+    }
+
+    private func rewind(_ proxy: ScrollViewProxy, animated: Bool = false) {
+        let animation = animated ? appExpansionAnimation : nil
+        var transaction = Transaction(animation: animation)
+        transaction.disablesAnimations = animation == nil
+        withTransaction(transaction) {
+            if let firstID = filters.all.first?.id ?? filters.pinned.first?.id ?? displayedApps.first?.id
+                ?? filters.kinds.first?.id ?? filters.tags.first?.id
+            {
+                proxy.scrollTo(firstID, anchor: .leading)
             }
         }
     }

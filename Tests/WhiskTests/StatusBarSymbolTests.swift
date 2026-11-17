@@ -13,7 +13,7 @@ import Testing
         let button = NSButton(frame: NSRect(x: 0, y: 0, width: 24, height: 24))
         let symbol = StatusBarSymbol()
         symbol.install(on: button)
-        symbol.imageView.image = AppSymbol.image()
+        symbol.imageView.image = AppSymbol.image(named: AppSymbol.defaultStatusName)
         #expect(button.hitTest(NSPoint(x: 12, y: 12)) === button)
         button.setFrameSize(NSSize(width: 30, height: 28))
         #expect(symbol.imageView.frame == button.bounds)

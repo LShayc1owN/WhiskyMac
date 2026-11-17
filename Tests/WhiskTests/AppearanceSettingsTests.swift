@@ -16,7 +16,7 @@ import Testing
         let other = try IsolatedDefaults()
         let appearance = AppearanceSettingsStore(defaults: sandbox.defaults)
         #expect(appearance.language == .system)
-        #expect(appearance.navigation == .top)
+        #expect(appearance.navigation == .sidebar)
         #expect(appearance.sidebarWidth == AppearanceSettingsStore.defaultSidebarWidth)
         #expect(appearance.statusClick == .history)
         #expect(appearance.dockIcon == .followWindows)
@@ -26,7 +26,7 @@ import Testing
         var changes = 0
         appearance.changed = { changes += 1 }
         appearance.language = .simplifiedChinese
-        appearance.navigation = .sidebar
+        appearance.navigation = .top
         appearance.sidebarWidth = 252
         appearance.statusClick = .menu
         appearance.dockIcon = .always
@@ -35,7 +35,7 @@ import Testing
         #expect(changes == 6)
         let restored = AppearanceSettingsStore(defaults: sandbox.defaults)
         #expect(restored.language == .simplifiedChinese)
-        #expect(restored.navigation == .sidebar)
+        #expect(restored.navigation == .top)
         #expect(restored.sidebarWidth == 252)
         #expect(restored.statusClick == .menu)
         #expect(restored.dockIcon == .always)
@@ -56,7 +56,7 @@ import Testing
         sandbox.defaults.set(Data([0]), forKey: "customAccent")
         let settings = AppearanceSettingsStore(defaults: sandbox.defaults)
         #expect(settings.language == .system)
-        #expect(settings.navigation == .top)
+        #expect(settings.navigation == .sidebar)
         #expect(settings.statusClick == .history)
         #expect(settings.dockIcon == .followWindows)
         #expect(settings.accentMode == .system)

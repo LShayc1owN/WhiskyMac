@@ -11,6 +11,9 @@ enum SaveToDisk {
             return (Data(value.utf8), "Clipboard.txt")
         case .link(let url):
             return (Data(url.absoluteString.utf8), "Link.txt")
+        case .storedImage(let reference):
+            guard let data = try? reference.read() else { return nil }
+            return (data, "Clipboard.png")
         case .image(let data):
             return (data, "Clipboard.png")
         case .files:

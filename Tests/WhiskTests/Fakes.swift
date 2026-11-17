@@ -21,14 +21,16 @@ final class FakeClock: Clock {
 final class InMemoryHistoryStore: HistoryStore {
     var stored: [ClipboardItem] = []
     private(set) var saveCount = 0
+    private(set) var lastChangedContentIDs: Set<UUID>?
 
     init() {}
 
     func load() throws -> [ClipboardItem] { stored }
 
-    func save(_ items: [ClipboardItem]) throws {
+    func save(_ items: [ClipboardItem], changedContentIDs: Set<UUID>?) throws {
         stored = items
         saveCount += 1
+        lastChangedContentIDs = changedContentIDs
     }
 }
 
@@ -39,7 +41,7 @@ final class FailingHistoryStore: HistoryStore {
         throw HistoryStoreError.unreadable("failing store")
     }
 
-    func save(_ items: [ClipboardItem]) throws {
+    func save(_ items: [ClipboardItem], changedContentIDs: Set<UUID>?) throws {
         throw HistoryStoreError.unwritable("failing store")
     }
 }
@@ -53,7 +55,7 @@ final class SaveFailingHistoryStore: HistoryStore {
 
     func load() throws -> [ClipboardItem] { stored }
 
-    func save(_ items: [ClipboardItem]) throws {
+    func save(_ items: [ClipboardItem], changedContentIDs: Set<UUID>?) throws {
         throw HistoryStoreError.unwritable("disk full")
     }
 }

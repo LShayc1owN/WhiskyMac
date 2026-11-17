@@ -36,10 +36,11 @@ struct PreviewOverlayView: View {
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                     }
+                    .fixedSize(horizontal: false, vertical: true)
                     Group {
                         if let source = store.previewItems.first, source.splitGroup != nil {
                             SplitGroupPreview(source: source)
-                        } else if store.previewItems.contains(where: { $0.rtf != nil }) {
+                        } else if store.previewItems.contains(where: { $0.hasRichText }) {
                             richVersions
                         } else {
                             content(for: card)
@@ -96,20 +97,11 @@ struct PreviewOverlayView: View {
     @ViewBuilder private func content(for card: CardViewState) -> some View {
         switch card.preview {
         case .text(let value):
-            ScrollView {
-                Text(store.previewItems.first?.payload.transformableText ?? value)
-                    .font(.body)
-                    .textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
-            }
+            TextPreviewView(text: store.previewItems.first?.payload.transformableText ?? value)
         case .code(let text, let tokens):
-            ScrollView([.vertical, .horizontal]) {
-                let full = store.previewItems.first?.payload.transformableText ?? text
-                CodeTextView(
-                    text: full, tokens: full == text ? tokens : CodeHighlighter.tokens(in: full), lineLimit: nil
-                )
-                .frame(maxWidth: .infinity, alignment: .topLeading)
-            }
+            let full = store.previewItems.first?.payload.transformableText ?? text
+            TextPreviewView(
+                text: full, tokens: full == text ? tokens : CodeHighlighter.tokens(in: full), monospaced: true)
         case .color(let code, let rgb):
             VStack(spacing: 12) {
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
@@ -128,14 +120,10 @@ struct PreviewOverlayView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .topLeading)
             }
+        case .storedImage(let reference):
+            ImageThumbnailView(id: card.id, content: .stored(reference))
         case .image(let data):
-            if let image = NSImage(data: data) {
-                Image(nsImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .accessibilityLabel(localized("Image"))
-            }
+            ImageThumbnailView(id: card.id, data: data)
         case .files(let names, let overflow, let thumbnailPath):
             ScrollView {
                 FilePreviewView(names: names, overflow: overflow, thumbnailPath: thumbnailPath, size: .large)

@@ -36,6 +36,10 @@ enum LegacyHistoryFixture {
             case .link(let url):
                 entry.kind = "link"
                 entry.link = url.absoluteString
+            case .storedImage(let reference):
+                entry.kind = "image"
+                entry.imageFile = "\(item.id.uuidString).png"
+                try reference.read().write(to: blobsDirectory.appendingPathComponent("\(item.id.uuidString).png"))
             case .image(let data):
                 entry.kind = "image"
                 entry.imageFile = "\(item.id.uuidString).png"

@@ -27,6 +27,23 @@ import Testing
         #expect(callbacks == 2)
     }
 
+    @Test func app_filtering_defaults_on_and_persists_independently_of_other_permissions() throws {
+        let sandbox = try IsolatedDefaults()
+        let privacy = PrivacyController(defaults: sandbox.defaults)
+        #expect(privacy.allowAppFilteringWhileProtected)
+        #expect(!privacy.allowFilteringWhileProtected && !privacy.showSourceAppsWhileProtected)
+        var callbacks = 0
+        privacy.displayPermissionsChanged = { callbacks += 1 }
+        privacy.allowAppFilteringWhileProtected = false
+        #expect(!PrivacyController(defaults: sandbox.defaults).allowAppFilteringWhileProtected)
+        privacy.allowAppFilteringWhileProtected = true
+        let restored = PrivacyController(defaults: sandbox.defaults)
+        #expect(restored.allowAppFilteringWhileProtected)
+        #expect(!restored.allowFilteringWhileProtected && !restored.showSourceAppsWhileProtected)
+        #expect(!restored.allowSearchWhileProtected)
+        #expect(callbacks == 2)
+    }
+
     @Test func filtering_masks_content_hides_apps_unless_allowed_and_revokes_stale_actions() {
         let state = HistoryViewStateStore()
         let disk = InMemoryHistoryStore()
@@ -59,7 +76,8 @@ import Testing
         state.filterWhileProtected(.toggleKind(pinnedChipID))
         #expect(state.protectedCardIDs == [one.id])
         state.filterWhileProtected(.toggleKind(allFiltersChipID))
-        state.setPrivacyPermissions(allowSearch: false, showSourceApps: true, allowFiltering: true)
+        state.setPrivacyPermissions(
+            allowSearch: false, showSourceApps: true, allowFiltering: true, allowAppFiltering: true)
         #expect(state.protectedFilters.apps.count == 2)
         state.filterWhileProtected(.selectApp("test.two"))
         #expect(state.protectedCardIDs == [two.id])
@@ -71,7 +89,8 @@ import Testing
         state.setPrivacyPermissions(allowSearch: false, showSourceApps: false)
         state.filterWhileProtected(.toggleKind("image"))
         #expect(state.protectedFilters.isEmpty && state.protectedCardIDs.count == 2)
-        state.setPrivacyPermissions(allowSearch: false, showSourceApps: true, allowFiltering: true)
+        state.setPrivacyPermissions(
+            allowSearch: false, showSourceApps: true, allowFiltering: true, allowAppFiltering: true)
         state.filterWhileProtected(.toggleApp("test.two"))
         state.panelDidClose()
         #expect(state.protectedCardIDs.count == 2)
@@ -86,6 +105,78 @@ import Testing
         #expect(state.spotlightPayload(for: one.id) == nil)
         #expect(state.state == .empty && state.previewItems.isEmpty)
         #expect(board.written.isEmpty && disk.saveCount == 0)
+    }
+
+    @Test func app_only_filtering_works_without_card_source_labels_and_revocation_rejects_stale_actions() throws {
+        for automatic in [false, true] {
+            let sandbox = try IsolatedDefaults()
+            let privacy = PrivacyController(defaults: sandbox.defaults, schedulesTimer: false)
+            if automatic {
+                privacy.setAutomaticEnabled(true)
+                privacy.receive([SharingReport(state: .active, reason: .toolbarPresent)])
+            } else {
+                privacy.setProtected(true)
+            }
+            let state = HistoryViewStateStore()
+            let disk = InMemoryHistoryStore()
+            let board = ScriptedPasteboard()
+            let one = anItem(.text("SECRET TEXT"), from: "SOURCE ONE", bundle: "test.one")
+            let two = anItem(.image(Data([0])), from: "SOURCE TWO", bundle: "test.two")
+            disk.stored = [one, two]
+            let controller = ClipboardController(
+                pasteboard: board, store: disk, clock: FakeClock(), present: { state.update($0) })
+            state.protectedFilter = { action in
+                switch action {
+                case .toggleApp(let id): controller.toggleSourceFilter(id)
+                case .selectApp(let id): controller.selectSourceFilter(id)
+                case .toggleKind(let id): controller.toggleCategoryFilter(id)
+                case .reset: controller.toggleCategoryFilter(allFiltersChipID)
+                }
+            }
+            state.setPrivacyPermissions(
+                allowSearch: false, showSourceApps: false, allowAppFiltering: privacy.allowAppFilteringWhileProtected)
+            state.setPrivacy(privacy.isProtected)
+            state.setSpotlightAllowed(privacy.allowsSpotlight)
+            state.setPanelVisible(true)
+            #expect(state.protectedFilters.apps.count == 2)
+            #expect(state.protectedFilters.kinds.isEmpty && state.protectedFilters.tags.isEmpty)
+            #expect(state.protectedFilters.pinned.isEmpty && !state.protectedFilters.all.isEmpty)
+            #expect(state.protectedSourceLabel(for: one.id) == nil)
+            let spy = PanelActionSpy()
+            let router = PanelKeyRouter(
+                stateStore: state, actions: spy.actions,
+                keyBindings: KeyBindingsStore(defaults: sandbox.defaults),
+                vimBindings: VimBindingsStore(defaults: sandbox.defaults),
+                togglePreview: { Issue.record("Unexpected preview") }, closePanel: {})
+            #expect(!router.handle(try #require(aKeyEvent(kVK_Tab))))
+            #expect(!router.handle(try #require(aKeyEvent(kVK_Space))))
+            #expect(router.handle(try #require(aKeyEvent(kVK_ANSI_C, [.command], typing: "c"))))
+            #expect(spy.calls.isEmpty)
+            state.filterWhileProtected(.toggleKind("image"))
+            state.filterWhileProtected(.selectApp("unknown.app"))
+            #expect(state.protectedCardIDs.count == 2)
+            state.filterWhileProtected(.selectApp("test.two"))
+            #expect(state.protectedCardIDs == [two.id])
+            state.filterWhileProtected(.toggleKind(allFiltersChipID))
+            #expect(state.protectedCardIDs.count == 2)
+            state.filterWhileProtected(.toggleApp("test.one"))
+            #expect(state.protectedCardIDs == [one.id])
+            // Card-source visibility is independent and must not reset a permitted app filter.
+            state.setPrivacyPermissions(allowSearch: false, showSourceApps: true, allowAppFiltering: true)
+            state.setPrivacyPermissions(allowSearch: false, showSourceApps: false, allowAppFiltering: true)
+            #expect(state.protectedCardIDs == [one.id])
+            state.setPrivacyPermissions(allowSearch: false, showSourceApps: true)
+            #expect(state.protectedFilters.isEmpty && state.protectedCardIDs.count == 2)
+            state.filterWhileProtected(.toggleApp("test.one"))
+            #expect(state.protectedCardIDs.count == 2)
+            state.setPrivacyPermissions(allowSearch: false, showSourceApps: false, allowAppFiltering: true)
+            state.setPanelVisible(false)
+            state.filterWhileProtected(.selectApp("test.two"))
+            #expect(state.protectedCardIDs.count == 2)
+            #expect(state.state == .empty && state.previewItems.isEmpty)
+            #expect(board.written.isEmpty && disk.saveCount == 0)
+            if automatic { #expect(!state.allowsSpotlight && state.spotlightPayload(for: one.id) == nil) }
+        }
     }
 
     @Test func filtered_search_preserves_the_query_and_automatic_protection_remains_masked() throws {

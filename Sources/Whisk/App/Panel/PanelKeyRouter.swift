@@ -59,7 +59,7 @@ final class PanelKeyRouter {
         }
         if stateStore.isProtected {
             // Native filter buttons may navigate/activate; never run card commands.
-            if stateStore.privacyAllowsFiltering,
+            if stateStore.privacyAllowsFiltering || stateStore.privacyAllowsAppFiltering,
                 event.modifierFlags.intersection([.command, .option, .control]).isEmpty,
                 [kVK_Tab, kVK_Space, kVK_Return, kVK_ANSI_KeypadEnter].contains(Int(event.keyCode))
             {

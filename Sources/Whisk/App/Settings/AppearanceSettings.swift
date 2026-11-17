@@ -121,7 +121,7 @@ final class AppearanceSettingsStore: ObservableObject {
     init(defaults: UserDefaults = AppIdentity.defaults) {
         self.defaults = defaults
         language = AppLanguage(rawValue: defaults.string(forKey: "appLanguage") ?? "") ?? .system
-        navigation = SettingsNavigation(rawValue: defaults.string(forKey: "settingsNavigation") ?? "") ?? .top
+        navigation = SettingsNavigation(rawValue: defaults.string(forKey: "settingsNavigation") ?? "") ?? .sidebar
         let savedSidebarWidth = defaults.object(forKey: "settingsSidebarWidth") as? Double
         if let savedSidebarWidth, savedSidebarWidth.isFinite {
             sidebarWidth = min(
@@ -131,9 +131,10 @@ final class AppearanceSettingsStore: ObservableObject {
             sidebarWidth = Self.defaultSidebarWidth
         }
         statusClick = StatusClickAction(rawValue: defaults.string(forKey: "statusClick") ?? "") ?? .history
-        defaultStatusSymbol = Self.restoredSymbol(defaults.string(forKey: "defaultStatusSymbol"), fallback: "WhiskyMac")
+        defaultStatusSymbol = Self.restoredSymbol(
+            defaults.string(forKey: "defaultStatusSymbol"), fallback: AppSymbol.defaultStatusName)
         privacyStatusSymbol = Self.restoredSymbol(
-            defaults.string(forKey: "privacyStatusSymbol"), fallback: "LemonSlice")
+            defaults.string(forKey: "privacyStatusSymbol"), fallback: AppSymbol.defaultPrivacyName)
         dockIcon = DockIconMode(rawValue: defaults.string(forKey: "dockIcon") ?? "") ?? .followWindows
         accentMode = AccentMode(rawValue: defaults.string(forKey: "accentMode") ?? "") ?? .system
         customAccent =

@@ -10,7 +10,7 @@ struct DeleteMatching<Store: HistoryStore> {
 
     func callAsFunction(_ matches: (ClipboardItem) -> Bool, in history: History) throws -> History {
         let next = history.deletingUnpinned(where: matches)
-        try store.save(next.items)
-        return next
+        try store.save(next.items, changedContentIDs: [])
+        return History(items: try store.compact(next.items), capacity: next.capacity)
     }
 }

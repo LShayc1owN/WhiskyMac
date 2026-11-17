@@ -64,7 +64,7 @@ struct SensitiveSessionView: View {
         case .text(let text): Text(text).lineLimit(3)
         case .link(let url): Text(url.absoluteString).lineLimit(3)
         case .fileReferences(let paths): Text(paths.joined(separator: "\n")).lineLimit(3)
-        case .image:
+        case .image, .storedImage:
             // Decoding untrusted image bytes can allocate unbounded memory.
             // This session deliberately exports only after explicit reveal.
             Text(localized("Image retained in memory. Copy to view in another app."))

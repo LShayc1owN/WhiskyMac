@@ -17,14 +17,32 @@ struct History: Equatable {
         evictOverflow()
     }
 
+    /// A recording's result: the new history, the recorded entry, and
+    /// whether its content actually changed — a deduplicated re-copy only
+    /// moves the entry and keeps every blob as it was.
+    struct RecordingOutcome {
+        let history: History
+        let recordedID: UUID
+        let contentChanged: Bool
+    }
+
     /// Records a captured payload and its original formatting. Only an
     /// exact payload + RTF match reuses an entry's identity and pin.
     func recording(
         _ payload: Payload, from source: SourceApp?, rtf: Data? = nil, at date: Date, id: UUID = UUID()
     ) -> History {
+        recordingReportingChange(payload, from: source, rtf: rtf, at: date, id: id).history
+    }
+
+    func recordingReportingChange(
+        _ payload: Payload, from source: SourceApp?, rtf: Data? = nil, at date: Date, id: UUID = UUID(),
+        matches: ((ClipboardItem) -> Bool)? = nil
+    ) -> RecordingOutcome {
         var next = self
-        if let index = next.items.firstIndex(where: { $0.splitGroup == nil && $0.payload == payload && $0.rtf == rtf })
-        {
+        if let index = next.items.firstIndex(where: {
+            $0.splitGroup == nil
+                && (matches?($0) ?? ($0.payload == payload && $0.richText == rtf.map(BinaryContent.inline)))
+        }) {
             let previous = next.items.remove(at: index)
             let refreshed = ClipboardItem(
                 id: previous.id, payload: payload,
@@ -32,12 +50,13 @@ struct History: Equatable {
                 copiedAt: date, isPinned: previous.isPinned, rtf: rtf, pinnedMetadata: previous.pinnedMetadata,
                 splitSourceID: previous.splitSourceID)
             next.items.insert(refreshed, at: 0)
-            return next
+            return RecordingOutcome(
+                history: next, recordedID: previous.id, contentChanged: refreshed.source != previous.source)
         }
         let item = ClipboardItem(id: id, payload: payload, source: source, copiedAt: date, isPinned: false, rtf: rtf)
         next.items.insert(item, at: 0)
         next.evictOverflow()
-        return next
+        return RecordingOutcome(history: next, recordedID: id, contentChanged: true)
     }
 
     /// Moves an item to the front with a refreshed date.

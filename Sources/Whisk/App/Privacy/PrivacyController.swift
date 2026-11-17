@@ -27,6 +27,12 @@ final class PrivacyController: ObservableObject {
             displayPermissionsChanged?()
         }
     }
+    @Published var allowAppFilteringWhileProtected: Bool {
+        didSet {
+            defaults.set(allowAppFilteringWhileProtected, forKey: "privacyAllowAppFiltering")
+            displayPermissionsChanged?()
+        }
+    }
     @Published var showSourceAppsWhileProtected: Bool {
         didSet {
             defaults.set(showSourceAppsWhileProtected, forKey: "privacyShowSourceApps")
@@ -68,6 +74,7 @@ final class PrivacyController: ObservableObject {
             } ?? SpotlightPreferences()
         allowSearchWhileProtected = defaults.bool(forKey: "privacyAllowSearch")
         allowFilteringWhileProtected = defaults.bool(forKey: "privacyAllowFiltering")
+        allowAppFilteringWhileProtected = defaults.object(forKey: "privacyAllowAppFiltering") as? Bool ?? true
         showSourceAppsWhileProtected = defaults.bool(forKey: "privacyShowSourceApps")
         self.now = now
         self.schedulesTimer = schedulesTimer

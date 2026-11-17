@@ -35,6 +35,11 @@ private_keys/
 /*.session.md
 /*.transcript.md
 
+# Finder and asset-editor duplicate copies.
+/Assets/Symbols/* 2.*
+/Assets/Symbols/*/* 2.*
+/Assets/Symbols/*/*/* 2.*
+
 # Distribute compiled installers through Releases, not the source tree.
 *.app/
 *.zip

@@ -11,22 +11,35 @@ import Testing
 
 @MainActor
 @Suite struct SourceAppStyling {
-    @Test func a_known_application_yields_its_icon_and_a_tint_and_is_resolved_once() {
-        let first = SourceAppStyle.resolve(bundleID: "com.apple.finder")
-        let second = SourceAppStyle.resolve(bundleID: "com.apple.finder")
+    @Test func a_known_application_yields_its_icon_and_a_tint_and_is_resolved_once() async {
+        let queue = OperationQueue()
+        let cache = SourceAppStyleCache(queue: queue)
+        _ = cache.resolve(bundleID: "com.apple.finder")
+        await drain(queue)
+        let first = cache.resolve(bundleID: "com.apple.finder")
+        let second = cache.resolve(bundleID: "com.apple.finder")
 
         #expect(first.icon != nil)
         #expect(first.icon === second.icon)
         #expect(first.surfaceTint(dark: true) != first.surfaceTint(dark: false))
     }
 
-    @Test func no_bundle_or_an_unknown_one_falls_back_to_the_gray_style() {
-        let none = SourceAppStyle.resolve(bundleID: nil)
-        let unknown = SourceAppStyle.resolve(bundleID: "com.example.never-installed")
+    @Test func no_bundle_or_an_unknown_one_falls_back_to_the_gray_style() async {
+        let queue = OperationQueue()
+        let cache = SourceAppStyleCache(queue: queue)
+        _ = cache.resolve(bundleID: "com.example.never-installed")
+        await drain(queue)
+        let none = cache.resolve(bundleID: nil)
+        let unknown = cache.resolve(bundleID: "com.example.never-installed")
 
         #expect(none.icon == nil)
         #expect(unknown.icon == nil)
         #expect(none.tint == unknown.tint)
+    }
+
+    private func drain(_ queue: OperationQueue) async {
+        await withCheckedContinuation { continuation in queue.addBarrierBlock { continuation.resume() } }
+        await withCheckedContinuation { continuation in DispatchQueue.main.async { continuation.resume() } }
     }
 }
 

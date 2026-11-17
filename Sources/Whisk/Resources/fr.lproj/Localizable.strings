@@ -58,18 +58,22 @@
 	<string>Autoriser l’accès au presse-papiers</string>
 	<key>Allow Clipboard Access…</key>
 	<string>Autoriser l’accès au presse-papiers…</string>
-	<key>Allow filtering in Privacy Mode</key>
-	<string>Autoriser les filtres en mode confidentialité</string>
+	<key>Allow app filtering in Privacy Mode</key>
+	<string>Autoriser le filtrage par application en mode Confidentialité</string>
 	<key>Allow removal of %lld older history items</key>
 	<string>Autoriser la suppression de %lld anciens éléments</string>
 	<key>Allow search in Privacy Mode</key>
 	<string>Autoriser la recherche en mode confidentialité</string>
+	<key>Allow type and tag filtering in Privacy Mode</key>
+	<string>Autoriser les filtres de type et d’étiquette en mode Confidentialité</string>
 	<key>Always hide content</key>
 	<string>Toujours masquer le contenu</string>
 	<key>Always show</key>
 	<string>Toujours afficher</string>
 	<key>App Store exception</key>
 	<string>Exception App Store</string>
+	<key>App filters show application names in the filter bar, independently of source labels on cards. Clipboard content stays hidden.</key>
+	<string>Les filtres affichent les noms des applications dans la barre de filtres, indépendamment des sources sur les cartes. Le contenu du presse-papiers reste masqué.</string>
 	<key>Appearance</key>
 	<string>Apparence</string>
 	<key>Application filter trigger</key>
@@ -150,6 +154,10 @@
 	<string>Cartes du presse-papiers</string>
 	<key>Close the panel</key>
 	<string>Fermer le panneau</string>
+	<key>Collapse apps</key>
+	<string>Réduire les applications</string>
+	<key>Collapsed</key>
+	<string>Réduit</string>
 	<key>Color tags</key>
 	<string>Étiquettes de couleur</string>
 	<key>Colors</key>
@@ -248,6 +256,8 @@
 	<string>Exclure l'application de la sélection</string>
 	<key>Excluded apps</key>
 	<string>Apps exclues</string>
+	<key>Expanded</key>
+	<string>Développé</string>
 	<key>Explicit no-record markers and excluded apps always win. Existing normal history is not reclassified. An app can belong to only one list; adding it moves it from the other list. Source attribution is best effort.</key>
 	<string>Les marqueurs explicites de non-enregistrement et les apps exclues sont prioritaires. L’historique normal existant n’est pas reclassé. Une app ne peut figurer que dans une liste ; l’ajouter la retire de l’autre. L’identification de la source reste approximative.</string>
 	<key>Extract links</key>
@@ -256,8 +266,6 @@
 	<string>Commentaires</string>
 	<key>Fetch link previews</key>
 	<string>Récupérer les aperçus de liens</string>
-	<key>Filtering keeps content hidden. Application filters require Show source apps in Privacy Mode.</key>
-	<string>Les filtres gardent le contenu masqué. Les filtres d’application nécessitent l’affichage des applications sources en mode confidentialité.</string>
 	<key>Filters</key>
 	<string>Filtres</string>
 	<key>First card</key>
@@ -386,6 +394,8 @@
 	<string>Clic sur l’icône de la barre des menus</string>
 	<key>Menu bar icons</key>
 	<string>Icônes de la barre des menus</string>
+	<key>More apps</key>
+	<string>Plus d’applications</string>
 	<key>More feedback and contact options will be added when their addresses are available.</key>
 	<string>D’autres moyens de contact seront ajoutés lorsque leurs adresses seront disponibles.</string>
 	<key>More than 1000 results. Choose a different rule.</key>

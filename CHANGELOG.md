@@ -9,6 +9,8 @@ live in the commit history.
 ## [Unreleased]
 
 ### Added
+- App filters in Privacy Mode have an independent setting, enabled by default.
+  Card source labels remain separately controlled and clipboard content stays masked.
 - Category shortcut resets show a five-second Undo toast at the bottom of Settings,
   restoring previous bindings and global enabled states without changing other categories.
 - Shortcut reset uses checkboxes for global, panel and Vim bindings; any combination
@@ -61,6 +63,9 @@ live in the commit history.
   including when the preview is reopened while the actions are visible.
 
 ### Changed
+- App filters start collapsed and follow the apps on currently visible cards,
+  keeping active filters accessible; More apps expands the full list. Content
+  types stay visible, and reopening the panel returns filters to the leading edge.
 - Use the same frosted surfaces and controls on all supported macOS versions;
   remove the macOS 26 Liquid Glass treatment and its dedicated transitions.
 - Copy sounds use short-lived AudioToolbox queues instead of NSSound, keeping

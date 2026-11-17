@@ -16,8 +16,8 @@ struct EditItem<Store: HistoryStore> {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return history }
         let next = history.replacingPayload(of: id, with: Self.payload(for: text))
         guard next != history else { return history }
-        try store.save(next.items)
-        return next
+        try store.save(next.items, changedContentIDs: [id])
+        return History(items: try store.compact(next.items), capacity: next.capacity)
     }
 
     /// One bare http(s) address is a link; anything else is text.

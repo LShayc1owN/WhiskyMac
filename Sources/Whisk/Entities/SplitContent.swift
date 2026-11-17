@@ -33,12 +33,40 @@ struct SplitPart: Codable, Hashable, Identifiable {
     let id: UUID
     let text: String
     let link: URL?
-    let rtf: Data?
+    let richText: BinaryContent?
+    var rtf: Data? { try? richText?.read() }
+
+    init(id: UUID, text: String, link: URL?, rtf: Data?, richText: BinaryContent? = nil) {
+        self.id = id; self.text = text; self.link = link
+        self.richText = richText ?? rtf.map(BinaryContent.inline)
+    }
+
+    private enum CodingKeys: String, CodingKey { case id, text, link, rtf }
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decode(UUID.self, forKey: .id)
+        text = try values.decode(String.self, forKey: .text)
+        link = try values.decodeIfPresent(URL.self, forKey: .link)
+        richText = try values.decodeIfPresent(Data.self, forKey: .rtf).map(BinaryContent.inline)
+    }
+    func encode(to encoder: Encoder) throws {
+        var values = encoder.container(keyedBy: CodingKeys.self)
+        try values.encode(id, forKey: .id); try values.encode(text, forKey: .text)
+        try values.encodeIfPresent(link, forKey: .link)
+        try values.encodeIfPresent(richText?.read(), forKey: .rtf)
+    }
+
     var payload: Payload { link.map(Payload.link) ?? .text(text) }
 }
 struct SplitGroup: Codable, Hashable {
     let parts: [SplitPart]
     let plainText: Bool
+    func materialized() throws -> SplitGroup {
+        SplitGroup(
+            parts: try parts.map { SplitPart(id: $0.id, text: $0.text, link: $0.link, rtf: try $0.richText?.read()) },
+            plainText: plainText)
+    }
+
     var isValid: Bool {
         !parts.isEmpty && parts.count <= SplitLimits.maximumParts
             && Set(parts.map(\.id)).count == parts.count

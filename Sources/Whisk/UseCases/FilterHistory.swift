@@ -100,6 +100,8 @@ struct ParsedQuery: Equatable {
         for term in typeTerms where !item.category.rawValue.hasPrefix(term) {
             return nil
         }
+        // The source text is the same for every word — resolve it once.
+        let source = sourceText(item)
         var total = 0
         for word in words {
             let text =
@@ -109,9 +111,8 @@ struct ParsedQuery: Equatable {
                     separator: "\n")
             let content = text.flatMap { FuzzyMatch.score(pattern: word, in: $0) }
             let note = FuzzyMatch.score(pattern: word, in: item.pinnedMetadata.note)
-            let source = sourceText(item)
-                .flatMap { FuzzyMatch.score(pattern: word, in: $0) }
-            guard let best = [content, note, source].compactMap({ $0 }).max() else { return nil }
+            let sourceScore = source.flatMap { FuzzyMatch.score(pattern: word, in: $0) }
+            guard let best = [content, note, sourceScore].compactMap({ $0 }).max() else { return nil }
             total += best
         }
         return total

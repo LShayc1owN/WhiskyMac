@@ -57,6 +57,20 @@ struct HistoryViewState: Equatable {
         filters: .empty,
         emptyMessage: localized("Copy something to get started")
     )
+
+    /// Resetting the cursor changes two cards, not their previews, labels,
+    /// rich-text groups or filter facets. The original bytes stay deferred.
+    func selecting(_ id: UUID?) -> HistoryViewState {
+        guard selectedID != id else { return self }
+        var cards = cards
+        for index in cards.indices where cards[index].isSelected != (cards[index].id == id) {
+            cards[index].isSelected = cards[index].id == id
+        }
+        return HistoryViewState(
+            cards: cards, countLabel: countLabel, query: query, selectedID: id, stackCount: stackCount,
+            filters: filters, emptyMessage: emptyMessage, accessPrompt: accessPrompt,
+            canClearHistory: canClearHistory)
+    }
 }
 
 /// The notice shown while the pasteboard cannot be read, with the button
@@ -146,7 +160,7 @@ struct CardViewState: Equatable, Identifiable {
     /// Extra footer fact, e.g. the character count of textual payloads.
     let detailLabel: String?
     let isPinned: Bool
-    let isSelected: Bool
+    var isSelected: Bool
     /// 1-based rank in the paste stack, nil when the card isn't queued.
     let stackPosition: Int?
     /// What VoiceOver reads for the whole card: source, kind, a one-line
@@ -167,7 +181,8 @@ struct CardViewState: Equatable, Identifiable {
     /// to underline; empty without a live query.
     let matches: [MatchSpan]
     /// Opaque bytes; decoded only by mounted rich-text card views.
-    let rtf: Data?
+    let richText: BinaryContent?
+    var rtf: Data? { try? richText?.read() }
     let preview: CardPreview
     var splitCount = 0
     var isSplitGroup: Bool { splitCount > 0 }
@@ -195,7 +210,7 @@ struct CardViewState: Equatable, Identifiable {
         matches: [MatchSpan] = [],
         preview: CardPreview,
         rtf: Data? = nil,
-        pinnedMetadata: PinnedMetadata = PinnedMetadata(), splitCount: Int = 0
+        pinnedMetadata: PinnedMetadata = PinnedMetadata(), splitCount: Int = 0, richText: BinaryContent? = nil
     ) {
         self.id = id
         self.sourceLabel = sourceLabel
@@ -215,7 +230,7 @@ struct CardViewState: Equatable, Identifiable {
         self.sourceKey = sourceKey
         self.matches = matches
         self.preview = preview
-        self.rtf = rtf
+        self.richText = richText ?? rtf.map(BinaryContent.inline)
         self.pinnedMetadata = pinnedMetadata
         self.splitCount = splitCount
     }
@@ -234,6 +249,7 @@ enum DragPayload: Equatable {
     case text(String)
     case link(URL)
     case image(Data)
+    case storedImage(StoredBytes)
     case files([String])
 }
 
@@ -244,6 +260,7 @@ enum CardPreview: Equatable {
     case color(code: String, rgb: RGB)
     case link(String)
     case image(Data)
+    case storedImage(StoredBytes)
     case files(names: [String], overflow: Int, thumbnailPath: String?)
 }
 

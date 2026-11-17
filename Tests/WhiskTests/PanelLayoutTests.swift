@@ -165,6 +165,16 @@ private func within(_ tolerance: CGFloat, _ a: CGFloat, _ b: CGFloat) -> Bool {
         #expect(PanelLayout.panelHeight(forCardSide: 160) == 390)
         #expect(PanelLayout.panelHeight(forCardSide: 200) == 430)
         #expect(PanelLayout.panelHeight(forCardSide: 250) == 480)
+        #expect(PanelLayout.panelHeight(forCardSide: 1000) == 1230)
+    }
+
+    @Test(arguments: displays)
+    func oversized_cards_keep_the_panel_controls_below_the_menu_bar(_ display: Display) {
+        let layout = PanelLayout(screen: display.screen, cardSide: 1000)
+        #expect(layout.panel.minY == display.screen.frame.minY)
+        #expect(layout.panel.height == min(1230, display.ceiling - PanelLayout.previewMargin - layout.panel.minY))
+        #expect(layout.panel.maxY <= display.ceiling - PanelLayout.previewMargin)
+        #expect(display.screen.frame.contains(layout.panel))
     }
 
     @Test func the_layout_never_fails_on_an_absurd_screen() {

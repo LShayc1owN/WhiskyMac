@@ -8,23 +8,47 @@ import Foundation
 /// Type-erased history store: the composition root picks a gateway at
 /// launch without changing the controller's type.
 struct AnyHistoryStore: HistoryStore {
+    private let matchItem: (Payload, Data?) -> (ClipboardItem) -> Bool
+    private let listItems: () throws -> [ClipboardItem]
+    private let compactItems: ([ClipboardItem]) throws -> [ClipboardItem]
+    private let clearContent: () -> Void
+    private let enableContent: (Bool) -> Void
     private let loadItems: () throws -> [ClipboardItem]
-    private let saveItems: ([ClipboardItem]) throws -> Void
+    private let saveItems: ([ClipboardItem], Set<UUID>?) throws -> Void
 
     init<Store: HistoryStore>(_ store: Store) {
+        matchItem = store.duplicateMatcher
+        listItems = store.loadList
+        compactItems = store.compact
+        clearContent = store.releaseContentCache
+        enableContent = store.setContentCacheEnabled
         loadItems = store.load
         saveItems = store.save
     }
 
     func load() throws -> [ClipboardItem] { try loadItems() }
+    func duplicateMatcher(payload: Payload, rtf: Data?) -> (ClipboardItem) -> Bool { matchItem(payload, rtf) }
+    func loadList() throws -> [ClipboardItem] { try listItems() }
+    func compact(_ items: [ClipboardItem]) throws -> [ClipboardItem] { try compactItems(items) }
+    func releaseContentCache() { clearContent() }
+    func setContentCacheEnabled(_ enabled: Bool) { enableContent(enabled) }
 
-    func save(_ items: [ClipboardItem]) throws { try saveItems(items) }
+    func save(_ items: [ClipboardItem], changedContentIDs: Set<UUID>?) throws {
+        try saveItems(items, changedContentIDs)
+    }
 }
 
 /// Opens the production history store without ever refusing to launch. A
 /// database that will not open is set aside for inspection and a fresh
 /// one takes its place; should that fail too, the session runs in memory.
 enum HistoryStorage {
+    /// The validated startup snapshot travels to the controller with its
+    /// store. The store's closures never retain this snapshot.
+    struct OpenedHistory {
+        let store: AnyHistoryStore
+        let items: [ClipboardItem]
+    }
+
     static let databaseName = "history.sqlite"
     static let unreadableSuffix = ".unreadable"
     static let legacyIndexName = "history.json"
@@ -46,31 +70,40 @@ enum HistoryStorage {
         fileManager: FileManager = .default,
         log: (String) -> Void = { NSLog("Whisk: %@", $0) }
     ) -> AnyHistoryStore {
+        openAndLoad(in: directory, fileManager: fileManager, log: log).store
+    }
+
+    static func openAndLoad(
+        in directory: URL,
+        fileManager: FileManager = .default,
+        makeStore: (URL) throws -> AnyHistoryStore = { AnyHistoryStore(try SQLiteHistoryStore(databaseURL: $0)) },
+        log: (String) -> Void = { NSLog("Whisk: %@", $0) }
+    ) -> OpenedHistory {
         let databaseURL = directory.appendingPathComponent(databaseName)
-        let store: AnyHistoryStore
+        let opened: OpenedHistory
         do {
-            store = try openReadable(databaseURL)
+            opened = try openReadable(databaseURL, makeStore: makeStore)
         } catch {
             log("cannot read \(databaseName) — \(error); setting it aside")
             setAside(databaseURL, fileManager: fileManager)
             do {
-                store = try openReadable(databaseURL)
+                opened = try openReadable(databaseURL, makeStore: makeStore)
             } catch {
                 log("cannot create a fresh \(databaseName) — \(error); history will not be saved this session")
-                return AnyHistoryStore(VolatileHistoryStore())
+                return OpenedHistory(store: AnyHistoryStore(VolatileHistoryStore()), items: [])
             }
         }
-        importLegacyHistory(in: directory, into: store, fileManager: fileManager, log: log)
-        return store
+        return importLegacyHistory(in: directory, into: opened, fileManager: fileManager, log: log)
     }
 
     /// A database is trusted only once it has been read: one that opens
     /// but will not load — a drifted schema, a damaged page — would start
     /// the session empty and let the first save overwrite it.
-    private static func openReadable(_ databaseURL: URL) throws -> AnyHistoryStore {
-        let store = try SQLiteHistoryStore(databaseURL: databaseURL)
-        _ = try store.load()
-        return AnyHistoryStore(store)
+    private static func openReadable(
+        _ databaseURL: URL, makeStore: (URL) throws -> AnyHistoryStore
+    ) throws -> OpenedHistory {
+        let store = try makeStore(databaseURL)
+        return OpenedHistory(store: store, items: try store.loadList())
     }
 
     /// Imports the JSON history of earlier versions, merging it behind
@@ -78,18 +111,22 @@ enum HistoryStorage {
     /// only once the import is stored: a failed import leaves them in
     /// place, so the next launch tries again instead of starting empty.
     private static func importLegacyHistory(
-        in directory: URL, into store: AnyHistoryStore, fileManager: FileManager, log: (String) -> Void
-    ) {
+        in directory: URL, into opened: OpenedHistory, fileManager: FileManager, log: (String) -> Void
+    ) -> OpenedHistory {
         let legacyIndex = directory.appendingPathComponent(legacyIndexName)
-        guard fileManager.fileExists(atPath: legacyIndex.path) else { return }
+        guard fileManager.fileExists(atPath: legacyIndex.path) else { return opened }
+        let merged: [ClipboardItem]
+        let compacted: [ClipboardItem]
         do {
             let legacy = try LegacyJSONHistory(directory: directory, fileManager: fileManager).load()
-            let current = try store.load()
+            let current = opened.items
             let known = Set(current.map(\.id))
-            try store.save(current + legacy.filter { !known.contains($0.id) })
+            merged = current + legacy.filter { !known.contains($0.id) }
+            try opened.store.save(merged)
+            compacted = try opened.store.compact(merged)
         } catch {
             log("legacy history not imported — \(error); it stays in place for the next launch")
-            return
+            return opened
         }
         do {
             try fileManager.moveItem(
@@ -101,6 +138,7 @@ enum HistoryStorage {
         } catch {
             log("legacy history imported but not retired — \(error)")
         }
+        return OpenedHistory(store: opened.store, items: compacted)
     }
 
     // Best effort by design: a move that fails leaves the file where the

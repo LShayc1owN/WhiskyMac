@@ -5,6 +5,21 @@
 
 import SwiftUI
 
+/// Keep the sample at its actual size while confirmation controls stay visible.
+struct CardSizePreviewViewport: View {
+    let side: CGFloat
+
+    var body: some View {
+        ScrollView([.horizontal, .vertical]) {
+            CardSizePreview(side: side)
+                .padding(8)
+        }
+        .defaultScrollAnchor(.topLeading, for: .initialOffset)
+        .defaultScrollAnchor(.center, for: .alignment)
+        .frame(height: min(side + 16, 336))
+    }
+}
+
 /// A data-free card that uses the rail card's dimensions and surface.
 struct CardSizePreview: View {
     let side: CGFloat

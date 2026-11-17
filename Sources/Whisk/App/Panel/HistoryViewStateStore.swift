@@ -66,6 +66,7 @@ final class HistoryViewStateStore: ObservableObject {
     @Published private(set) var panelVisible = false
     @Published private(set) var privacyAllowsSearch = false
     @Published private(set) var privacyAllowsFiltering = false
+    @Published private(set) var privacyAllowsAppFiltering = false
     @Published private(set) var privacyShowsSourceApps = false
     @Published private(set) var protectedQuery = ""
     var protectedSearch: ((String) -> Void)?
@@ -73,18 +74,19 @@ final class HistoryViewStateStore: ObservableObject {
     var protectedFilter: ((ProtectedFilterAction) -> Void)?
 
     var protectedFilters: FilterBarViewState {
-        guard isProtected, privacyAllowsFiltering else { return .empty }
+        guard isProtected, privacyAllowsFiltering || privacyAllowsAppFiltering else { return .empty }
         let filters = latestState.filters
         return FilterBarViewState(
-            all: filters.all, pinned: filters.pinned,
-            apps: privacyShowsSourceApps ? filters.apps : [], kinds: filters.kinds, tags: filters.tags)
+            all: filters.all, pinned: privacyAllowsFiltering ? filters.pinned : [],
+            apps: privacyAllowsAppFiltering ? filters.apps : [],
+            kinds: privacyAllowsFiltering ? filters.kinds : [], tags: privacyAllowsFiltering ? filters.tags : [])
     }
 
     func filterWhileProtected(_ action: ProtectedFilterAction) {
-        guard isProtected, privacyAllowsFiltering, panelVisible else { return }
+        guard isProtected, panelVisible else { return }
         switch action {
         case .toggleApp(let key), .selectApp(let key):
-            guard privacyShowsSourceApps, protectedFilters.apps.contains(where: { $0.id == key }) else { return }
+            guard privacyAllowsAppFiltering, protectedFilters.apps.contains(where: { $0.id == key }) else { return }
         case .toggleKind(let key):
             let filters = protectedFilters
             guard (filters.all + filters.pinned + filters.kinds + filters.tags).contains(where: { $0.id == key }) else {
@@ -165,12 +167,15 @@ final class HistoryViewStateStore: ObservableObject {
         closePreview()
     }
 
-    func setPrivacyPermissions(allowSearch: Bool, showSourceApps: Bool, allowFiltering: Bool = false) {
+    func setPrivacyPermissions(
+        allowSearch: Bool, showSourceApps: Bool, allowFiltering: Bool = false, allowAppFiltering: Bool = false
+    ) {
         let resetFilters =
             isProtected
             && ((privacyAllowsFiltering && !allowFiltering)
-                || (privacyShowsSourceApps && !showSourceApps))
+                || (privacyAllowsAppFiltering && !allowAppFiltering))
         privacyAllowsFiltering = allowFiltering
+        privacyAllowsAppFiltering = allowAppFiltering
         privacyAllowsSearch = allowSearch
         privacyShowsSourceApps = showSourceApps
         if !allowSearch { resetProtectedSearch() }
@@ -202,9 +207,21 @@ final class HistoryViewStateStore: ObservableObject {
     }
 
     var protectedCardIDs: [UUID] { latestState.cards.map(\.id) }
+    var protectedCardCount: Int { latestState.cards.count }
+
+    func protectedSourceKeys(in range: Range<Int>) -> Set<String> {
+        guard isProtected, privacyAllowsAppFiltering else { return [] }
+        let lower = min(max(0, range.lowerBound), latestState.cards.count)
+        let upper = min(max(lower, range.upperBound), latestState.cards.count)
+        return Set(latestState.cards[lower..<upper].compactMap(\.sourceKey))
+    }
 
     func setSpotlightAllowed(_ allowed: Bool) { allowsSpotlight = allowed }
-    func setPanelVisible(_ visible: Bool) { panelVisible = visible }
+    var contentCacheVisibility: (Bool) -> Void = { _ in }
+    func setPanelVisible(_ visible: Bool) {
+        panelVisible = visible
+        contentCacheVisibility(visible)
+    }
 
     func spotlightPayload(for id: UUID) -> Payload? {
         guard privacyInteractions.hover == .preview else { return nil }
@@ -325,10 +342,17 @@ final class HistoryViewStateStore: ObservableObject {
         case .copy: actions.copy(id)
         case .edit:
             if let card = state.selectedCard {
-                beginEditing(card)
-                editingID = id
-                editingText = item.payload.searchableText ?? ""
-                editingRichText = RichTextCodec.decode(item.rtf, fallback: editingText)
+                do {
+                    let text = item.payload.searchableText ?? ""
+                    let rich = try item.richText.map { RichTextCodec.decode(try $0.read(), fallback: text) }
+                    beginEditing(card)
+                    guard editing != nil else { return }
+                    editingID = id
+                    editingText = text
+                    editingRichText = rich
+                } catch {
+                    editingError = localized("The rich text could not be saved.")
+                }
             }
         default: break
         }
@@ -354,10 +378,15 @@ final class HistoryViewStateStore: ObservableObject {
             detailSource?(card.id)?.pinnedMetadata.hidesContent != true,
             card.transformable
         else { return }
-        editingID = card.id
-        if let item = detailSource?(card.id), let rtf = item.rtf {
-            editingRichText = RichTextCodec.decode(rtf, fallback: Self.editableText(of: card))
+        do {
+            editingRichText = try detailSource?(card.id)?.richText.map {
+                RichTextCodec.decode(try $0.read(), fallback: Self.editableText(of: card))
+            }
+        } catch {
+            editingError = localized("The rich text could not be saved.")
+            return
         }
+        editingID = card.id
         editingText = Self.editableText(of: card)
         editing = card
         hidePreview?()
@@ -380,7 +409,7 @@ final class HistoryViewStateStore: ObservableObject {
         switch card.dragPayload {
         case .text(let value): return value
         case .link(let url): return url.absoluteString
-        case .image, .files: return ""
+        case .image, .storedImage, .files: return ""
         }
     }
 
@@ -459,6 +488,7 @@ final class HistoryViewStateStore: ObservableObject {
         dismissPreview()
         hoveredCards = []
         panelVisible = false
+        contentCacheVisibility(false)
         resetProtectedSearch()
         if isProtected { protectedFilter?(.reset) }
         sensitiveSession.setPanelVisible(false)

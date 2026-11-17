@@ -11,7 +11,10 @@ enum AppSymbol {
     static let bundle: Bundle? = AppResources.bundle.url(forResource: "WhiskyMacSymbols", withExtension: "bundle")
         .flatMap(Bundle.init(url:))
 
-    static let customNames = ["WhiskyMac", "LemonSlice"]
+    static let customNames = ["WhiskyMac", "LemonSlice", "LemonOpenSlice", "CitrusLeaf", "LemonLeaf", "LemonFruit"]
+    static let brandName = "WhiskyMac"
+    static let defaultStatusName = "LemonOpenSlice"
+    static let defaultPrivacyName = "CitrusLeaf"
 
     static func sourceImage(named name: String) -> NSImage? {
         if customNames.contains(name) {
@@ -20,7 +23,7 @@ enum AppSymbol {
         return NSImage(systemSymbolName: name, accessibilityDescription: name)
     }
 
-    static func image(named name: String = "WhiskyMac", pointSize: CGFloat = 15) -> NSImage? {
+    static func image(named name: String, pointSize: CGFloat = 15) -> NSImage? {
         let image =
             sourceImage(named: name)
             ?? NSImage(systemSymbolName: "doc.on.clipboard", accessibilityDescription: AppIdentity.displayName)
@@ -36,7 +39,7 @@ struct AppSymbolView: View {
     var pointSize: CGFloat = 20
 
     var body: some View {
-        if let image = AppSymbol.image(pointSize: pointSize) {
+        if let image = AppSymbol.image(named: AppSymbol.brandName, pointSize: pointSize) {
             Image(nsImage: image)
                 .renderingMode(.template)
                 .accessibilityLabel(AppIdentity.displayName)

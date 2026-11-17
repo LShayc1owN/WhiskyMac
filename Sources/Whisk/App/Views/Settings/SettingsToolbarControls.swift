@@ -15,36 +15,31 @@ struct SettingsNavigationControl: View {
     var body: some View {
         Image(systemName: appearance.navigation == .top ? "sidebar.left" : "rectangle.topthird.inset.filled")
             .font(.system(size: 14))
-            .frame(width: 20, height: 18)
+            .frame(width: 40, height: 28)
+            .contentShape(Rectangle())
             .beButton {
                 appearance.navigation = appearance.navigation == .top ? .sidebar : .top
             }
-            .buttonStyle(SettingsSurfaceButtonStyle())
+            .buttonStyle(.plain)
             .help(title)
             .accessibilityLabel(title)
             .frame(width: 40, height: 28)
     }
 }
 
-struct SettingsToolbarBrand: View {
+struct SettingsBrandView: View {
     @ObservedObject var appearance: AppearanceSettingsStore
+    var buildInfo = AppBuildInfo.current
     @State private var symbolEvent = SettingsSymbolEvent()
     @SettingsAccessibility private var accessibility
 
     var body: some View {
-        HStack(spacing: 12) {
-            VStack(alignment: .trailing, spacing: 2) {
-                Text(AppIdentity.displayName)
-                    .font(.system(size: 20, weight: .semibold))
-                Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-            }
+        HStack(spacing: 10) {
             SettingsAnimatedSymbol(
-                symbolName: appearance.defaultStatusSymbol, event: symbolEvent,
-                color: appearance.nsAccent, reduceMotion: accessibility.reduceMotion, pointSize: 36
+                symbolName: AppSymbol.brandName, event: symbolEvent,
+                color: appearance.nsAccent, reduceMotion: accessibility.reduceMotion, pointSize: 32
             )
-            .frame(width: 36, height: 36)
+            .frame(width: 32, height: 32)
             .contentShape(Rectangle())
             .beButton {
                 play(
@@ -53,11 +48,40 @@ struct SettingsToolbarBrand: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel(AppIdentity.displayName)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(AppIdentity.displayName)
+                    .font(.system(size: 18, weight: .semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(buildInfo.version ?? "—")
+                    Text(buildInfo.channel.rawValue)
+                        .fontWeight(.medium)
+                        .foregroundStyle(channelColor)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(channelColor.opacity(0.14), in: Capsule())
+                        .fixedSize()
+                }
+                .font(.system(size: 10))
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .accessibilityElement(children: .combine)
+            }
         }
-        .fixedSize()
+        .fixedSize(horizontal: false, vertical: true)
         .padding(8)
         .onReceive(NotificationCenter.default.publisher(for: .settingsWindowOpened)) { _ in
             play(.bounce, speed: 1, reversed: false)
+        }
+    }
+
+    private var channelColor: Color {
+        switch buildInfo.channel {
+        case .debug: .red
+        case .release: .green
+        case .beta: .blue
         }
     }
 

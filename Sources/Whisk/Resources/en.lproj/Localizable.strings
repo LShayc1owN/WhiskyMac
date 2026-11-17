@@ -58,18 +58,22 @@
 	<string>Allow Clipboard Access</string>
 	<key>Allow Clipboard Access…</key>
 	<string>Allow Clipboard Access…</string>
-	<key>Allow filtering in Privacy Mode</key>
-	<string>Allow filtering in Privacy Mode</string>
+	<key>Allow app filtering in Privacy Mode</key>
+	<string>Allow app filtering in Privacy Mode</string>
 	<key>Allow removal of %lld older history items</key>
 	<string>Allow removal of %lld older history items</string>
 	<key>Allow search in Privacy Mode</key>
 	<string>Allow search in Privacy Mode</string>
+	<key>Allow type and tag filtering in Privacy Mode</key>
+	<string>Allow type and tag filtering in Privacy Mode</string>
 	<key>Always hide content</key>
 	<string>Always hide content</string>
 	<key>Always show</key>
 	<string>Always show</string>
 	<key>App Store exception</key>
 	<string>App Store exception</string>
+	<key>App filters show application names in the filter bar, independently of source labels on cards. Clipboard content stays hidden.</key>
+	<string>App filters show application names in the filter bar, independently of source labels on cards. Clipboard content stays hidden.</string>
 	<key>Appearance</key>
 	<string>Appearance</string>
 	<key>Application filter trigger</key>
@@ -150,6 +154,10 @@
 	<string>Clipboard cards</string>
 	<key>Close the panel</key>
 	<string>Close the panel</string>
+	<key>Collapse apps</key>
+	<string>Collapse apps</string>
+	<key>Collapsed</key>
+	<string>Collapsed</string>
 	<key>Color tags</key>
 	<string>Color tags</string>
 	<key>Colors</key>
@@ -248,6 +256,8 @@
 	<string>Exclude the selection's application</string>
 	<key>Excluded apps</key>
 	<string>Excluded apps</string>
+	<key>Expanded</key>
+	<string>Expanded</string>
 	<key>Explicit no-record markers and excluded apps always win. Existing normal history is not reclassified. An app can belong to only one list; adding it moves it from the other list. Source attribution is best effort.</key>
 	<string>Explicit no-record markers and excluded apps always win. Existing normal history is not reclassified. An app can belong to only one list; adding it moves it from the other list. Source attribution is best effort.</string>
 	<key>Extract links</key>
@@ -256,8 +266,6 @@
 	<string>Feedback</string>
 	<key>Fetch link previews</key>
 	<string>Fetch link previews</string>
-	<key>Filtering keeps content hidden. Application filters require Show source apps in Privacy Mode.</key>
-	<string>Filtering keeps content hidden. Application filters require Show source apps in Privacy Mode.</string>
 	<key>Filters</key>
 	<string>Filters</string>
 	<key>First card</key>
@@ -386,6 +394,8 @@
 	<string>Menu bar icon click</string>
 	<key>Menu bar icons</key>
 	<string>Menu bar icons</string>
+	<key>More apps</key>
+	<string>More apps</string>
 	<key>More feedback and contact options will be added when their addresses are available.</key>
 	<string>More feedback and contact options will be added when their addresses are available.</string>
 	<key>More than 1000 results. Choose a different rule.</key>

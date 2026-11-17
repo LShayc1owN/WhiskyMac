@@ -36,6 +36,7 @@ struct SettingsSearchTests {
         for (language, query, expected) in [
             ("zh-Hans", "清空历史", "clearHistory"), ("zh-Hans", "音量", "volume"),
             ("zh-Hans", "CARD SIZE", "cardSize"), ("fr", "DISPOSITION DES REGLAGES", "navigation"),
+            ("zh-Hans", "隐私模式 App 筛选", "privacyAppFilters"),
             ("de", "GROSSE", "cardSize"), ("it", "volume", "volume"),
         ] {
             AppLocalization.language = language
@@ -191,6 +192,9 @@ struct SettingsSearchTests {
             window.styleMask.remove([.resizable, .miniaturizable])
             SettingsWindowConfiguration.apply(to: window)
             let toolbar = SettingsSearchToolbar(window: window, search: search, appearance: appearance)
+            for item in window.toolbar?.items ?? [] where item.view != nil {
+                #expect(!item.isBordered, "Custom toolbar controls must not acquire a system button background")
+            }
             window.setContentSize(NSSize(width: 840, height: SettingsWindowSize.minimumHeight))
             window.setFrameOrigin(NSPoint(x: -10000, y: -10000))
             window.orderFront(nil)
@@ -205,14 +209,16 @@ struct SettingsSearchTests {
             #expect(field.width == 260)
             let navigationView = try #require(
                 window.toolbar?.items.first { $0.itemIdentifier == SettingsSearchToolbar.navigationID }?.view)
-            let brandView = try #require(
-                window.toolbar?.items.first { $0.itemIdentifier == SettingsSearchToolbar.brandID }?.view)
             let navigationFrame = navigationView.convert(navigationView.bounds, to: nil)
-            let brandFrame = brandView.convert(brandView.bounds, to: nil)
             #expect(abs(navigationFrame.midY - field.midY) < 1)
-            #expect(abs(brandFrame.midY - field.midY) < 1)
             #expect(navigationFrame.maxX < field.minX)
-            #expect(field.maxX < brandFrame.minX)
+            func images(in view: NSView) -> [NSImageView] {
+                ((view as? NSImageView).map { [$0] } ?? []) + view.subviews.flatMap { images(in: $0) }
+            }
+            let brand = try #require(images(in: hosting.view).first)
+            let brandFrame = brand.convert(brand.bounds, to: nil)
+            #expect(brandFrame.minX < 100)
+            #expect(brandFrame.minY >= 0 && brandFrame.maxY < 100)
 
             search.activate("diameter")
             await pump(hosting.view)

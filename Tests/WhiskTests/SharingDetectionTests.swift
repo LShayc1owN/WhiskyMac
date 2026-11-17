@@ -21,7 +21,8 @@ import Testing
         let appearance = AppearanceSettingsStore(defaults: sandbox.defaults)
         let privacy = PrivacyController(defaults: sandbox.defaults, schedulesTimer: false, startInDefaultMode: true)
         #expect(!privacy.isProtected)
-        #expect(appearance.statusSymbolName(protected: privacy.isProtected, paused: false) == "WhiskyMac")
+        #expect(
+            appearance.statusSymbolName(protected: privacy.isProtected, paused: false) == AppSymbol.defaultStatusName)
         #expect(!privacy.isManuallyProtected)
         #expect(privacy.automaticEnabled)
         #expect(!sandbox.defaults.bool(forKey: "manualPrivacy"))
@@ -29,7 +30,8 @@ import Testing
         #expect(!privacy.isProtected)
         privacy.receive([active])
         #expect(privacy.isProtected)
-        #expect(appearance.statusSymbolName(protected: privacy.isProtected, paused: false) == "LemonSlice")
+        #expect(
+            appearance.statusSymbolName(protected: privacy.isProtected, paused: false) == AppSymbol.defaultPrivacyName)
         privacy.receive([unknown])
         #expect(privacy.isProtected)
     }

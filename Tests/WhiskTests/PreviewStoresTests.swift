@@ -87,16 +87,58 @@ import Testing
         let files = FileThumbnailStore()
         let empty = LinkPreview(title: nil, host: nil, icon: nil, image: nil)
 
-        for index in 0..<(LinkPreviewStore.limit + 1) {
+        for index in 0..<(LinkPreviewStore.maximumCount + 1) {
             links.store(empty, for: "https://example.com/bound/\(index)")
         }
-        for index in 0..<(FileThumbnailStore.limit + 1) {
+        for index in 0..<(FileThumbnailStore.maximumCount + 1) {
             files.store(ViewFixtures.swatch, for: "/nonexistent/bound/\(index)")
         }
 
-        #expect(links.previews.count <= LinkPreviewStore.limit)
-        #expect(files.thumbnails.count <= FileThumbnailStore.limit)
-        #expect(links.preview(for: "https://example.com/bound/\(LinkPreviewStore.limit)") != nil)
+        #expect(links.previews.count <= LinkPreviewStore.maximumCount)
+        #expect(files.thumbnails.count <= FileThumbnailStore.maximumCount)
+        #expect(links.preview(for: "https://example.com/bound/\(LinkPreviewStore.maximumCount)") != nil)
+        #expect(files.thumbnail(for: "/nonexistent/bound/\(FileThumbnailStore.maximumCount)") != nil)
+    }
+
+    @Test func link_preview_images_are_downscaled_before_they_land() {
+        let links = LinkPreviewStore()
+        let bitmap = NSBitmapImageRep(
+            bitmapDataPlanes: nil, pixelsWide: 1200, pixelsHigh: 800, bitsPerSample: 8, samplesPerPixel: 4,
+            hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)
+        let large = NSImage(size: NSSize(width: 1200, height: 800))
+        large.addRepresentation(bitmap!)
+
+        links.store(LinkPreview(title: nil, host: nil, icon: nil, image: large), for: "https://example.com/large")
+
+        let held = try! #require(links.preview(for: "https://example.com/large")?.image)
+        #expect(max(held.size.width, held.size.height) <= LinkPreviewStore.maximumImageDimension)
+        #expect(links.cachedBytes > 0)
+        #expect(links.cachedBytes <= LinkPreviewStore.maximumBytes)
+    }
+
+    @Test func byte_budgets_evict_the_least_recently_used_image() {
+        let singleCost = LinkPreviewStore.pixelBytes(ViewFixtures.swatch)
+        #expect(singleCost > 0)
+        let links = LinkPreviewStore(countLimit: 16, byteLimit: singleCost)
+        let preview = LinkPreview(title: nil, host: nil, icon: nil, image: ViewFixtures.swatch)
+
+        links.store(preview, for: "https://example.com/a")
+        links.store(preview, for: "https://example.com/b")
+        #expect(links.previews.keys.sorted() == ["https://example.com/b"])
+        #expect(links.cachedBytes == singleCost)
+
+        _ = links.preview(for: "https://example.com/b")
+        links.store(preview, for: "https://example.com/c")
+        #expect(links.previews.keys.sorted() == ["https://example.com/c"])
+    }
+
+    @Test func one_image_larger_than_the_whole_budget_is_not_kept() {
+        let links = LinkPreviewStore(countLimit: 16, byteLimit: 1)
+        links.store(
+            LinkPreview(title: nil, host: nil, icon: nil, image: ViewFixtures.swatch),
+            for: "https://example.com/big")
+        #expect(links.previews.isEmpty)
+        #expect(links.cachedBytes == 0)
     }
 }
 
@@ -114,5 +156,20 @@ import Testing
         store.load(path)
 
         #expect(store.thumbnail(for: path) === held)
+    }
+
+    @Test func the_byte_budget_evicts_the_least_recently_used_thumbnail() {
+        let singleCost = FileThumbnailStore.pixelBytes(ViewFixtures.swatch)
+        #expect(singleCost > 0)
+        let store = FileThumbnailStore(countLimit: 16, byteLimit: singleCost)
+
+        store.store(ViewFixtures.swatch, for: "/nonexistent/a")
+        store.store(ViewFixtures.swatch, for: "/nonexistent/b")
+        #expect(store.thumbnails.keys.sorted() == ["/nonexistent/b"])
+        #expect(store.cachedBytes == singleCost)
+
+        _ = store.thumbnail(for: "/nonexistent/b")
+        store.store(ViewFixtures.swatch, for: "/nonexistent/c")
+        #expect(store.thumbnails.keys.sorted() == ["/nonexistent/c"])
     }
 }

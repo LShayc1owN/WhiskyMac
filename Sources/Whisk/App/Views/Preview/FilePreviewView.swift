@@ -22,7 +22,11 @@ struct FilePreviewView: View {
     let overflow: Int
     let thumbnailPath: String?
     let size: Size
-    @ObservedObject private var store = FileThumbnailStore.shared
+    var isActive = true
+    @ObservedObject var store = FileThumbnailStore.shared
+    @State private var ticket: UUID?
+
+    private struct Request: Equatable { let path: String?; let active: Bool }
 
     /// Every layout a card may fall back to, fullest first: all the names
     /// under the thumbnail, then fewer, then the same run without the
@@ -57,10 +61,14 @@ struct FilePreviewView: View {
                 list(Fit(thumbnail: thumbnailPath != nil, shown: names.count, hidden: overflow))
             }
         }
-        .onAppear {
-            if let path = thumbnailPath {
-                store.load(path)
-            }
+        .task(id: Request(path: thumbnailPath, active: isActive)) {
+            if let ticket { store.cancel(ticket) }
+            ticket = nil
+            if isActive, let path = thumbnailPath { ticket = store.load(path) }
+        }
+        .onDisappear {
+            if let ticket { store.cancel(ticket) }
+            ticket = nil
         }
     }
 
@@ -94,7 +102,7 @@ struct FilePreviewView: View {
     }
 
     @ViewBuilder private func thumbnail(for path: String) -> some View {
-        let image = Image(nsImage: store.thumbnail(for: path) ?? NSWorkspace.shared.icon(forFile: path))
+        let image = (store.image(for: path).map { Image(nsImage: $0) } ?? Image(systemName: "doc"))
             .resizable()
             .aspectRatio(contentMode: .fit)
         switch size {

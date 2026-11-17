@@ -39,6 +39,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var stateStore: HistoryViewStateStore?
     private var clipboard: Controller?
     private var pollTimer: Timer?
+    private var memoryPressure: DispatchSourceMemoryPressure?
     private var sharingMonitor: SharingMonitor?
     private var windowObserver: NSObjectProtocol?
     private var colorObserver: NSObjectProtocol?
@@ -66,12 +67,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.applyAppearance(forceColor: true)
         }
         updateDockIcon()
-        let store = openStore()
+        let opened = openStore()
         let stateStore = HistoryViewStateStore()
         stateStore.setPrivacyPermissions(
             allowSearch: privacy.allowSearchWhileProtected,
             showSourceApps: privacy.showSourceAppsWhileProtected,
-            allowFiltering: privacy.allowFilteringWhileProtected)
+            allowFiltering: privacy.allowFilteringWhileProtected,
+            allowAppFiltering: privacy.allowAppFilteringWhileProtected)
         stateStore.setPrivacy(privacy.isProtected)
         stateStore.setSpotlightAllowed(privacy.allowsSpotlight)
         stateStore.spotlight = privacy.spotlight
@@ -85,15 +87,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     .historyCopy, preferences: self.generalSettings.copySound,
                     protected: self.privacy.isProtected)
             }),
-            store: store,
+            store: opened.store,
             clock: SystemClock(),
             retention: generalSettings.policy,
+            initialItems: opened.items,
             logger: logger
         ) { state in
             stateStore.update(state)
         }
         self.stateStore = stateStore
         self.clipboard = clipboard
+        stateStore.contentCacheVisibility = { [weak clipboard] visible in
+            clipboard?.setContentCacheEnabled(visible)
+            if !visible {
+                ImageThumbnailStore.shared.releaseCache()
+                LinkPreviewStore.shared.releaseCache()
+                FileThumbnailStore.shared.releaseCache()
+            }
+        }
+        clipboard.setContentCacheEnabled(false)
+        let pressure = DispatchSource.makeMemoryPressureSource(eventMask: [.warning, .critical], queue: .main)
+        pressure.setEventHandler { [weak self] in
+            self?.clipboard?.releaseContentCache()
+            SourceAppStyle.releaseCache()
+            ImageThumbnailStore.shared.releaseCache()
+            LinkPreviewStore.shared.releaseCache()
+            FileThumbnailStore.shared.releaseCache()
+        }
+        pressure.resume()
+        memoryPressure = pressure
         clipboard.hiddenLinksChanged = { LinkPreviewStore.shared.setHiddenAddresses($0) }
         LinkPreviewStore.shared.setHiddenAddresses(clipboard.hiddenLinkAddresses)
         clipboard.didRecord = { [weak self] in
@@ -237,7 +259,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             stateStore?.setPrivacyPermissions(
                 allowSearch: self.privacy.allowSearchWhileProtected,
                 showSourceApps: self.privacy.showSourceAppsWhileProtected,
-                allowFiltering: self.privacy.allowFilteringWhileProtected)
+                allowFiltering: self.privacy.allowFilteringWhileProtected,
+                allowAppFiltering: self.privacy.allowAppFilteringWhileProtected)
             if self.privacy.isProtected { self.panelController?.privacyDidChange() }
         }
         privacy.spotlightSettingsChanged = { [weak stateStore] in stateStore?.spotlight = $0 }
@@ -251,10 +274,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.panelController?.privacyDidChange()
             LinkPreviewStore.shared.setPrivacy(protected)
             FileThumbnailStore.shared.setPrivacy(protected)
+            ImageThumbnailStore.shared.setPrivacy(protected)
+            if protected { self?.clipboard?.releaseContentCache() }
             self?.updateStatusIcon(protected: protected)
         }
         LinkPreviewStore.shared.setPrivacy(privacy.isProtected)
         FileThumbnailStore.shared.setPrivacy(privacy.isProtected)
+        ImageThumbnailStore.shared.setPrivacy(privacy.isProtected)
 
         sharingMonitor = SharingMonitor { [weak self] report in
             self?.privacy.receive([report])
@@ -360,6 +386,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             print("localized copy: \(localized("Copy"))")
             print("localized count: \(localized("\(1) items"))")
             if CommandLine.arguments.contains("--smoke-preferences") { smokePreferences() }
+            // An isolated smoke launch can remain alive briefly for an
+            // external footprint sample, with capture and hotkeys disabled.
+            if CommandLine.arguments.contains("--smoke-memory") {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5) { NSApp.terminate(nil) }
+                return
+            }
             NSApp.terminate(nil)
         }
     }
@@ -404,12 +436,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Launch never fails on storage: HistoryStorage recovers from a
     /// database that will not open, and an unreachable Application
     /// Support leaves the session running in memory.
-    private func openStore() -> AnyHistoryStore {
+    private func openStore() -> HistoryStorage.OpenedHistory {
         do {
-            return HistoryStorage.open(in: try HistoryStorage.defaultDirectory(), log: logger.log)
+            return HistoryStorage.openAndLoad(in: try HistoryStorage.defaultDirectory(), log: logger.log)
         } catch {
             logger.log("Application Support unavailable — \(error); history will not be saved this session")
-            return AnyHistoryStore(VolatileHistoryStore())
+            return HistoryStorage.OpenedHistory(store: AnyHistoryStore(VolatileHistoryStore()), items: [])
         }
     }
 
@@ -753,6 +785,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         sessionObservers.forEach { NSWorkspace.shared.notificationCenter.removeObserver($0) }
         sessionObservers = []
         pollTimer?.invalidate()
+        memoryPressure?.cancel()
+        memoryPressure = nil
         if let layoutObserver { DistributedNotificationCenter.default().removeObserver(layoutObserver) }
         bindingsObserver?.cancel()
         settingsObserver?.cancel()

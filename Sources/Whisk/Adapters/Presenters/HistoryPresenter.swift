@@ -105,16 +105,27 @@ final class HistoryPresenter {
     private struct CachedPreview {
         let text: String?
         let preview: CardPreview
+        let characterCount: Int?
     }
 
     private var previewCache: [UUID: CachedPreview] = [:]
     private var timeCache: [UUID: (bucket: Int, label: String)] = [:]
     private var presentedIDs: Set<UUID> = []
+    private var previewPruned = false
+    private var timePruned = false
     private let cacheLimit = 2048
+    private(set) var cachePrunePasses = 0
 
     init() {}
 
     func invalidateLocalizedLabels() { timeCache = [:] }
+
+    /// Drops cached previews and time labels for ids that no longer exist
+    /// in the history — a deleted image must not keep its bytes resident.
+    func prune(keeping validIDs: Set<UUID>) {
+        previewCache = previewCache.filter { validIDs.contains($0.key) }
+        timeCache = timeCache.filter { validIDs.contains($0.key) }
+    }
 
     /// How many previews are held back, for the tests that watch the purge.
     var cachedPreviewCount: Int {
@@ -131,11 +142,17 @@ final class HistoryPresenter {
         clipboardAccess: PasteboardAccess = .granted,
         canClearHistory: Bool? = nil
     ) -> HistoryViewState {
+        // Prune lazily on a miss, at most once per cache for this entire
+        // presentation. Cache hits under a search need no eviction, and a
+        // large cold presentation must not filter its cache once per card.
         presentedIDs = Set(items.map(\.id))
+        previewPruned = false
+        timePruned = false
         let accessPrompt = Self.accessPrompt(for: clipboardAccess)
         let words = ParsedQuery(query).words
+        let groups = RichTextGroups.groups(items)
         return HistoryViewState(
-            cards: RichTextGroups.groups(items).map { group in
+            cards: groups.map { group in
                 let item = group[0]
                 var result = card(
                     for: item, now: now, isSelected: group.contains { $0.id == selectedID },
@@ -143,7 +160,7 @@ final class HistoryPresenter {
                 result.variantIDs = group.map(\.id)
                 return result
             },
-            countLabel: countLabel(RichTextGroups.groups(items).count),
+            countLabel: countLabel(groups.count),
             query: query,
             selectedID: selectedID,
             stackCount: stack.count,
@@ -196,7 +213,8 @@ final class HistoryPresenter {
         let time = timeLabel(for: item, now: now)
         let hidden = item.pinnedMetadata.hidesContent
         if hidden { previewCache[item.id] = nil }
-        let cardPreview: CardPreview = hidden ? .text(Self.hiddenSummary(item.payload)) : preview(for: item)
+        let cached = hidden ? nil : preview(for: item)
+        let cardPreview = cached?.preview ?? .text(Self.hiddenSummary(item.payload))
         return CardViewState(
             id: item.id,
             sourceLabel: source,
@@ -204,7 +222,7 @@ final class HistoryPresenter {
             kindLabel: kind,
             kindSymbol: item.category.symbolName,
             timeLabel: time,
-            detailLabel: hidden ? nil : Self.detailLabel(for: item),
+            detailLabel: cached?.characterCount.map { localized("\($0) characters") },
             isPinned: item.isPinned,
             isSelected: isSelected,
             stackPosition: stackPosition,
@@ -222,10 +240,8 @@ final class HistoryPresenter {
             sourceKey: item.source?.filterKey,
             matches: hidden ? [] : Self.matchSpans(of: words, in: item),
             preview: cardPreview,
-            rtf: {
-                if !hidden, case .text = item.payload { return item.rtf }; return nil
-            }(),
-            pinnedMetadata: item.pinnedMetadata, splitCount: item.splitGroup?.parts.count ?? 0
+            pinnedMetadata: item.pinnedMetadata, splitCount: item.splitGroup?.parts.count ?? 0,
+            richText: !hidden && item.category != .image ? item.richText : nil
         )
     }
 
@@ -238,13 +254,12 @@ final class HistoryPresenter {
         return scheme + "://••••••" + (tld.map { "." + $0 } ?? "")
     }
 
-    /// Matching runs on the visible cards only and never on more than the
-    /// preview can show; the cost is the filter's own, once more, per word.
-    private static let matchScanLimit = 4000
+    /// Card layout and highlights share an excerpt; explicit actions keep the full payload.
+    private static let textPreviewLimit = 1024
 
     private static func matchSpans(of words: [String], in item: ClipboardItem) -> [MatchSpan] {
         guard !words.isEmpty, case .text(let value) = item.payload else { return [] }
-        let scanned = String(value.prefix(matchScanLimit))
+        let scanned = value.prefix(textPreviewLimit)
         var hits: Set<Int> = []
         for word in words {
             if let positions = FuzzyMatch.match(pattern: word, in: scanned)?.positions {
@@ -287,6 +302,8 @@ final class HistoryPresenter {
             return .link(url)
         case .image(let data):
             return .image(data)
+        case .storedImage(let reference):
+            return .storedImage(reference)
         case .fileReferences(let paths):
             return .files(paths)
         }
@@ -313,7 +330,7 @@ final class HistoryPresenter {
             return code
         case .link(let address):
             return address
-        case .image:
+        case .image, .storedImage:
             return nil
         case .files(let names, let overflow, _):
             return (names + (overflow > 0 ? [localized("+ \(overflow) more")] : [])).joined(separator: ", ")
@@ -335,11 +352,11 @@ final class HistoryPresenter {
 
     /// Textual payloads carry their size in the footer, whether or not the
     /// preview had to fade out.
-    private static func detailLabel(for item: ClipboardItem) -> String? {
+    private static func characterCount(for item: ClipboardItem) -> Int? {
         guard case .text(let value) = item.payload,
             item.category == .text || item.category == .code
         else { return nil }
-        return localized("\(value.count) characters")
+        return value.count
     }
 
     private static func kindLabel(_ category: ContentCategory) -> String {
@@ -365,16 +382,27 @@ final class HistoryPresenter {
         }
     }
 
-    private func preview(for item: ClipboardItem) -> CardPreview {
+    private func preview(for item: ClipboardItem) -> CachedPreview {
+        // Image payloads carry the full encoded bytes. The card gets the
+        // data straight from the item every time; caching here would only
+        // hold a second reference past deletion, so images stay uncached.
+        if item.category == .image {
+            return CachedPreview(
+                text: item.payload.transformableText, preview: computePreview(for: item), characterCount: nil)
+        }
         if let cached = previewCache[item.id], cached.text == item.payload.transformableText {
-            return cached.preview
+            return cached
         }
-        let preview = computePreview(for: item)
-        if previewCache.count >= cacheLimit {
+        let cached = CachedPreview(
+            text: item.payload.transformableText, preview: computePreview(for: item),
+            characterCount: Self.characterCount(for: item))
+        if !previewPruned, previewCache.count >= cacheLimit {
             previewCache = previewCache.filter { presentedIDs.contains($0.key) }
+            previewPruned = true
+            cachePrunePasses += 1
         }
-        previewCache[item.id] = CachedPreview(text: item.payload.transformableText, preview: preview)
-        return preview
+        previewCache[item.id] = cached
+        return cached
     }
 
     private func computePreview(for item: ClipboardItem) -> CardPreview {
@@ -384,14 +412,17 @@ final class HistoryPresenter {
             case .color:
                 return colorSwatch(for: item.payload) ?? .text(value)
             case .code:
-                return .code(text: value, tokens: CodeHighlighter.tokens(in: value))
+                let excerpt = String(value.prefix(Self.textPreviewLimit))
+                return .code(text: excerpt, tokens: CodeHighlighter.tokens(in: excerpt))
             default:
-                return .text(value)
+                return .text(String(value.prefix(Self.textPreviewLimit)))
             }
         case .link(let url):
             return .link(url.absoluteString)
         case .image(let data):
             return .image(data)
+        case .storedImage(let reference):
+            return .storedImage(reference)
         case .fileReferences(let paths):
             let names = paths.map { ($0 as NSString).lastPathComponent }
             return .files(
@@ -499,8 +530,10 @@ final class HistoryPresenter {
             return cached.label
         }
         let label = Self.relativeFormatter.localizedString(for: item.copiedAt, relativeTo: now)
-        if timeCache.count >= cacheLimit {
+        if !timePruned, timeCache.count >= cacheLimit {
             timeCache = timeCache.filter { presentedIDs.contains($0.key) }
+            timePruned = true
+            cachePrunePasses += 1
         }
         timeCache[item.id] = (bucket, label)
         return label

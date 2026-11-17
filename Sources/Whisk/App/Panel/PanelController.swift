@@ -42,7 +42,6 @@ final class PanelController {
         historyPanel = FloatingPanel()
         pinsPanel = FloatingPanel()
         panel = historyPanel
-        panel.contentView = HistoryPanelHosting.make(store: stateStore, actions: actions)
         panel.keyHandler = { [weak self] event in
             self?.router.handle(event) ?? false
         }
@@ -57,6 +56,8 @@ final class PanelController {
             self?.hidePreview()
             self?.backgroundVeil.hide()
             self?.stateStore.panelDidClose()
+            self?.panel.makeFirstResponder(nil)
+            self?.panel.contentView = nil
         }
         // In vim navigation Esc walks back one mode — SEARCH to NORMAL —
         // before it may close anything, and abandons the query on the way
@@ -178,7 +179,7 @@ final class PanelController {
 
     /// Prepares the surface without activation. Kept separate from show so
     /// routing and window reuse can be validated without stealing focus.
-    func preparePresentation(pins: Bool, style: PinnedWindowStyle?) {
+    func preparePresentation(pins: Bool, style: PinnedWindowStyle?, on screen: NSScreen? = nil) {
         hide()
         showingPinned = pins
         pinnedStyle = style
@@ -187,23 +188,22 @@ final class PanelController {
         stateStore.isPinnedList = pins && style == .mouseList
         actions.panelWillShow()
         if pins { actions.preparePinned(style != nil) }
+        stateStore.configureInput(vim: vimMode(), searchKey: vimBindings.key(for: .search))
+        if let screen {
+            resetDragGhost()
+            place(on: screen)
+        }
         installContent()
     }
 
     private func display(pins: Bool, style: PinnedWindowStyle?) {
-        preparePresentation(pins: pins, style: style)
+        let screens = NSScreen.screens
+        guard let index = Self.screenIndex(under: NSEvent.mouseLocation, frames: screens.map(\.frame)) else { return }
+        preparePresentation(pins: pins, style: style, on: screens[index])
         pasteTarget = nil
         if let app = NSWorkspace.shared.frontmostApplication, app.bundleIdentifier != AppIdentity.bundleIdentifier {
             pasteTarget = app
         }
-        let screens = NSScreen.screens
-        guard let index = Self.screenIndex(under: NSEvent.mouseLocation, frames: screens.map(\.frame)) else {
-            return
-        }
-        let screen = screens[index]
-        resetDragGhost()
-        place(on: screen)
-        stateStore.configureInput(vim: vimMode(), searchKey: vimBindings.key(for: .search))
         stateStore.requestSearchFocus()
         panel.makeKeyAndOrderFront(nil)
         stateStore.setPanelVisible(panel.isVisible)
@@ -380,6 +380,7 @@ final class PanelController {
     }
 
     private func installContent() {
+        if panel === historyPanel { pinsPanel.contentView = nil } else { historyPanel.contentView = nil }
         if pinnedStyle == .mouseList {
             panel.contentView = NSHostingView(
                 rootView: PinnedListView(store: stateStore, actions: actions, keyBindings: keyBindings))
@@ -388,8 +389,14 @@ final class PanelController {
         }
     }
 
-    func appearanceDidChange() { hidePreview(); installContent() }
-    func privacyDidChange() { hidePreview(); installContent() }
+    func appearanceDidChange() {
+        hidePreview()
+        if panel.isVisible { installContent() } else { panel.contentView = nil }
+    }
+    func privacyDidChange() {
+        hidePreview()
+        if panel.isVisible { installContent() } else { panel.contentView = nil }
+    }
 
     private func hidePreview() {
         previewPanel?.orderOut(nil)

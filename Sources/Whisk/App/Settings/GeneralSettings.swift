@@ -75,7 +75,7 @@ struct ExcludedApp: Codable, Equatable, Identifiable {
 final class GeneralSettingsStore: ObservableObject {
     /// 0 stands for unlimited.
     static let capacityChoices = [100, 250, 500, 1000, 0]
-    static let cardSideRange: ClosedRange<Double> = 160...250
+    static let cardSideRange: ClosedRange<Double> = 160...500
     static let defaultCardSide: Double = 200
 
     static func boundedCardSide(_ side: Double) -> Double {

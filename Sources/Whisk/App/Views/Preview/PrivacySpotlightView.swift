@@ -4,13 +4,16 @@
 // LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
 
 import AppKit
-import ImageIO
 import SwiftUI
 
 /// Protected cards publish only identities. A single hovered item is fetched
 /// after the dwell; Canvas emits no content accessibility descendants.
 struct PrivacySpotlightView: View {
+    private final class Viewport { var geometry: ScrollGeometry? }
     @ObservedObject var store: HistoryViewStateStore
+    @State private var appScope = FilterAppScope(visibleSourceKeys: [])
+    @State private var viewport = Viewport()
+    @Environment(\.layoutDirection) private var layoutDirection
     var body: some View {
         VStack(spacing: 12) {
             Label(
@@ -29,9 +32,9 @@ struct PrivacySpotlightView: View {
                 .frame(maxWidth: 480)
                 .padding(.horizontal, 16)
             }
-            if store.privacyAllowsFiltering, !store.protectedFilters.isEmpty {
+            if !store.protectedFilters.isEmpty {
                 FilterBarView(
-                    filters: store.protectedFilters, cursorSuppressed: true,
+                    filters: store.protectedFilters, appScope: appScope, cursorSuppressed: true,
                     appTrigger: store.appFilterTrigger, hoverEnabled: store.panelVisible,
                     isPanelVisible: store.panelVisible,
                     onSelectApp: { store.filterWhileProtected(.selectApp($0)) },
@@ -39,7 +42,7 @@ struct PrivacySpotlightView: View {
                     onToggleKind: { store.filterWhileProtected(.toggleKind($0)) },
                     onFocusApp: { _ in }, onFocusKind: { _ in })
             }
-            ScrollView(.horizontal, showsIndicators: false) {
+            ScrollView([.horizontal, .vertical], showsIndicators: false) {
                 LazyHStack(spacing: HistoryViewStateStore.cardGap) {
                     ForEach(store.protectedCardIDs, id: \.self) { id in
                         VStack(spacing: 6) {
@@ -53,7 +56,19 @@ struct PrivacySpotlightView: View {
                 }
                 .padding(.horizontal, 16)
             }
-            .frame(height: store.cardSide + (store.privacyShowsSourceApps ? 42 : 16))
+            .onScrollGeometryChange(for: ScrollGeometry.self) {
+                $0
+            } action: { _, geometry in
+                viewport.geometry = geometry
+                updateAppScope()
+            }
+            .onChange(of: store.protectedCardIDs) { _, _ in updateAppScope() }
+            .onChange(of: store.privacyShowsSourceApps) { _, _ in updateAppScope() }
+            .onChange(of: store.privacyAllowsAppFiltering) { _, _ in updateAppScope() }
+            .onChange(of: store.cardSide) { _, _ in updateAppScope() }
+            .frame(
+                minHeight: 0, idealHeight: store.cardSide + (store.privacyShowsSourceApps ? 42 : 16),
+                maxHeight: store.cardSide + (store.privacyShowsSourceApps ? 42 : 16))
             if store.privacyAllowsSearch, store.protectedCardIDs.isEmpty {
                 Text(localized("No matches")).font(.caption).foregroundStyle(.secondary)
             }
@@ -63,6 +78,18 @@ struct PrivacySpotlightView: View {
         .accessibilityElement(children: .contain)
         .accessibilityLabel(localized("Content hidden by Privacy Mode"))
     }
+
+    private func updateAppScope() {
+        guard let viewport = viewport.geometry else { return }
+        let start =
+            viewport.contentOffset.x - 16
+            - (layoutDirection == .rightToLeft ? viewport.contentInsets.leading + viewport.contentInsets.trailing : 0)
+        let range = FilterAppScope.visibleRange(
+            count: store.protectedCardCount, side: store.cardSide,
+            stride: store.cardSide + HistoryViewStateStore.cardGap,
+            start: start, width: viewport.containerSize.width)
+        appScope.update(store.protectedSourceKeys(in: range))
+    }
 }
 
 private struct SpotlightCard: View {
@@ -70,11 +97,33 @@ private struct SpotlightCard: View {
     let id: UUID
     @State private var point: CGPoint?
     @State private var payload: Payload?
-    @State private var thumbnail: NSImage?
+    @StateObject private var imageLoader = ImageThumbnailLoader()
+    @StateObject private var imageThumbnails = ImageThumbnailStore(byteLimit: 0)
     @State private var task: Task<Void, Never>?
     @State private var showingMenu = false
     @State private var pendingExport: CardAction?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private var thumbnail: NSImage? {
+        guard let content = imageContent(payload) else { return nil }
+        return imageLoader.image(for: ImageThumbnailRequest(id: id, content: content, maxPixelSize: 512))
+    }
+
+    private func imageContent(_ value: Payload?) -> BinaryContent? {
+        switch value {
+        case .image(let data): return .inline(data)
+        case .storedImage(let reference): return .stored(reference)
+        default: return nil
+        }
+    }
+
+    private func prepareImage(_ value: Payload?) {
+        imageLoader.cancel()
+        guard let content = imageContent(value), content.byteCount <= 8 * 1024 * 1024 else { return }
+        imageLoader.load(
+            ImageThumbnailRequest(id: id, content: content, maxPixelSize: 512), store: imageThumbnails,
+            priority: .veryHigh)
+    }
 
     var body: some View {
         SpotlightCardSurface(
@@ -90,7 +139,7 @@ private struct SpotlightCard: View {
                     try? await Task.sleep(for: .seconds(store.privacyInteractions.hoverDelay))
                     guard !Task.isCancelled, point != nil else { return }
                     let value = store.spotlightPayload(for: id)
-                    if case .image(let data) = value { thumbnail = SpotlightCanvas.thumbnail(data) }
+                    prepareImage(value)
                     withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) { payload = value }
                 }
             case .ended: clear()
@@ -151,7 +200,7 @@ private struct SpotlightCard: View {
         task?.cancel(); task = nil
         switch action {
         case .copy, .paste:
-            payload = nil; thumbnail = nil
+            payload = nil; imageLoader.cancel()
             if store.protectedVersions(for: id).count > 1 {
                 pendingExport = action; showingMenu = true
             } else {
@@ -160,13 +209,13 @@ private struct SpotlightCard: View {
             }
         case .preview:
             showingMenu = false
-            if payload != nil { payload = nil; thumbnail = nil; return }
+            if payload != nil { payload = nil; imageLoader.cancel(); return }
             let value = store.protectedRevealPayload(for: id)
-            if case .image(let data) = value { thumbnail = SpotlightCanvas.thumbnail(data) }
+            prepareImage(value)
             if point == nil { point = CGPoint(x: store.cardSide / 2, y: store.cardSide / 2) }
             withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) { payload = value }
         case .menu:
-            payload = nil; thumbnail = nil
+            payload = nil; imageLoader.cancel()
             pendingExport = nil; showingMenu = true
         case .none, .edit, .split: break
         }
@@ -176,7 +225,7 @@ private struct SpotlightCard: View {
         task?.cancel()
         task = nil
         payload = nil
-        thumbnail = nil
+        imageLoader.cancel()
         point = nil
     }
 }
@@ -228,7 +277,7 @@ struct SpotlightCanvas: View {
                 draw(
                     paths.map { URL(fileURLWithPath: $0).lastPathComponent }.joined(separator: "\n"),
                     in: &context, size: size)
-            case .image:
+            case .image, .storedImage:
                 if let image = thumbnail {
                     context.draw(
                         Image(nsImage: image), in: SpotlightGeometry.imageRect(imageSize: image.size, canvasSize: size))
@@ -252,14 +301,7 @@ struct SpotlightCanvas: View {
 
     static func thumbnail(_ data: Data) -> NSImage? {
         guard data.count <= 8 * 1024 * 1024,
-            let source = CGImageSourceCreateWithData(data as CFData, nil),
-            let image = CGImageSourceCreateThumbnailAtIndex(
-                source, 0,
-                [
-                    kCGImageSourceCreateThumbnailFromImageAlways: true,
-                    kCGImageSourceThumbnailMaxPixelSize: 512,
-                    kCGImageSourceCreateThumbnailWithTransform: true,
-                ] as CFDictionary)
+            let image = ImageThumbnailDecoder.decode(data, maxPixelSize: 512)
         else { return nil }
         return NSImage(cgImage: image, size: .zero)
     }

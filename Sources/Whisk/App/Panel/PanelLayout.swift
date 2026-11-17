@@ -38,14 +38,16 @@ struct PanelLayout: Equatable {
 
     init(screen: Screen, cardSide: CGFloat) {
         let frame = screen.frame
+        let ceiling = min(screen.visibleFrame.maxY, frame.maxY - screen.notchHeight) - Self.previewMargin
         // The full frame, not visibleFrame: the panel floats above the
-        // Dock, flush with the physical bottom edge of the screen.
+        // Dock, flush with the physical bottom edge of the screen. Oversized
+        // cards scroll inside the panel instead of pushing its controls offscreen.
         panel = CGRect(
-            x: frame.minX, y: frame.minY, width: frame.width, height: Self.panelHeight(forCardSide: cardSide))
+            x: frame.minX, y: frame.minY, width: frame.width,
+            height: min(Self.panelHeight(forCardSide: cardSide), max(0, ceiling - frame.minY)))
 
         // The room is what lies between the panel and the menu bar — or
         // the notch, which a hidden menu bar leaves behind.
-        let ceiling = min(screen.visibleFrame.maxY, frame.maxY - screen.notchHeight) - Self.previewMargin
         let floor = panel.maxY + Self.previewGap
         let room = ceiling - floor
 

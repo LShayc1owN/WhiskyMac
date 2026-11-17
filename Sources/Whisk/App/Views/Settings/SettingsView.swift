@@ -75,14 +75,19 @@ struct SettingsView: View {
                 }
                 HStack(spacing: 0) {
                     if appearance.navigation == .sidebar {
-                        sidebarNavigation
-                            .transition(.opacity.combined(with: .move(edge: .leading)))
+                        VStack(alignment: .leading, spacing: 0) {
+                            sidebarNavigation
+                            brandFooter
+                        }
+                        .frame(width: appearance.sidebarWidth)
+                        .transition(.opacity.combined(with: .move(edge: .leading)))
                         sidebarResizeHandle
                     }
 
                     pageContent
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                if appearance.navigation == .top { brandFooter }
             }
         }
         .environment(\.settingsSearchHighlight, search.highlightedAnchor)
@@ -188,6 +193,14 @@ struct SettingsView: View {
                 accessibility.reduceMotion || privacy.isProtected ? nil : .easeInOut(duration: 0.22),
                 value: selectedSectionID)
         }
+    }
+
+    private var brandFooter: some View {
+        SettingsBrandView(appearance: appearance)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 8)
+            .padding(.bottom, 8)
+            .layoutPriority(1)
     }
 
     private var sidebarNavigation: some View {
@@ -524,12 +537,12 @@ struct SettingsView: View {
         Section {
             StatusSymbolPickerRow(
                 title: localized("Default mode icon"), selection: $appearance.defaultStatusSymbol,
-                defaultName: "WhiskyMac"
+                defaultName: AppSymbol.defaultStatusName
             )
             .settingsSearchAnchor("defaultIcon")
             StatusSymbolPickerRow(
                 title: localized("Privacy mode icon"), selection: $appearance.privacyStatusSymbol,
-                defaultName: "LemonSlice"
+                defaultName: AppSymbol.defaultPrivacyName
             )
             .settingsSearchAnchor("privacyIcon")
         } header: {
@@ -582,7 +595,7 @@ struct SettingsView: View {
                     .accessibilityLabel(localized("Card size"))
                     Text("\(Int((draftCardSide ?? general.cardSide).rounded())) \(localized("pt"))")
                         .monospacedDigit()
-                        .frame(width: 54, alignment: .trailing)
+                        .frame(width: 64, alignment: .trailing)
                 }
                 HStack(spacing: 12) {
                     Button(localized("Preview size…")) {
@@ -608,7 +621,7 @@ struct SettingsView: View {
         VStack(spacing: 18) {
             Text(localized("Card size"))
                 .font(.title3.weight(.semibold))
-            CardSizePreview(side: CGFloat(previewedCardSide))
+            CardSizePreviewViewport(side: CGFloat(previewedCardSide))
             TimelineView(.periodic(from: .now, by: 1)) { timeline in
                 let seconds = max(0, Int(ceil(cardSizePreviewDeadline.timeIntervalSince(timeline.date))))
                 Text(String(format: localized("Reverting in %d seconds"), seconds))
@@ -864,11 +877,16 @@ struct SettingsView: View {
         Section {
             Toggle(localized("Allow search in Privacy Mode"), isOn: $privacy.allowSearchWhileProtected)
                 .settingsSearchAnchor("privacySearch")
-            Toggle(localized("Allow filtering in Privacy Mode"), isOn: $privacy.allowFilteringWhileProtected)
-                .settingsSearchAnchor("privacyFilters")
+            Toggle(
+                localized("Allow type and tag filtering in Privacy Mode"), isOn: $privacy.allowFilteringWhileProtected
+            )
+            .settingsSearchAnchor("privacyFilters")
+            Toggle(localized("Allow app filtering in Privacy Mode"), isOn: $privacy.allowAppFilteringWhileProtected)
+                .settingsSearchAnchor("privacyAppFilters")
             Text(
                 localized(
-                    "Filtering keeps content hidden. Application filters require Show source apps in Privacy Mode.")
+                    "App filters show application names in the filter bar, independently of source labels on cards. Clipboard content stays hidden."
+                )
             )
             .font(.caption).foregroundStyle(.secondary)
             Toggle(localized("Show source apps in Privacy Mode"), isOn: $privacy.showSourceAppsWhileProtected)

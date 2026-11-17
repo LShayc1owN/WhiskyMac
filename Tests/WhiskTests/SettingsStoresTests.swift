@@ -371,8 +371,14 @@ final class IsolatedDefaults {
         migrated.setCardSide(.infinity)
         #expect(migrated.cardSide == 200)
         migrated.setCardSide(400)
-        #expect(migrated.cardSide == 250)
-        #expect(GeneralSettingsStore(defaults: sandbox.defaults).cardSide == 250)
+        #expect(migrated.cardSide == 400)
+        migrated.setCardSide(499.5)
+        #expect(GeneralSettingsStore(defaults: sandbox.defaults).cardSide == 499.5)
+        migrated.setCardSide(1200)
+        #expect(migrated.cardSide == 500)
+        #expect(GeneralSettingsStore(defaults: sandbox.defaults).cardSide == 500)
+        sandbox.defaults.set(1000, forKey: "cardSide")
+        #expect(GeneralSettingsStore(defaults: sandbox.defaults).cardSide == 500)
     }
 
     @Test func card_size_preview_only_persists_after_save_and_can_restore_default() throws {
@@ -384,17 +390,17 @@ final class IsolatedDefaults {
         #expect(settings.effectiveCardSide == GeneralSettingsStore.defaultCardSide)
         settings.setCardSide(217.5)
 
-        settings.beginCardSizePreview(183.5)
-        #expect(settings.effectiveCardSide == 183.5)
+        settings.beginCardSizePreview(1000)
+        #expect(settings.effectiveCardSide == 500)
         #expect(settings.cardSide == 217.5)
         #expect(GeneralSettingsStore(defaults: sandbox.defaults).cardSide == 217.5)
 
         settings.cancelCardSizePreview()
         #expect(settings.effectiveCardSide == 217.5)
-        settings.beginCardSizePreview(183.5)
+        settings.beginCardSizePreview(1000)
         settings.saveCardSizePreview()
-        #expect(settings.cardSide == 183.5)
-        #expect(GeneralSettingsStore(defaults: sandbox.defaults).cardSide == 183.5)
+        #expect(settings.cardSide == 500)
+        #expect(GeneralSettingsStore(defaults: sandbox.defaults).cardSide == 500)
 
         settings.beginCardSizePreview(GeneralSettingsStore.defaultCardSide)
         settings.saveCardSizePreview()
