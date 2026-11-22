@@ -94,6 +94,6 @@ final class HandCrankedScheduler {
 
 @Suite struct ConsoleLogging {
     @Test func the_console_logger_writes_without_complaint() {
-        ConsoleLogger().log("test line from the suite")
+        ConsoleLogger().log(.appStarted)
     }
 }

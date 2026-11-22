@@ -84,7 +84,7 @@ import Vision
             #expect(card.contentHidden)
             #expect(card.pinnedMetadata.note == "Shipping details")
             #expect(!String(describing: card).contains("SECRET"))
-            #expect(card.rtf == nil)
+            #expect(card.richText == nil)
             #expect(card.detailLabel == nil)
             #expect(card.dragPayload == .text(""))
             #expect(!card.transformable && !card.saveable && card.matches.isEmpty)

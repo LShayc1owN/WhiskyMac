@@ -140,9 +140,25 @@ enum PanelWiring {
                 searchDebounce.flush()
                 clipboard.selectSourceFilter(key)
             },
+            selectCategoryFilter: { key in
+                searchDebounce.flush()
+                clipboard.selectCategoryFilter(key)
+            },
             clearHistory: {
                 searchDebounce.flush()
                 clipboard.clear()
+            },
+            toggleHistoryVisibility: {
+                searchDebounce.flush()
+                clipboard.toggleHistoryVisibility()
+            },
+            setHistoryHiding: { rule in
+                searchDebounce.flush()
+                clipboard.setHistoryHiding(rule)
+            },
+            clearTypeHistoryHiding: {
+                searchDebounce.flush()
+                clipboard.clearTypeHistoryHiding()
             },
             updatePinnedMetadata: { id, value in clipboard.updatePinnedMetadata(id, value: value) },
 

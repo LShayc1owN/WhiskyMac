@@ -27,8 +27,7 @@ struct RailFilter: Equatable {
 
     init(_ state: HistoryViewState) {
         query = state.query
-        activeChips = (state.filters.all + state.filters.pinned + state.filters.apps + state.filters.kinds)
-            .filter(\.isActive).map(\.id)
+        activeChips = state.filters.activeChipIDs
     }
 }
 
@@ -36,8 +35,12 @@ struct HistoryPanelView: View {
     @ObservedObject var store: HistoryViewStateStore
     let actions: PanelActions
     var keyBindings: KeyBindingsStore? = nil
+    var popoverCoordinator: CardPopoverCoordinator? = nil
     @FocusState private var searchFocused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var scheme
+
+    private var accent: Color { .readableAccent(in: scheme) }
 
     /// The rail runs edge to edge, but what replaces it is bounded and
     /// centered: on an ultra-wide monitor an editor spanning the screen
@@ -51,6 +54,7 @@ struct HistoryPanelView: View {
     /// follows after the debounce, so the text must live here.
     @State private var searchText = ""
     @State private var returnToLatestRevision = 0
+    @State private var hoveringReturnToLatest = false
     @State private var appScope = FilterAppScope(visibleSourceKeys: [])
 
     private var queryBinding: Binding<String> {
@@ -74,7 +78,7 @@ struct HistoryPanelView: View {
     var body: some View {
         Group {
             if store.isProtected {
-                PrivacySpotlightView(store: store)
+                PrivacySpotlightView(store: store, actions: actions)
             } else {
                 historyBody
             }
@@ -88,53 +92,60 @@ struct HistoryPanelView: View {
                 .padding(.top, 15)
                 .allowsHitTesting(false)
         }
-        .tint(Color.matcha)
+        .tint(accent)
+        .environment(\.cardPopoverCoordinator, popoverCoordinator)
         .onChange(of: store.isProtected) { _, _ in searchText = "" }
     }
 
     private var historyBody: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: PanelLayout.contentSpacing) {
             // The landing page's layout, mirrored: a centered search capsule
             // of bounded width, the filter chips centered right below it.
             HStack(spacing: 10) {
-                Image(systemName: "arrow.left.to.line")
-                    .font(.system(size: 14, weight: .semibold))
-                    .frame(width: 36, height: 36)
-                    .frostedSurface(in: Circle())
-                    .beButton { returnToLatestRevision += 1 }
-                    .buttonStyle(.plain)
-                    .disabled(store.state.cards.isEmpty || store.editing != nil)
-                    .help(localized("Back to latest"))
-                    .accessibilityLabel(localized("Back to latest"))
+                returnToLatestButton
                 toolbar
+                HistoryToolbarActions(store: store, actions: actions)
             }
-            .frame(maxWidth: searchExpanded ? 680 : 480)
+            // Keep the capsule shadows within the toolbar width.
+            .padding(.horizontal, scheme == .light ? 6 : 0)
+            .frame(maxWidth: searchExpanded ? 680 : 600)
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 16)
             .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.8), value: searchExpanded)
             if !store.state.filters.isEmpty {
                 FilterBarView(
+                    // Align to the resting card edge, independent of selection zoom.
+                    horizontalMargin: PanelLayout.contentMargin + (store.zoomedCardSide - store.cardSide) / 2,
                     filters: store.state.filters,
+                    tagScale: store.filterTagScale,
                     appScope: appScope,
                     cursorSuppressed: cursorOnSearch,
                     appTrigger: store.appFilterTrigger,
-                    hoverEnabled: store.panelVisible,
+                    hoverEnabled: store.panelVisible && !store.cardMenuOpen,
                     isPanelVisible: store.panelVisible,
                     onSelectApp: { key in
-                        guard store.panelVisible, !store.isProtected, store.appFilterTrigger == .hover else { return }
+                        guard store.panelVisible, !store.isProtected, !store.cardMenuOpen,
+                            store.appFilterTrigger == .hover
+                        else { return }
                         actions.selectSourceFilter(key)
+                    },
+                    onSelectKind: { key in
+                        guard store.panelVisible, !store.isProtected, !store.cardMenuOpen,
+                            store.appFilterTrigger == .hover
+                        else { return }
+                        actions.selectCategoryFilter(key)
                     },
                     onToggleApp: actions.toggleSourceFilter,
                     onToggleKind: actions.toggleCategoryFilter,
-                    onFocusApp: actions.focusSourceChip,
-                    onFocusKind: actions.focusCategoryChip
+                    onFocusApp: { if !store.cardMenuOpen { actions.focusSourceChip($0) } },
+                    onFocusKind: { if !store.cardMenuOpen { actions.focusCategoryChip($0) } }
                 )
             }
             if !store.isPinnedWorkspace { SensitiveSessionView(session: store.sensitiveSession) }
             content
         }
         .padding(.top, PanelLayout.panelTopBand)
-        .padding(.bottom, 18)
+        .padding(.bottom, PanelLayout.bottomPadding)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
         .onAppear {
             searchText = store.state.query; searchFocused = store.searchActive
@@ -160,6 +171,35 @@ struct HistoryPanelView: View {
 
     }
 
+    private var returnToLatestButton: some View {
+        let title = localized("Back to latest")
+        return HStack(spacing: 0) {
+            Image(systemName: "arrow.left.to.line")
+                .font(.system(size: 14, weight: .semibold))
+                .frame(width: 36)
+            if hoveringReturnToLatest {
+                Text(title)
+                    .font(.caption.weight(.semibold))
+                    .fixedSize(horizontal: true, vertical: false)
+                    .padding(.trailing, 12)
+                    .transition(.opacity)
+            }
+        }
+        .frame(height: 36)
+        .foregroundStyle(.white)
+        .background(ClipboardMaterialSurface(shape: Capsule(), material: .underWindowBackground, tint: accent))
+        .contentShape(Capsule())
+        .beButton { returnToLatestRevision += 1 }
+        .buttonStyle(.plain)
+        .disabled(store.state.cards.isEmpty || store.editing != nil)
+        .accessibilityLabel(title)
+        .onHover { hovering in
+            withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.18)) {
+                hoveringReturnToLatest = hovering
+            }
+        }
+    }
+
     private var toolbar: some View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
@@ -178,9 +218,10 @@ struct HistoryPanelView: View {
                 .lineLimit(1)
                 .linkPointer()
             } else {
+                let placeholder = searchExpanded ? localized("Search clipboard history") : localized("Search")
                 TextField(
-                    searchExpanded ? localized("Search clipboard history") : localized("Search"),
-                    text: queryBinding
+                    placeholder, text: queryBinding,
+                    prompt: scheme == .light ? Text(placeholder).foregroundStyle(.secondary) : nil
                 )
                 .textFieldStyle(.plain)
                 .font(.system(size: 14))
@@ -190,23 +231,9 @@ struct HistoryPanelView: View {
             if store.state.stackCount > 0 {
                 Label("\(store.state.stackCount)", systemImage: "square.stack.3d.up.fill")
                     .font(.caption.monospacedDigit())
-                    .foregroundStyle(Color.matcha)
+                    .foregroundStyle(accent)
                     .help(localized("Paste stack — pop with the global shortcut"))
                     .accessibilityLabel(localized("\(store.state.stackCount) in the paste stack"))
-            }
-            if !store.isPinnedWorkspace {
-                Label(localized("Clear"), systemImage: "trash")
-                    .font(.caption)
-                    .beButton(role: .destructive) {
-                        store.clearHistory(actions: actions)
-                    }
-                    .buttonStyle(.borderless)
-                    .disabled(!store.state.canClearHistory || store.editing != nil)
-                    .accessibilityLabel(localized("Clear unpinned history"))
-                    .help(
-                        localized(
-                            "Clears all unpinned history, including hidden results. Pinned items are kept. Undo with Command-Z."
-                        ))
             }
             Text(store.state.countLabel)
                 .font(.caption.monospacedDigit())
@@ -223,13 +250,14 @@ struct HistoryPanelView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
-        .frostedSurface(in: Capsule())
+        .background(ClipboardSearchBackground())
+        .accessibilityIdentifier("clipboard-search")
         // The capsule lights up as it stretches: a crisp matcha rim, the
         // same language as the cards' selection ring. Plain opacity (not
         // if/else) so the outer animation carries the fade.
         .overlay {
             Capsule()
-                .strokeBorder(Color.matcha.opacity(0.9), lineWidth: 1)
+                .strokeBorder(accent.opacity(0.9), lineWidth: 1)
                 .opacity(searchExpanded ? 1 : 0)
                 .allowsHitTesting(false)
         }
@@ -278,7 +306,7 @@ struct HistoryPanelView: View {
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .frostedSurface(in: RoundedRectangle(cornerRadius: 22, style: .continuous), cornerRadius: 22)
+        .background(ClipboardMaterialSurface(shape: RoundedRectangle(cornerRadius: 22), cornerRadius: 22))
         .padding(.horizontal, 16)
     }
 
@@ -293,11 +321,27 @@ struct HistoryPanelView: View {
                 .multilineTextAlignment(.center)
             Button(prompt.buttonTitle) { actions.requestClipboardAccess() }
                 .buttonStyle(.borderedProminent)
-                .tint(Color.matcha)
+                .tint(accent)
         }
         .padding(16)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .frostedSurface(in: RoundedRectangle(cornerRadius: 22, style: .continuous), cornerRadius: 22)
+        .background(ClipboardMaterialSurface(shape: RoundedRectangle(cornerRadius: 22), cornerRadius: 22))
         .padding(.horizontal, 16)
+    }
+}
+
+struct ClipboardSearchBackground: View {
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    var body: some View {
+        Capsule()
+            .fill(Color.matcha.opacity(scheme == .light ? 0.23 : 0.30))
+            .background {
+                if reduceTransparency {
+                    Capsule().fill(Color(nsColor: .windowBackgroundColor))
+                }
+            }
+            .allowsHitTesting(false)
     }
 }

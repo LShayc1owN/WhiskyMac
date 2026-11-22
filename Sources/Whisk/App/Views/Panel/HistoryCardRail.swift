@@ -75,6 +75,7 @@ struct HistoryCardRail: View {
     /// the quantized card window below asks SwiftUI to rebuild the row.
     private final class Viewport {
         var geometry: ScrollGeometry?
+        var sourceRange: Range<Int>?
     }
     @ObservedObject var store: HistoryViewStateStore
     let actions: PanelActions
@@ -93,7 +94,7 @@ struct HistoryCardRail: View {
                 ForEach(
                     CardRailLayout.entries(
                         cards: store.state.cards, window: window,
-                        selectedIndex: store.state.cards.firstIndex { $0.id == store.state.selectedID })
+                        selectedIndex: store.state.selectedCardIndex)
                 ) { entry in
                     switch entry {
                     case .card(let index, _):
@@ -104,12 +105,16 @@ struct HistoryCardRail: View {
                     }
                 }
             }
-            .padding(.vertical, 8)
+            .padding(.bottom, PanelLayout.railVerticalPadding)
             .animation(
                 reduceMotion || !store.panelVisible ? nil : .easeInOut(duration: 0.18),
                 value: RailFilter(store.state))
         }
-        .contentMargins(.horizontal, 16, for: .scrollContent)
+        .frame(
+            minHeight: 0, idealHeight: store.zoomedCardSide + PanelLayout.railVerticalPadding,
+            maxHeight: store.zoomedCardSide + PanelLayout.railVerticalPadding
+        )
+        .contentMargins(.horizontal, PanelLayout.contentMargin, for: .scrollContent)
         .scrollPosition($position)
         .onScrollGeometryChange(for: ScrollGeometry.self) {
             $0
@@ -126,9 +131,12 @@ struct HistoryCardRail: View {
         .onChange(of: store.panelVisible) { _, visible in
             if visible { updateAppScope() }
         }
-        .onDisappear { appScope?.update([]) }
-        .onChange(of: store.state.selectedID) { _, selectedID in
-            guard let index = store.state.cards.firstIndex(where: { $0.id == selectedID }),
+        .onDisappear {
+            viewport.sourceRange = nil
+            appScope?.update([])
+        }
+        .onChange(of: store.state.selectedID) {
+            guard let index = store.state.selectedCardIndex,
                 let geometry = viewport.geometry,
                 let target = CardRailLayout.revealOffset(
                     index: index, side: store.zoomedCardSide, stride: store.cardStride, geometry: geometry,
@@ -154,14 +162,16 @@ struct HistoryCardRail: View {
 
     private func updateAppScope(cards: [CardViewState]? = nil) {
         guard let appScope, let geometry = viewport.geometry else { return }
-        let cards = cards ?? store.state.cards
+        let current = cards ?? store.state.cards
         let start =
             geometry.contentOffset.x
             - (layoutDirection == .rightToLeft ? geometry.contentInsets.leading + geometry.contentInsets.trailing : 0)
         let range = FilterAppScope.visibleRange(
-            count: cards.count, side: store.zoomedCardSide, stride: store.cardStride,
+            count: current.count, side: store.zoomedCardSide, stride: store.cardStride,
             start: start, width: geometry.containerSize.width)
-        appScope.update(Set(cards[range].compactMap(\.sourceKey)))
+        guard cards != nil || viewport.sourceRange != range else { return }
+        viewport.sourceRange = range
+        appScope.update(Set(current[range].compactMap(\.sourceKey)))
     }
 
     private func gap(_ range: Range<Int>) -> some View {
@@ -177,7 +187,8 @@ struct HistoryCardRail: View {
         ItemCardView(
             card: card, actions: actions, keyBindings: keyBindings,
             showsSelection: !store.cursorOnSearch, side: store.cardSide, interactions: store.interactions,
-            isPanelVisible: store.panelVisible, canExport: { !store.isProtected },
+            isPanelVisible: store.panelVisible, hoverEnabled: !store.cardMenuOpen && !store.pinMetadataEditing,
+            canExport: { !store.isProtected },
             onInteraction: { action in store.interact(card, action: action, actions: actions) },
             onHoverPreview: { store.hoverPreview(card, actions: actions) },
             onHoverChanged: { inside in store.cardHoverChanged(card.id, inside: inside) }

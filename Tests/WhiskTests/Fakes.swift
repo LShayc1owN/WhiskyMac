@@ -61,12 +61,14 @@ final class SaveFailingHistoryStore: HistoryStore {
 }
 
 final class RecordingLogger: Logger {
-    private(set) var messages: [String] = []
+    private(set) var messages: [DiagnosticEvent] = []
+    private(set) var statuses: [Int?] = []
 
     init() {}
 
-    func log(_ message: String) {
-        messages.append(message)
+    func log(_ event: DiagnosticEvent, status: Int?) {
+        messages.append(event)
+        statuses.append(status)
     }
 }
 

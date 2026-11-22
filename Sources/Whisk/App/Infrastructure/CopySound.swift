@@ -284,7 +284,7 @@ private final class AudioQueueCopyPlayback: CopySoundPlayback {
             copySoundQueueStopped, Unmanaged.passUnretained(completion).toOpaque())
         // Dispose off the audio callback thread, synchronously. After this returns
         // AudioQueue no longer invokes callbacks; the completion context stays alive.
-        withExtendedLifetime(completion) { AudioQueueDispose(queue, true) }
+        _ = withExtendedLifetime(completion) { AudioQueueDispose(queue, true) }
     }
 
     deinit { stop() }

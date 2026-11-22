@@ -1,30 +1,32 @@
 # Architecture
 
-Whisk is one simple Swift application that follows Clean Architecture:
+WhiskyMac is one Swift application that follows Clean Architecture:
 entities and use cases alone at the center of the onion, a full
 interface-adapters ring around them (controllers, presenters, gateways),
 and frameworks at the very edge. The rings live as folders in a single
 module; the Dependency Rule is enforced by
 `scripts/check-dependency-rule.sh`, which CI runs on every push — inner
 rings may only import what their ring allows, arrows point inward only.
+Current product contracts and maintenance priorities live in [PROJECT.md](PROJECT.md).
 
 ## The map
 
 ```
 Sources/Whisk/
-├── Entities/               History · ClipboardItem · Payload · SourceApp · HistoryCapacity
+├── Entities/               History · ClipboardItem · Payload · BinaryContent · SplitContent · PinnedMetadata
 ├── UseCases/               CaptureClipboardChange · SelectItem · FilterHistory ·
 │   └── Ports/              TogglePin · DeleteItem · ClearHistory · LoadHistory · EnforceRetention
-│                           Pasteboard · HistoryStore · Clock · Logger  (Foundation only)
+│                           Pasteboard · HistoryStore · SharingDetector · Clock · Logger  (Foundation only)
 ├── Adapters/
 │   ├── Controllers/        ClipboardController                     (Foundation only)
 │   ├── Presenters/         HistoryPresenter · HistoryViewState     (Foundation only)
 │   └── Gateways/           SQLiteHistoryStore · LegacyJSONHistory · VolatileHistoryStore ·
-│                           AppKitPasteboard · ConsoleLogger        (Foundation + AppKit + SQLite3)
+│                           AppKitPasteboard · ConsoleLogger        (Foundation + AppKit + SQLite3 + CryptoKit)
 ├── Components/             Reusable SwiftUI views and modifiers used by this app
 └── App/                    frameworks & drivers + composition root (anything goes)
     ├── Composition/        AppIdentity · Distribution · PanelWiring
-    ├── Panel/              PanelController · PanelLayout · PanelKeyRouter · HotKey · SplitSession
+    ├── Panel/              PanelController · PanelLayout · PanelKeyRouter · PanelActions ·
+    │                       HistoryViewStateStore · HotKey · SplitSession
     ├── Settings/           AppearanceSettings · GeneralSettings · SettingsPage ·
     │                       KeyBindings · VimBindings · LegalDocuments
     ├── Privacy/            PrivacyController · SensitiveSessionStore · SharingMonitor
@@ -48,6 +50,9 @@ Sources/Whisk/
      `ClipboardController` receives the gateways, builds the use cases,
      owns the current `History`, search query and keyboard selection, and
      reports storage failures to the `Logger` without killing the session.
+     `pollTick` submits one callback-based pasteboard read at a time; a
+     paused session consumes the change without recording it. Tests use the
+     same polling path with scripted or delayed port implementations.
    - *Presenters*: pure entity → view-state mapping. `HistoryPresenter`
      decides every display string and symbol (kind labels, relative
      times, the empty-state sentence, chip icons, hex-color detection,
@@ -61,6 +66,9 @@ Sources/Whisk/
      session alive when no database can be opened; `AppKitPasteboard`
      owns the NSPasteboard boundary; `ConsoleLogger` writes to the
      unified log. This is the only ring folder allowed to import AppKit.
+     SQLite uses CryptoKit to identify immutable image/RTF revisions. List
+     loads return deferred `BinaryContent` references; explicit full loads
+     and content operations may materialize their bytes.
 3. **Frameworks & drivers (`Components/` and `App/`).** `Components/` holds
    small reusable SwiftUI pieces that the app actually uses. The private
    PetaToolKit and PetaKitUIX packages are not dependencies. `App/` holds
@@ -69,13 +77,18 @@ Sources/Whisk/
    the floating `NSPanel`, the menu bar item, the polling `Timer`, the
    Carbon hot key, paste simulation. `HistoryStorage` opens the database,
    reads it once before trusting it, sets an unreadable one aside, falls
-   back to memory, and imports the legacy history. Two pieces of this
-   ring hold rules rather than wiring and are kept apart so they can be
-   tested: `PanelWiring` builds the panel's action table (which actions
+   back to memory, imports legacy history and passes the validated list to
+   the controller without reading it again. `PanelActions` defines the
+   view-facing action table and its privacy guard in its own file;
+   `HistoryViewStateStore` owns observable UI state and drafts. Two other
+   pieces hold rules rather than wiring and remain independently testable:
+   `PanelWiring` builds the panel's action table (which actions
    flush the search debounce, which close and paste), and `PanelKeyRouter`
    turns key presses into actions — vim's normal mode, the user's
-   bindings, ⌘digits. `AppDelegate` only assembles. Async lives here and
-   only here.
+   bindings, ⌘digits. `AppDelegate` assembles dependencies and lifecycles.
+   Worker queues and framework tasks live in the gateways and frameworks
+   ring; the controller coordinates callbacks through its Foundation-only
+   port. Kernel mutations remain synchronous.
 
 ## Invariants
 
@@ -87,10 +100,16 @@ Sources/Whisk/
   is logged and the in-memory history keeps working; a corrupt persisted
   entry is skipped, never fatal; a database that will not open is set
   aside and the session runs in memory rather than refusing to launch.
-- **Opaque bytes cross seams.** The kernel and the view state carry image
-  payloads as `Data`. The pasteboard gateway owns PNG normalization; the
-  SQLite gateway owns the schema and pins dates to whole milliseconds so a
-  saved history loads back identically.
+- **Deferred opaque content crosses seams.** Captures initially carry `Data`;
+  persisted history, undo and view state hold immutable `BinaryContent` /
+  `StoredBytes` references. Filtering, grouping and list presentation do not
+  hydrate originals. Mounted previews and explicit exports read them on
+  demand. The pasteboard gateway owns PNG normalization; SQLite owns the
+  schema, byte integrity checks and dates pinned to whole milliseconds.
+- **Content lifetimes are bounded.** Panel teardown and privacy changes
+  invalidate requests and release preview/original caches. Sensitive sessions
+  stay outside normal history, SQLite, undo and preview caches. Test-only
+  observability of cache counts and released hosts is intentional.
 
 ## Tests
 

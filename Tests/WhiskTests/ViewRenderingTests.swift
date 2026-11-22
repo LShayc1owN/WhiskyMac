@@ -125,22 +125,20 @@ enum ViewFixtures {
 
 @MainActor
 @Suite struct CardRendering {
-    @Test func oversized_size_preview_keeps_its_actual_dimensions_in_a_bounded_viewport() async throws {
-        let window = hostOffscreen(CardSizePreviewViewport(side: 1000), 332, 336)
+    @Test func inline_size_preview_keeps_the_actual_card_dimensions() async throws {
+        let window = hostOffscreen(CardSizePreviewViewport(side: 500), 332, 516)
         defer { window.close() }
         let host = try #require(window.contentView)
         try await Task.sleep(for: .milliseconds(350))
         host.layoutSubtreeIfNeeded()
         let scroll = try #require(firstScrollView(in: host))
         let document = try #require(scroll.documentView)
-        #expect(document.frame.width >= 1000)
-        #expect(document.frame.height >= 1000)
-        #expect(scroll.contentView.bounds.width <= 332)
-        #expect(scroll.contentView.bounds.height <= 336)
-        scroll.contentView.scroll(to: NSPoint(x: 500, y: 500))
+        #expect(document.frame.width >= 500)
+        #expect(document.frame.height >= 500)
+        #expect(host.bounds.height == 516)
+        scroll.contentView.scroll(to: NSPoint(x: 100, y: 0))
         scroll.reflectScrolledClipView(scroll.contentView)
-        #expect(scroll.contentView.bounds.minX >= 500)
-        #expect(scroll.contentView.bounds.minY >= 500)
+        #expect(scroll.contentView.bounds.minX >= 100)
     }
 
     @Test func grouped_cards_keep_their_rail_slot_and_reuse_the_front_glass() throws {
@@ -220,7 +218,7 @@ enum ViewFixtures {
         let window = hostOffscreen(ViewFixtures.card(state.cards[0]), 210, 210)
         #expect(window.contentView != nil)
 
-        for side in CardSize.allCases.map(\.side) + [183.5] {
+        for side in [CGFloat(160), 200, 250, 183.5] {
             let sized = ItemCardView(card: state.cards[0], actions: ViewFixtures.spy.actions, side: side)
             #expect(render(sized, side * 1.05, side * 1.05) != nil, "card at \(side)")
         }
@@ -254,10 +252,10 @@ enum ViewFixtures {
         ViewFixtures.seedPreviews()
         let files = try #require(ViewFixtures.state().cards.last)
         #expect(files.kindLabel == localized("files"))
-        for size in CardSize.allCases {
-            let sized = ItemCardView(card: files, actions: ViewFixtures.spy.actions, side: size.side)
-            #expect(render(sized, size.side * 1.05, size.side * 1.05) != nil, "files card at \(size)")
-            #expect(hostOffscreen(sized, size.side * 1.05, size.side * 1.05).contentView != nil)
+        for side in [CGFloat(160), 200, 250] {
+            let sized = ItemCardView(card: files, actions: ViewFixtures.spy.actions, side: side)
+            #expect(render(sized, side * 1.05, side * 1.05) != nil, "files card at \(side)")
+            #expect(hostOffscreen(sized, side * 1.05, side * 1.05).contentView != nil)
         }
     }
 
@@ -497,12 +495,12 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
         #expect(render(panel(store), 1200, 430) != nil)
 
         store.update(ViewFixtures.longState())
-        store.configureCards(side: CardSize.large.side)
+        store.configureCards(side: 250)
         #expect(render(panel(store), 1200, 480) != nil)
-        store.configureCards(side: CardSize.small.side)
+        store.configureCards(side: 160)
         #expect(render(panel(store), 1200, 390) != nil)
 
-        store.configureCards(side: CardSize.medium.side)
+        store.configureCards(side: 200)
         store.update(ViewFixtures.state())
         store.beginEditing(store.state.cards[0])
         #expect(store.editing != nil)
@@ -592,18 +590,6 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
 
 @MainActor
 @Suite struct WindowsRendering {
-    @Test func the_onboarding_renders() {
-        _ = NSApplication.shared
-
-        #expect(render(OnboardingView(toggleShortcut: "⇧⌘V", shortcutEnabled: false, onContinue: {}), 440, 420) != nil)
-        #expect(
-            render(
-                OnboardingView(
-                    toggleShortcut: "⇧⌘V", shortcutEnabled: false, clipboardAccess: .requiresConsent,
-                    onContinue: {}), 440, 460)
-                != nil)
-    }
-
     @Test func the_settings_render_with_vim_off_then_on_with_duplicates_recording_and_exclusions() throws {
         let sandbox = try IsolatedDefaults()
         let bindings = KeyBindingsStore(defaults: sandbox.defaults)
@@ -630,11 +616,11 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
         #expect(render(storeBuild, 560, 720) != nil)
     }
 
-    @Test func the_blur_veil_and_the_glass_surfaces_take_a_window() {
+    @Test func the_blur_veil_and_native_materials_take_a_window() throws {
         let veil = hostOffscreen(GradientBlurVeil(), 800, 430)
-        let glass = hostOffscreen(
-            Text("glass").padding().frostedSurface(in: Capsule()).padding().frostedSurface(
-                in: RoundedRectangle(cornerRadius: 12), cornerRadius: 12, tint: .red), 300, 120)
+        let material = hostOffscreen(
+            Text("material").padding().background(NativeMaterialBackground(material: .underWindowBackground))
+                .padding().background(NativeMaterialBackground(cornerRadius: 12)), 300, 120)
         let settingsSurface = hostOffscreen(
             Text("Settings").padding().settingsSurface(
                 in: RoundedRectangle(cornerRadius: SettingsSurface.groupCornerRadius, style: .continuous)),
@@ -645,10 +631,18 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
             300, 120)
 
         #expect(veil.contentView != nil)
-        #expect(glass.contentView != nil)
+        let host = try #require(material.contentView)
+        pump(host)
+        func collectBackdrops(_ view: NSView) -> [BackdropView] {
+            (view as? BackdropView).map { [$0] } ?? view.subviews.flatMap(collectBackdrops)
+        }
+        let backdrops = collectBackdrops(host)
+        #expect(backdrops.count == 2)
+        #expect(Set(backdrops.map(\.material)) == [.hudWindow, .underWindowBackground])
+        #expect(backdrops.allSatisfy { $0.blendingMode == .behindWindow && $0.state == .active })
+        #expect(backdrops.allSatisfy { $0.maskImage != nil && $0.layer?.borderWidth == 0 })
         #expect(settingsSurface.contentView != nil)
         #expect(reducedGlass.contentView != nil)
-        #expect(BackdropView().material == .appearanceBased)
     }
 
     @Test func the_settings_window_is_transparent_with_full_size_glass_content() {

@@ -9,6 +9,30 @@ import QuickLookThumbnailing
 /// File providers and Icon Services may block even before Quick Look starts.
 /// Never call them from SwiftUI layout, request submission or cancellation.
 final class FileThumbnailWorker: @unchecked Sendable {
+    struct Version: Equatable {
+        let device: dev_t
+        let inode: ino_t
+        let bytes: off_t
+        let seconds: Int
+        let nanoseconds: Int
+
+        init?(_ path: String) {
+            var info = stat()
+            guard stat(path, &info) == 0 else { return nil }
+            device = info.st_dev
+            inode = info.st_ino
+            bytes = info.st_size
+            seconds = info.st_mtimespec.tv_sec
+            nanoseconds = info.st_mtimespec.tv_nsec
+        }
+    }
+
+    enum Result {
+        case unchanged
+        case icon(CGImage?)
+        case thumbnail(CGImage?, Version?)
+    }
+
     typealias Generator = (String, @escaping (CGImage?) -> Void) -> () -> Void
     static let shared = FileThumbnailWorker()
     private static let cancellationQueue: OperationQueue = {
@@ -75,19 +99,25 @@ final class FileThumbnailWorker: @unchecked Sendable {
         self.generate = generate
     }
 
-    func start(_ path: String, deliver: @escaping (CGImage?, Bool) -> Void) -> Ticket {
+    func start(_ path: String, cachedVersion: Version?, deliver: @escaping (Result) -> Void) -> Ticket {
         let ticket = Ticket()
         let operation = BlockOperation { [icon, generate] in
             autoreleasepool {
                 guard !ticket.isCancelled else { return }
+                let version = Version(path)
+                if let version, version == cachedVersion {
+                    deliver(.unchanged)
+                    ticket.finish()
+                    return
+                }
                 let image = icon(path)
                 guard !ticket.isCancelled else { return }
-                deliver(image, false)
+                deliver(.icon(image))
                 guard !ticket.isCancelled else { return }
                 let cancel = generate(path) { image in
                     defer { ticket.finish() }
                     guard !ticket.isCancelled else { return }
-                    deliver(image, true)
+                    deliver(.thumbnail(image, version))
                 }
                 ticket.attachCancellation(cancel)
             }

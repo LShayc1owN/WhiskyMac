@@ -54,9 +54,6 @@ enum HistoryStorage {
     static let legacyIndexName = "history.json"
     static let retiredSuffix = ".migrated"
 
-    /// A test build can use its own synthetic data directory.
-    static let directoryOverride = AppIdentity.dataDirectoryOverride
-
     /// The May development directory, unless a dedicated test path is set.
     static func defaultDirectory(
         fileManager: FileManager = .default,
@@ -68,7 +65,7 @@ enum HistoryStorage {
     static func open(
         in directory: URL,
         fileManager: FileManager = .default,
-        log: (String) -> Void = { NSLog("Whisk: %@", $0) }
+        log: (DiagnosticEvent) -> Void = { ConsoleLogger().log($0) }
     ) -> AnyHistoryStore {
         openAndLoad(in: directory, fileManager: fileManager, log: log).store
     }
@@ -77,19 +74,19 @@ enum HistoryStorage {
         in directory: URL,
         fileManager: FileManager = .default,
         makeStore: (URL) throws -> AnyHistoryStore = { AnyHistoryStore(try SQLiteHistoryStore(databaseURL: $0)) },
-        log: (String) -> Void = { NSLog("Whisk: %@", $0) }
+        log: (DiagnosticEvent) -> Void = { ConsoleLogger().log($0) }
     ) -> OpenedHistory {
         let databaseURL = directory.appendingPathComponent(databaseName)
         let opened: OpenedHistory
         do {
             opened = try openReadable(databaseURL, makeStore: makeStore)
         } catch {
-            log("cannot read \(databaseName) — \(error); setting it aside")
+            log(.historyDatabaseSetAside)
             setAside(databaseURL, fileManager: fileManager)
             do {
                 opened = try openReadable(databaseURL, makeStore: makeStore)
             } catch {
-                log("cannot create a fresh \(databaseName) — \(error); history will not be saved this session")
+                log(.historyDatabaseCreateFailed)
                 return OpenedHistory(store: AnyHistoryStore(VolatileHistoryStore()), items: [])
             }
         }
@@ -111,7 +108,7 @@ enum HistoryStorage {
     /// only once the import is stored: a failed import leaves them in
     /// place, so the next launch tries again instead of starting empty.
     private static func importLegacyHistory(
-        in directory: URL, into opened: OpenedHistory, fileManager: FileManager, log: (String) -> Void
+        in directory: URL, into opened: OpenedHistory, fileManager: FileManager, log: (DiagnosticEvent) -> Void
     ) -> OpenedHistory {
         let legacyIndex = directory.appendingPathComponent(legacyIndexName)
         guard fileManager.fileExists(atPath: legacyIndex.path) else { return opened }
@@ -125,7 +122,7 @@ enum HistoryStorage {
             try opened.store.save(merged)
             compacted = try opened.store.compact(merged)
         } catch {
-            log("legacy history not imported — \(error); it stays in place for the next launch")
+            log(.legacyHistoryImportFailed)
             return opened
         }
         do {
@@ -136,7 +133,7 @@ enum HistoryStorage {
                 try fileManager.removeItem(at: blobs)
             }
         } catch {
-            log("legacy history imported but not retired — \(error)")
+            log(.legacyHistoryRetireFailed)
         }
         return OpenedHistory(store: opened.store, items: compacted)
     }

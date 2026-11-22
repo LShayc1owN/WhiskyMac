@@ -142,7 +142,7 @@ import Testing
         #expect(state.filters.apps.first?.icon == nil)
         #expect(
             state.filters.kinds.map(\.icon) == [
-                .resource("nvim", fallback: "chevron.left.forwardslash.chevron.right"), .symbol("photo"),
+                .symbol("chevron.left.forwardslash.chevron.right"), .symbol("photo"),
             ])
     }
 

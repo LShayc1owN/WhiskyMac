@@ -295,6 +295,7 @@ final class IsolatedDefaults {
         #expect(!store.checkForUpdates)
         #expect(!store.vimNavigation)
         #expect(!store.linkPreviews)
+        #expect(!store.lightweightMode)
         #expect(store.cardSide == 200)
         #expect(store.excludedApps.isEmpty)
         #expect(store.policy == .standard)
@@ -321,6 +322,7 @@ final class IsolatedDefaults {
         first.checkForUpdates = false
         first.vimNavigation = true
         first.linkPreviews = false
+        first.lightweightMode = true
         first.setCardSide(217.5)
         first.excludedApps = [ExcludedApp(bundleID: "com.apple.keychainaccess", name: "Keychain Access")]
 
@@ -331,6 +333,9 @@ final class IsolatedDefaults {
         #expect(!second.checkForUpdates)
         #expect(second.vimNavigation)
         #expect(!second.linkPreviews)
+        #expect(second.lightweightMode)
+        second.lightweightMode = false
+        #expect(!GeneralSettingsStore(defaults: sandbox.defaults).lightweightMode)
         #expect(second.cardSide == 217.5)
         #expect(second.excludedBundleIDs == ["com.apple.keychainaccess"])
     }
@@ -346,15 +351,13 @@ final class IsolatedDefaults {
         #expect(logger.messages.count == 1)
     }
 
-    @Test func card_sizes_grow_in_order_and_label_themselves() {
-        let sides = CardSize.allCases.map(\.side)
-        let labels = CardSize.allCases.map(\.label)
-
-        #expect(sides == sides.sorted())
-        #expect(Set(sides).count == sides.count)
-        #expect(CardSize.medium.side == 200)
-        #expect(Set(labels).count == labels.count)
-        #expect(CardSize.allCases.map(\.id) == CardSize.allCases.map(\.rawValue))
+    @Test(arguments: zip(["small", "medium", "large", "unknown"], [160.0, 200, 250, 200]))
+    func older_card_size_presets_load_without_overriding_a_saved_continuous_size(preset: String, side: Double) throws {
+        let sandbox = try IsolatedDefaults()
+        sandbox.defaults.set(preset, forKey: "cardSize")
+        #expect(GeneralSettingsStore(defaults: sandbox.defaults).cardSide == side)
+        sandbox.defaults.set(217.5, forKey: "cardSide")
+        #expect(GeneralSettingsStore(defaults: sandbox.defaults).cardSide == 217.5)
     }
 
     @Test func continuous_card_size_loads_older_presets_and_bounds_invalid_values() throws {
@@ -381,31 +384,40 @@ final class IsolatedDefaults {
         #expect(GeneralSettingsStore(defaults: sandbox.defaults).cardSide == 500)
     }
 
-    @Test func card_size_preview_only_persists_after_save_and_can_restore_default() throws {
+    @Test func size_drafts_only_persist_after_save_and_restore_the_last_saved_value() throws {
         let sandbox = try IsolatedDefaults()
         let settings = GeneralSettingsStore(defaults: sandbox.defaults)
-        settings.beginCardSizePreview(237.25)
+        var cardDraft = SizeSettingDraft(proposedValue: 237.25)
+        var tagDraft = SizeSettingDraft(proposedValue: 1.5)
         #expect(sandbox.defaults.object(forKey: "cardSide") == nil)
-        settings.cancelCardSizePreview()
-        #expect(settings.effectiveCardSide == GeneralSettingsStore.defaultCardSide)
-        settings.setCardSide(217.5)
+        #expect(sandbox.defaults.object(forKey: "filterTagScale") == nil)
+        #expect(cardDraft.hasChanges(saved: settings.cardSide))
+        cardDraft.revert()
+        #expect(cardDraft.value(saved: settings.cardSide) == 200)
+        #expect(!cardDraft.hasChanges(saved: settings.cardSide))
+        cardDraft.proposedValue = 500
+        cardDraft.save(using: settings.setCardSide)
+        tagDraft.save(using: settings.setFilterTagScale)
+        let restored = GeneralSettingsStore(defaults: sandbox.defaults)
+        #expect(restored.cardSide == 500 && restored.filterTagScale == 1.5)
+        cardDraft.proposedValue = 300
+        cardDraft.revert()
+        #expect(cardDraft.value(saved: settings.cardSide) == 500)
+        tagDraft.proposedValue = GeneralSettingsStore.defaultFilterTagScale
+        tagDraft.save(using: settings.setFilterTagScale)
+        #expect(GeneralSettingsStore(defaults: sandbox.defaults).filterTagScale == 1)
+    }
 
-        settings.beginCardSizePreview(1000)
-        #expect(settings.effectiveCardSide == 500)
-        #expect(settings.cardSide == 217.5)
-        #expect(GeneralSettingsStore(defaults: sandbox.defaults).cardSide == 217.5)
-
-        settings.cancelCardSizePreview()
-        #expect(settings.effectiveCardSide == 217.5)
-        settings.beginCardSizePreview(1000)
-        settings.saveCardSizePreview()
-        #expect(settings.cardSide == 500)
-        #expect(GeneralSettingsStore(defaults: sandbox.defaults).cardSide == 500)
-
-        settings.beginCardSizePreview(GeneralSettingsStore.defaultCardSide)
-        settings.saveCardSizePreview()
-        #expect(settings.cardSide == GeneralSettingsStore.defaultCardSide)
-        #expect(GeneralSettingsStore(defaults: sandbox.defaults).cardSide == GeneralSettingsStore.defaultCardSide)
+    @Test func filter_tag_size_defaults_and_invalid_values_are_bounded() throws {
+        let sandbox = try IsolatedDefaults()
+        let settings = GeneralSettingsStore(defaults: sandbox.defaults)
+        #expect(settings.filterTagScale == 1)
+        settings.setFilterTagScale(0.1)
+        #expect(settings.filterTagScale == 0.75)
+        settings.setFilterTagScale(4)
+        #expect(GeneralSettingsStore(defaults: sandbox.defaults).filterTagScale == 2)
+        settings.setFilterTagScale(.nan)
+        #expect(settings.filterTagScale == 1)
     }
 
     @Test func retention_periods_and_excluded_apps_identify_and_label_themselves() {

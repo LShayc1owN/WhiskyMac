@@ -23,7 +23,7 @@ enum SaveToDisk {
 
     /// Runs the save panel and writes the card; the panel needs the app in
     /// front, which the non-activating history panel never is.
-    static func present(_ payload: DragPayload) {
+    static func present(_ payload: DragPayload, logger: any Logger = ConsoleLogger()) {
         guard let proposal = proposal(for: payload) else { return }
         NSApp.activate(ignoringOtherApps: true)
         let panel = NSSavePanel()
@@ -33,7 +33,7 @@ enum SaveToDisk {
         do {
             try proposal.data.write(to: url, options: .atomic)
         } catch {
-            ConsoleLogger().log("could not save the card — \(error)")
+            logger.log(.cardExportFailed)
         }
     }
 }

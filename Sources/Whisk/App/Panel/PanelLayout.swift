@@ -14,11 +14,15 @@ struct PanelLayout: Equatable {
 
     let panel: CGRect
     let preview: CGRect
+    static let contentMargin: CGFloat = 16
+    static let railVerticalPadding: CGFloat = 8
+    static let contentSpacing: CGFloat = 6
+    static let bottomPadding = contentMargin - railVerticalPadding
 
-    /// The chrome above and below the rail is constant; the card decides
-    /// the rest. 430 points for the medium card, as the panel always was.
-    static func panelHeight(forCardSide side: CGFloat) -> CGFloat {
-        side + 230
+    /// Add the tag row's actual growth to the original panel chrome.
+    static func panelHeight(forCardSide side: CGFloat, tagScale: Double = 1) -> CGFloat {
+        (side + 230 + FilterTagMetrics(scale: tagScale).totalRowHeight
+            - (FilterTagMetrics.originalRowHeight + 6)).rounded(.up)
     }
 
     /// The panel's top band is empty backdrop, so the blur veil begins
@@ -36,7 +40,7 @@ struct PanelLayout: Equatable {
     /// screen's side edges.
     static let previewMargin: CGFloat = 16
 
-    init(screen: Screen, cardSide: CGFloat) {
+    init(screen: Screen, cardSide: CGFloat, tagScale: Double = 1) {
         let frame = screen.frame
         let ceiling = min(screen.visibleFrame.maxY, frame.maxY - screen.notchHeight) - Self.previewMargin
         // The full frame, not visibleFrame: the panel floats above the
@@ -44,7 +48,7 @@ struct PanelLayout: Equatable {
         // cards scroll inside the panel instead of pushing its controls offscreen.
         panel = CGRect(
             x: frame.minX, y: frame.minY, width: frame.width,
-            height: min(Self.panelHeight(forCardSide: cardSide), max(0, ceiling - frame.minY)))
+            height: min(Self.panelHeight(forCardSide: cardSide, tagScale: tagScale), max(0, ceiling - frame.minY)))
 
         // The room is what lies between the panel and the menu bar — or
         // the notch, which a hidden menu bar leaves behind.

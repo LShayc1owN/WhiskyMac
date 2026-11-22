@@ -3,136 +3,215 @@ import Testing
 
 @testable import Whisk
 
-@Suite struct UpdateCheckParsing {
-    private func response(_ status: Int) throws -> HTTPURLResponse {
-        let url = try #require(URL(string: "https://api.github.com/repos/nathan-poncet/whisk/releases/latest"))
-        return try #require(HTTPURLResponse(url: url, statusCode: status, httpVersion: nil, headerFields: nil))
-    }
-
-    @Test func a_release_tag_yields_its_version_without_the_v() throws {
-        let tagged = Data(#"{"tag_name": "v0.9.1", "name": "0.9.1"}"#.utf8)
-        let bare = Data(#"{"tag_name": "1.2.3"}"#.utf8)
-
-        #expect(UpdateChecker.latestVersion(data: tagged, response: try response(200), error: nil) == .success("0.9.1"))
-        #expect(UpdateChecker.latestVersion(data: bare, response: nil, error: nil) == .success("1.2.3"))
-    }
-
-    @Test func a_rate_limited_reply_is_a_failure_not_an_up_to_date() throws {
-        let body = Data(#"{"message": "API rate limit exceeded"}"#.utf8)
-
-        let outcome = UpdateChecker.latestVersion(data: body, response: try response(403), error: nil)
-
-        #expect(outcome == .failure(.rejected(status: 403)))
-    }
-
-    @Test func a_transport_error_and_a_malformed_body_are_told_apart() throws {
-        let offline = URLError(.notConnectedToInternet)
-
-        #expect(
-            UpdateChecker.latestVersion(data: nil, response: nil, error: offline)
-                == .failure(.transport(offline.localizedDescription)))
-        #expect(
-            UpdateChecker.latestVersion(data: Data("<html>".utf8), response: try response(200), error: nil)
-                == .failure(.malformed))
-        #expect(UpdateChecker.latestVersion(data: nil, response: try response(200), error: nil) == .failure(.malformed))
-    }
-}
-
 @MainActor
-@Suite struct UpdateCheckFlow {
-    private func reply(_ status: Int, _ body: String) -> UpdateChecker.Fetch {
-        { url, completion in
-            let response = HTTPURLResponse(url: url, statusCode: status, httpVersion: nil, headerFields: nil)
-            completion(Data(body.utf8), response, nil)
+@Suite struct UpdateCheckerTests {
+    private final class Feed {
+        struct Request {
+            let url: URL
+            let completion: (Data?, URLResponse?, Error?) -> Void
+        }
+        var requests: [Request] = []
+
+        func fetch(_ url: URL, completion: @escaping (Data?, URLResponse?, Error?) -> Void) {
+            requests.append(Request(url: url, completion: completion))
+        }
+
+        func reply(
+            to index: Int, status: Int = 200, body: String = "[]", next: String? = nil, error: Error? = nil
+        ) async throws {
+            try #require(requests.indices.contains(index))
+            let request = requests[index]
+            let headers = next.map { ["Link": "<\($0)>; rel=\"next\""] }
+            let response = HTTPURLResponse(
+                url: request.url, statusCode: status, httpVersion: nil, headerFields: headers)
+            request.completion(Data(body.utf8), response, error)
+            await withCheckedContinuation { continuation in
+                DispatchQueue.main.async { continuation.resume() }
+            }
         }
     }
 
-    private func settle(_ checker: UpdateChecker) async {
-        for _ in 0..<20 where checker.availableVersion == nil {
-            await Task.yield()
+    @Test func installed_versions_use_numeric_beta_order_and_stable_wins_at_equal_core() {
+        #expect(UpdateChecker.isNewer("v1.2.0-beta.10", than: "1.2.0beta2"))
+        #expect(UpdateChecker.isNewer("V1.2.0-BETA-2", than: "1.2.0-beta"))
+        #expect(UpdateChecker.isNewer("1.2.0", than: "1.2.0beta10"))
+        #expect(UpdateChecker.isNewer("1.3.0-beta.1", than: "1.2.9"))
+        #expect(!UpdateChecker.isNewer("1.2.0-beta.1", than: "1.2.0"))
+        #expect(!UpdateChecker.isNewer("1.2.0", than: "v1.2"))
+        #expect(!UpdateChecker.isNewer("1.2.0beta2", than: "1.2-beta.2"))
+        for invalid in [
+            "", "1.x.3", "1.2..3", "1.2+build", "1.2.0-rc.1", "1.2.0-beta.", "1.2.0-beta.99999999999999999999999",
+        ] {
+            #expect(!UpdateChecker.isNewer(invalid, than: "0.1.0"))
         }
     }
 
-    @Test func a_newer_release_becomes_available_after_the_check() async {
-        let checker = UpdateChecker(
-            currentVersion: "0.8.0", fetch: reply(200, #"{"tag_name": "v9.9.9"}"#), logger: RecordingLogger())
-
+    @Test func beta_selection_filters_drafts_invalid_tags_and_mislabeled_releases() async throws {
+        let sandbox = try IsolatedDefaults()
+        let feed = Feed()
+        let checker = UpdateChecker(currentVersion: "1.1.0", fetch: feed.fetch, defaults: sandbox.defaults)
+        #expect(checker.channel == .release)
+        checker.setChannel(.beta)
+        #expect(feed.requests.isEmpty)
+        #expect(UpdateChecker(defaults: sandbox.defaults).channel == .beta)
         checker.checkNow()
-        await settle(checker)
-
-        #expect(checker.availableVersion == "9.9.9")
+        try await feed.reply(
+            to: 0,
+            body: """
+                [
+                  {"tag_name":"v2.1.0","prerelease":false},
+                  {"tag_name":"v1.2.0-beta.10","prerelease":true,"html_url":"https://other.example/file"},
+                  {"tag_name":"v9.0.0-beta.1","prerelease":true,"draft":true},
+                  {"tag_name":"v1.2.0-beta.2","prerelease":true},
+                  {"tag_name":"v8.0.0-beta.1","prerelease":false},
+                  {"tag_name":"v8.0.0","prerelease":true},
+                  {"tag_name":"v8.0.0-rc.1","prerelease":true},
+                  {"tag_name":5,"prerelease":true}
+                ]
+                """)
+        #expect(feed.requests.first?.url.path == "/repos/LShayc1owN/WhiskyMac/releases")
+        #expect(checker.availableRelease?.version == "1.2.0-beta.10")
+        #expect(
+            checker.availableRelease?.page.absoluteString
+                == "https://github.com/LShayc1owN/WhiskyMac/releases/tag/v1.2.0-beta.10")
     }
 
-    @Test func an_older_or_equal_release_is_not_offered() async {
-        let checker = UpdateChecker(
-            currentVersion: "0.8.0", fetch: reply(200, #"{"tag_name": "v0.8.0"}"#), logger: RecordingLogger())
-
+    @Test func both_channels_use_the_highest_version_across_all_pages() async throws {
+        let sandbox = try IsolatedDefaults()
+        let feed = Feed()
+        let checker = UpdateChecker(currentVersion: "1.1.0-beta.6", fetch: feed.fetch, defaults: sandbox.defaults)
+        checker.setChannel(.all)
         checker.checkNow()
-        await settle(checker)
-
-        #expect(checker.availableVersion == nil)
+        try await feed.reply(
+            to: 0, body: #"[{"tag_name":"v1.2.0-beta.2","prerelease":true}]"#,
+            next: "https://api.github.com/repositories/123/releases?per_page=100&page=2")
+        #expect(checker.state == .checking)
+        #expect(feed.requests.last?.url.path == "/repos/LShayc1owN/WhiskyMac/releases")
+        #expect(feed.requests.last?.url.query?.contains("page=2") == true)
+        try await feed.reply(to: 1, body: #"[{"tag_name":"v1.2.0"},{"tag_name":"v1.1.0-beta.9","prerelease":true}]"#)
+        #expect(checker.availableRelease?.version == "1.2.0")
+        checker.checkNow()
+        try await feed.reply(to: 2, body: #"[{"tag_name":"v1.3.0beta1","prerelease":true},{"tag_name":"v1.2.0"}]"#)
+        #expect(checker.availableRelease?.version == "1.3.0beta1")
     }
 
-    @Test func a_failed_check_is_logged_and_offers_nothing() async {
+    @Test func switching_back_to_release_waits_for_stable_without_offering_a_downgrade() async throws {
+        let sandbox = try IsolatedDefaults()
+        let feed = Feed()
+        let checker = UpdateChecker(currentVersion: "1.2.0-beta.2", fetch: feed.fetch, defaults: sandbox.defaults)
+        #expect(checker.canCheckForUpdates)
+        checker.setChannel(.all)
+        checker.checkNow()
+        try await feed.reply(to: 0, body: #"[{"tag_name":"v1.2.0-beta.3","prerelease":true}]"#)
+        #expect(checker.availableRelease != nil)
+
+        checker.setChannel(.release)
+        #expect(checker.state == .idle && checker.availableRelease == nil)
+        checker.checkNow()
+        #expect(feed.requests.last?.url.path == "/repos/LShayc1owN/WhiskyMac/releases/latest")
+        try await feed.reply(to: 1, body: #"{"tag_name":"v1.1.0"}"#)
+        #expect(checker.state == .awaitingStable)
+        #expect(checker.availableRelease == nil)
+        checker.checkNow()
+        try await feed.reply(to: 2, body: #"{"tag_name":"v1.2.0"}"#)
+        #expect(checker.availableRelease?.version == "1.2.0")
+    }
+
+    @Test func empty_feed_is_distinct_from_invalid_or_failed_responses() async throws {
+        let sandbox = try IsolatedDefaults()
+        let feed = Feed()
         let logger = RecordingLogger()
-        let checker = UpdateChecker(currentVersion: "0.8.0", fetch: reply(403, "{}"), logger: logger)
-
-        checker.checkNow()
-        await settle(checker)
-
-        #expect(checker.availableVersion == nil)
-        #expect(logger.messages == ["update check failed — rejected(status: 403)"])
-    }
-
-    @Test func without_a_version_of_its_own_nothing_is_fetched() {
-        var fetched = 0
-        let checker = UpdateChecker(currentVersion: nil, fetch: { _, _ in fetched += 1 }, logger: RecordingLogger())
-
-        checker.checkNow()
-
-        #expect(fetched == 0)
-        #expect(UpdateChecker.releasesPage?.host == "github.com")
-    }
-}
-
-@MainActor
-@Suite struct WhiskyUpdateSources {
-    @Test func malformed_and_preview_versions_are_not_stable_updates() {
-        for tag in ["1.x.3", "1.2-beta", "1..2", "", "1.2+build"] {
-            #expect(!UpdateChecker.isNewer(tag, than: "0.1.0"))
-        }
-        let preview = Data(#"{"tag_name":"v2.0.0","prerelease":true}"#.utf8)
-        #expect(UpdateChecker.latestVersion(data: preview, response: nil, error: nil) == .failure(.malformed))
-        #expect(UpdateChecker.isNewer("v1.2.0", than: "1.1.9"))
-    }
-
-    @Test func fallback_and_launch_throttle_use_isolated_preferences() async throws {
-        let domain = "test.update.\(UUID().uuidString)"
-        let defaults = try #require(UserDefaults(suiteName: domain))
-        defer { defaults.removePersistentDomain(forName: domain) }
-        let backup = try #require(URL(string: "https://updates.example.test/latest.json"))
-        var urls: [URL] = []
         let checker = UpdateChecker(
-            currentVersion: "1.0.0",
-            fetch: { url, completion in
-                urls.append(url)
-                if url == backup {
-                    completion(Data(#"{"tag_name":"v2.0.0"}"#.utf8), nil, nil)
-                } else {
-                    completion(nil, nil, URLError(.notConnectedToInternet))
-                }
-            }, backupAPI: backup, defaults: defaults)
+            currentVersion: "1.2.0", fetch: feed.fetch, logger: logger, defaults: sandbox.defaults)
+        checker.setChannel(.beta)
+        checker.checkNow()
+        try await feed.reply(to: 0)
+        #expect(checker.state == .noEligibleRelease && logger.messages.isEmpty)
+        checker.checkNow()
+        try await feed.reply(to: 1, status: 403)
+        #expect(checker.state == .failed && checker.availableRelease == nil)
+        #expect(logger.messages == [.updateHTTPRejected] && logger.statuses == [403])
+        checker.checkNow()
+        try await feed.reply(to: 2, body: "<html>")
+        #expect(logger.messages.last == .updateResponseInvalid)
+        checker.checkNow()
+        try await feed.reply(to: 3, error: URLError(.notConnectedToInternet))
+        #expect(logger.messages.last == .updateTransportFailed)
+        checker.setChannel(.release)
+        checker.checkNow()
+        try await feed.reply(to: 4, body: #"{"tag_name":"v1.2.0"}"#)
+        #expect(checker.state == .upToDate)
+    }
+
+    @Test func old_responses_cannot_replace_new_results_even_after_switching_back() async throws {
+        let sandbox = try IsolatedDefaults()
+        let feed = Feed()
+        let checker = UpdateChecker(currentVersion: "1.0.0", fetch: feed.fetch, defaults: sandbox.defaults)
+        checker.checkNow()
+        checker.setChannel(.beta)
+        checker.checkNow()
+        checker.setChannel(.release)
+        checker.checkNow()
+        try await feed.reply(to: 2, body: #"{"tag_name":"v2.0.0"}"#)
+        try await feed.reply(to: 0, body: #"{"tag_name":"v9.0.0"}"#)
+        try await feed.reply(
+            to: 1, body: #"[{"tag_name":"v9.0.0-beta.1","prerelease":true}]"#,
+            next: "https://api.github.com/repositories/123/releases?page=2")
+        #expect(feed.requests.count == 3)
+        #expect(checker.availableRelease?.version == "2.0.0")
+    }
+
+    @Test func fallback_restarts_a_partial_list_and_each_channel_has_its_own_launch_throttle() async throws {
+        let sandbox = try IsolatedDefaults()
+        let feed = Feed()
+        let stableBackup = try #require(URL(string: "https://updates.example.test/latest.json"))
+        let listBackup = try #require(URL(string: "https://updates.example.test/releases.json"))
+        let now = Date(timeIntervalSince1970: 1_700_000_000)
+        let checker = UpdateChecker(
+            currentVersion: "1.0.0", fetch: feed.fetch, backupAPI: stableBackup, backupReleasesAPI: listBackup,
+            defaults: sandbox.defaults, now: { now })
+        sandbox.defaults.set(now, forKey: "updateLastAttempt")
+        checker.checkNow(automatic: true)
+        #expect(feed.requests.isEmpty)
+
+        checker.setChannel(.beta)
         checker.checkNow(automatic: true)
         checker.checkNow()
-        for _ in 0..<100 where checker.state == .checking { await Task.yield() }
-        #expect(checker.state == .available("2.0.0"))
-        #expect(urls.count == 2)
-        #expect(urls.first?.path == "/repos/LShayc1owN/WhiskyMac/releases/latest")
+        #expect(feed.requests.count == 1)
+        try await feed.reply(
+            to: 0, body: #"[{"tag_name":"v9.0.0-beta.1","prerelease":true}]"#,
+            next: "https://api.github.com/repositories/123/releases?page=2")
+        try await feed.reply(to: 1, status: 503)
+        #expect(feed.requests.last?.url.host == listBackup.host)
+        #expect(feed.requests.last?.url.path == listBackup.path)
+        #expect(feed.requests.last?.url.query?.contains("page=1") == true)
+        try await feed.reply(to: 2, body: #"[{"tag_name":"v1.2.0-beta.1","prerelease":true}]"#)
+        #expect(checker.availableRelease?.version == "1.2.0-beta.1")
         checker.checkNow(automatic: true)
-        #expect(urls.count == 2)
+        #expect(feed.requests.count == 3)
+
+        checker.setChannel(.release)
+        checker.checkNow(automatic: true)
+        #expect(feed.requests.count == 3)
         checker.checkNow()
-        for _ in 0..<100 where checker.state == .checking { await Task.yield() }
-        #expect(urls.count == 4)
-        #expect(UpdateChecker.backupAPI == nil)
+        try await feed.reply(to: 3, error: URLError(.notConnectedToInternet))
+        #expect(feed.requests.last?.url == stableBackup)
+        try await feed.reply(to: 4, body: #"{"tag_name":"v1.2.0"}"#)
+        #expect(checker.availableRelease?.version == "1.2.0")
+        #expect(UpdateChecker.backupAPI == nil && UpdateChecker.backupReleasesAPI == nil)
+    }
+
+    @Test func app_store_and_builds_without_a_version_do_not_request_updates() throws {
+        let sandbox = try IsolatedDefaults()
+        let feed = Feed()
+        let appStore = UpdateChecker(
+            currentVersion: "1.0.0", fetch: feed.fetch, defaults: sandbox.defaults, distribution: .appStore)
+        let bare = UpdateChecker(currentVersion: nil, fetch: feed.fetch, defaults: sandbox.defaults)
+        #expect(!appStore.canCheckForUpdates && !bare.canCheckForUpdates)
+        appStore.setChannel(.all)
+        appStore.checkNow()
+        appStore.checkNow(automatic: true)
+        bare.checkNow()
+        #expect(feed.requests.isEmpty)
     }
 }

@@ -111,6 +111,7 @@ cat > "$APP/Contents/Info.plist" << PLIST
         <string>de</string>
         <string>it</string>
         <string>zh-Hans</string>
+        <string>zh-Hant</string>
     </array>
     <key>CFBundleName</key>
     <string>WhiskyMac</string>

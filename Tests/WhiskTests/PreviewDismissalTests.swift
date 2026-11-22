@@ -88,6 +88,43 @@ import Testing
         #expect(f.store.previewItems.isEmpty && f.store.previewOrigin == nil)
     }
 
+    @Test func menus_keep_the_preview_and_cancel_old_hover_work_until_they_close() throws {
+        let f = Fixture()
+        f.hover()
+        f.store.cardHoverChanged(f.items[0].id, inside: false)
+        let oldClose = try #require(f.scheduled.last?.1)
+        f.store.cardMenuOpen = true
+        oldClose.perform()
+        f.store.cardHoverChanged(f.items[1].id, inside: true)
+        f.store.hoverPreview(f.card(1), actions: f.spy.actions)
+        #expect(oldClose.isCancelled && f.opens == 1 && f.closes == 0)
+        #expect(f.store.previewOrigin == .hover(f.items[0].id))
+        #expect(f.store.previewItems.map(\.id) == [f.items[0].id])
+
+        f.store.cardMenuOpen = false
+        let newClose = try #require(f.scheduled.last?.1)
+        #expect(newClose !== oldClose && !newClose.isCancelled)
+        f.store.hoverPreview(f.card(1), actions: f.spy.actions)
+        newClose.perform()
+        #expect(f.opens == 2 && f.closes == 0)
+        #expect(f.store.previewItems.map(\.id) == [f.items[1].id])
+    }
+
+    @Test func an_explicit_preview_keeps_its_card_while_a_menu_is_open() {
+        let f = Fixture()
+        f.store.toggleExplicitPreview()
+        f.store.cardMenuOpen = true
+        f.store.update(HistoryPresenter().present(items: f.items, query: "", now: Date(), selectedID: f.items[1].id))
+        #expect(f.store.previewCard?.id == f.items[0].id)
+        #expect(f.store.previewItems.map(\.id) == [f.items[0].id])
+        f.store.cardHoverChanged(f.items[0].id, inside: false)
+        #expect(f.scheduled.isEmpty)
+        f.store.cardMenuOpen = false
+        #expect(f.store.previewOrigin == .explicit && f.closes == 0)
+        f.store.setPrivacy(true)
+        #expect(f.store.previewOrigin == nil && f.store.previewItems.isEmpty)
+    }
+
     @Test func reentering_cancels_the_close_and_a_later_exit_gets_a_new_delay() throws {
         let f = Fixture()
         f.hover()

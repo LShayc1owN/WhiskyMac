@@ -38,8 +38,28 @@ final class HistoryViewStateStore: ObservableObject {
     }
     @Published var isPinnedWorkspace = false
     @Published var isPinnedList = false
-    var pinMetadataEditing = false
-    var cardMenuOpen = false
+    @Published var pinMetadataEditing = false
+    @Published var cardMenuOpen = false {
+        didSet {
+            guard oldValue != cardMenuOpen else { return }
+            cancelPreviewClose()
+            if cardMenuOpen {
+                menuPreviewCard = previewVisible ? previewCard : nil
+            } else {
+                menuPreviewCard = nil
+                if previewVisible, !isProtected { preparePreview() }
+                if case .hover(let id) = previewOrigin {
+                    cardHoverChanged(id, inside: hoveredCards.contains(id))
+                }
+            }
+        }
+    }
+    enum HidingOptions {
+        case time, typeOrSource
+    }
+
+    @Published var historyHidingOptions: HidingOptions?
+    var historyHidingOptionsOpen: Bool { historyHidingOptions != nil }
     @Published private(set) var state: HistoryViewState = .empty
     @Published private(set) var appearanceRevision = 0
     func appearanceDidChange() { appearanceRevision += 1 }
@@ -67,19 +87,25 @@ final class HistoryViewStateStore: ObservableObject {
     @Published private(set) var privacyAllowsSearch = false
     @Published private(set) var privacyAllowsFiltering = false
     @Published private(set) var privacyAllowsAppFiltering = false
+    @Published private(set) var privacyAllowsHandoffFiltering = false
     @Published private(set) var privacyShowsSourceApps = false
     @Published private(set) var protectedQuery = ""
     var protectedSearch: ((String) -> Void)?
-    enum ProtectedFilterAction { case toggleApp(String), selectApp(String), toggleKind(String), reset }
+    enum ProtectedFilterAction {
+        case toggleApp(String), selectApp(String), toggleKind(String), selectKind(String), reset
+    }
     var protectedFilter: ((ProtectedFilterAction) -> Void)?
 
     var protectedFilters: FilterBarViewState {
-        guard isProtected, privacyAllowsFiltering || privacyAllowsAppFiltering else { return .empty }
+        guard isProtected, privacyAllowsFiltering || privacyAllowsAppFiltering || privacyAllowsHandoffFiltering else {
+            return .empty
+        }
         let filters = latestState.filters
         return FilterBarViewState(
             all: filters.all, pinned: privacyAllowsFiltering ? filters.pinned : [],
             apps: privacyAllowsAppFiltering ? filters.apps : [],
-            kinds: privacyAllowsFiltering ? filters.kinds : [], tags: privacyAllowsFiltering ? filters.tags : [])
+            kinds: privacyAllowsFiltering ? filters.kinds : [], tags: privacyAllowsFiltering ? filters.tags : [],
+            origins: privacyAllowsHandoffFiltering ? filters.origins : [])
     }
 
     func filterWhileProtected(_ action: ProtectedFilterAction) {
@@ -87,11 +113,10 @@ final class HistoryViewStateStore: ObservableObject {
         switch action {
         case .toggleApp(let key), .selectApp(let key):
             guard privacyAllowsAppFiltering, protectedFilters.apps.contains(where: { $0.id == key }) else { return }
-        case .toggleKind(let key):
+        case .toggleKind(let key), .selectKind(let key):
             let filters = protectedFilters
-            guard (filters.all + filters.pinned + filters.kinds + filters.tags).contains(where: { $0.id == key }) else {
-                return
-            }
+            let groups: [[FilterChip]] = [filters.all, filters.pinned, filters.origins, filters.kinds, filters.tags]
+            guard groups.joined().contains(where: { $0.id == key }) else { return }
         case .reset: return  // Reset is internal; user reset is the visible All chip.
         }
         protectedSearchDebounce.flush()
@@ -102,6 +127,7 @@ final class HistoryViewStateStore: ObservableObject {
     private var previewCloseWork: DispatchWorkItem?
     private var previewCloseGeneration = 0
     private var hoveredCards: Set<UUID> = []
+    private var menuPreviewCard: CardViewState?
     enum PreviewOrigin: Equatable { case hover(UUID), explicit }
     private(set) var previewOrigin: PreviewOrigin?
     static let hoverPreviewCloseDelay: TimeInterval = 0.4
@@ -126,13 +152,14 @@ final class HistoryViewStateStore: ObservableObject {
 
     func cardHoverChanged(_ id: UUID, inside: Bool) {
         if inside { hoveredCards.insert(id) } else { hoveredCards.remove(id) }
+        guard !cardMenuOpen else { return }
         guard previewOrigin == .hover(id) else { return }
         cancelPreviewClose()
         guard !inside else { return }
         let generation = previewCloseGeneration
         let work = DispatchWorkItem { [weak self] in
             guard let self, self.previewCloseGeneration == generation,
-                self.previewOrigin == .hover(id), !self.hoveredCards.contains(id)
+                self.previewOrigin == .hover(id), !self.hoveredCards.contains(id), !self.cardMenuOpen
             else { return }
             self.dismissPreview()
         }
@@ -142,7 +169,8 @@ final class HistoryViewStateStore: ObservableObject {
 
     func hoverPreview(_ card: CardViewState, actions: PanelActions) {
         guard !card.contentHidden, state.cards.first(where: { $0.id == card.id })?.contentHidden == false,
-            !isProtected, panelVisible, interactions.hover == .preview, hoveredCards.contains(card.id),
+            !isProtected, panelVisible, !cardMenuOpen, !pinMetadataEditing,
+            interactions.hover == .preview, hoveredCards.contains(card.id),
             state.cards.contains(where: { $0.id == card.id }), previewOrigin != .explicit
         else { return }
         cancelPreviewClose()
@@ -168,14 +196,17 @@ final class HistoryViewStateStore: ObservableObject {
     }
 
     func setPrivacyPermissions(
-        allowSearch: Bool, showSourceApps: Bool, allowFiltering: Bool = false, allowAppFiltering: Bool = false
+        allowSearch: Bool, showSourceApps: Bool, allowFiltering: Bool = false, allowAppFiltering: Bool = false,
+        allowHandoffFiltering: Bool = false
     ) {
         let resetFilters =
             isProtected
             && ((privacyAllowsFiltering && !allowFiltering)
-                || (privacyAllowsAppFiltering && !allowAppFiltering))
+                || (privacyAllowsAppFiltering && !allowAppFiltering)
+                || (privacyAllowsHandoffFiltering && !allowHandoffFiltering))
         privacyAllowsFiltering = allowFiltering
         privacyAllowsAppFiltering = allowAppFiltering
+        privacyAllowsHandoffFiltering = allowHandoffFiltering
         privacyAllowsSearch = allowSearch
         privacyShowsSourceApps = showSourceApps
         if !allowSearch { resetProtectedSearch() }
@@ -195,7 +226,8 @@ final class HistoryViewStateStore: ObservableObject {
 
     func protectedSourceLabel(for id: UUID) -> String? {
         guard isProtected, privacyShowsSourceApps else { return nil }
-        guard let card = latestState.cards.first(where: { $0.id == id }) else { return nil }
+        guard let index = protectedIndex(of: id) else { return nil }
+        let card = latestState.cards[index]
         return card.sourceKey == nil ? localized("Unknown") : card.sourceLabel
     }
 
@@ -206,8 +238,32 @@ final class HistoryViewStateStore: ObservableObject {
         if hadQuery || force { protectedSearch?("") }
     }
 
-    var protectedCardIDs: [UUID] { latestState.cards.map(\.id) }
+    private struct ProtectedRows {
+        let ids: [UUID]
+        let indices: [UUID: Int]
+
+        init(_ cards: [CardViewState]) {
+            ids = cards.map(\.id)
+            indices = Dictionary(zip(ids, ids.indices), uniquingKeysWith: { first, _ in first })
+        }
+    }
+
+    private var cachedProtectedRows: ProtectedRows?
+    private var protectedRows: ProtectedRows {
+        if let cachedProtectedRows { return cachedProtectedRows }
+        let rows = ProtectedRows(latestState.cards)
+        cachedProtectedRows = rows
+        return rows
+    }
+    var protectedCardIDs: [UUID] {
+        guard isProtected else { return [] }
+        return panelVisible ? protectedRows.ids : latestState.cards.map(\.id)
+    }
+    private func protectedIndex(of id: UUID) -> Int? {
+        panelVisible ? protectedRows.indices[id] : latestState.cards.firstIndex { $0.id == id }
+    }
     var protectedCardCount: Int { latestState.cards.count }
+    func containsProtectedCard(_ id: UUID) -> Bool { isProtected && protectedIndex(of: id) != nil }
 
     func protectedSourceKeys(in range: Range<Int>) -> Set<String> {
         guard isProtected, privacyAllowsAppFiltering else { return [] }
@@ -219,6 +275,10 @@ final class HistoryViewStateStore: ObservableObject {
     func setSpotlightAllowed(_ allowed: Bool) { allowsSpotlight = allowed }
     var contentCacheVisibility: (Bool) -> Void = { _ in }
     func setPanelVisible(_ visible: Bool) {
+        if !visible {
+            cachedProtectedRows = nil
+            if historyHidingOptionsOpen { historyHidingOptions = nil }
+        }
         panelVisible = visible
         contentCacheVisibility(visible)
     }
@@ -229,7 +289,7 @@ final class HistoryViewStateStore: ObservableObject {
     }
 
     func protectedRevealPayload(for id: UUID) -> Payload? {
-        guard isProtected, allowsSpotlight, panelVisible, protectedCardIDs.contains(id) else { return nil }
+        guard isProtected, allowsSpotlight, panelVisible, containsProtectedCard(id) else { return nil }
         guard let item = detailSource?(id), !item.pinnedMetadata.hidesContent else { return nil }
         return item.payload
     }
@@ -243,7 +303,8 @@ final class HistoryViewStateStore: ObservableObject {
     var protectedExport: ((UUID, CardAction) -> Void)?
 
     func protectedVersions(for id: UUID) -> [UUID] {
-        guard isProtected, panelVisible, let card = latestState.cards.first(where: { $0.id == id }) else { return [] }
+        guard isProtected, panelVisible, let index = protectedRows.indices[id] else { return [] }
+        let card = latestState.cards[index]
         return card.variantIDs.isEmpty ? [id] : card.variantIDs
     }
 
@@ -267,12 +328,17 @@ final class HistoryViewStateStore: ObservableObject {
     private var previewVisible = false
 
     var previewCard: CardViewState? {
+        if cardMenuOpen, let menuPreviewCard { return menuPreviewCard }
         if case .hover(let id) = previewOrigin { return state.cards.first { $0.id == id } }
         return state.selectedCard
     }
 
     func setPrivacy(_ protected: Bool) {
         let changed = protected != isProtected
+        if changed {
+            cachedProtectedRows = nil
+            if historyHidingOptionsOpen { historyHidingOptions = nil }
+        }
         sensitiveSession.setProtected(protected)
         isProtected = protected
         resetProtectedSearch(force: changed)
@@ -415,6 +481,7 @@ final class HistoryViewStateStore: ObservableObject {
 
     /// The card's side in points; the selected card grows by the zoom.
     @Published private(set) var cardSide: CGFloat = 200
+    @Published private(set) var filterTagScale: Double = GeneralSettingsStore.defaultFilterTagScale
     static let selectionZoom: CGFloat = 1.05
     /// The room the rail gives one card: the zoomed slot plus the gap.
     static let cardGap: CGFloat = 14
@@ -431,7 +498,12 @@ final class HistoryViewStateStore: ObservableObject {
         cardSide = side
     }
 
+    func configureFilterTags(scale: Double) {
+        filterTagScale = GeneralSettingsStore.boundedFilterTagScale(scale)
+    }
+
     func update(_ newState: HistoryViewState) {
+        cachedProtectedRows = nil
         if newState.selectedID != latestState.selectedID { pendingAction = nil; expandedVersions = false }
         latestState = newState
         validateSplitSessions()
@@ -470,12 +542,62 @@ final class HistoryViewStateStore: ObservableObject {
     }
 
     /// A panel action, never an export. Dismiss heavy previews before deletion.
+    var canClearHistory: Bool {
+        panelVisible && !isProtected && !isPinnedWorkspace && editing == nil && latestState.canClearHistory
+    }
+
+    var isHistoryHidden: Bool { latestState.isHistoryHidden }
+    var isTypeHistoryHidden: Bool { latestState.isTypeHistoryHidden }
+    var historyHidingCutoff: Date? { latestState.historyHidingCutoff }
+    var typeHidingRule: HistoryHidingRule? { latestState.typeHidingRule }
+
+    var canToggleHistoryVisibility: Bool {
+        panelVisible && !isPinnedWorkspace && editing == nil && !pinMetadataEditing && !cardMenuOpen
+            && (latestState.canHideHistory || isHistoryHidden || isTypeHistoryHidden)
+    }
+
     func clearHistory(actions: PanelActions) {
-        guard panelVisible, !isProtected, editing == nil, state.canClearHistory else { return }
+        guard canClearHistory else { return }
         dismissPreview()
         pendingAction = nil
         expandedVersions = false
         actions.clearHistory()
+    }
+
+    func toggleHistoryVisibility(actions: PanelActions) {
+        guard canToggleHistoryVisibility else { return }
+        historyHidingOptions = nil
+        prepareHistoryHidingChange()
+        actions.toggleHistoryVisibility()
+    }
+
+    func toggleTypeHistoryVisibility(actions: PanelActions) {
+        guard canToggleHistoryVisibility else { return }
+        if isTypeHistoryHidden {
+            historyHidingOptions = nil
+            clearTypeHistoryHiding(actions: actions)
+        } else {
+            historyHidingOptions = .typeOrSource
+        }
+    }
+
+    func setHistoryHiding(_ rule: HistoryHidingRule, actions: PanelActions) {
+        guard canToggleHistoryVisibility, rule.categories?.isEmpty != true || rule.includesHandoff else { return }
+        prepareHistoryHidingChange()
+        actions.setHistoryHiding(rule)
+    }
+
+    func clearTypeHistoryHiding(actions: PanelActions) {
+        guard canToggleHistoryVisibility, isTypeHistoryHidden else { return }
+        prepareHistoryHidingChange()
+        actions.clearTypeHistoryHiding()
+    }
+
+    private func prepareHistoryHidingChange() {
+        dismissPreview()
+        closeSplitSessions()
+        pendingAction = nil
+        expandedVersions = false
     }
 
     /// The panel just went away: the rail rewinds to its leading edge
@@ -487,109 +609,10 @@ final class HistoryViewStateStore: ObservableObject {
         cardMenuOpen = false
         dismissPreview()
         hoveredCards = []
-        panelVisible = false
-        contentCacheVisibility(false)
+        setPanelVisible(false)
         resetProtectedSearch()
         if isProtected { protectedFilter?(.reset) }
         sensitiveSession.setPanelVisible(false)
         closeRevision += 1
-    }
-}
-
-/// Type-erased entry points into the controller, so views stay free of the
-/// controller's gateway generics.
-struct PanelActions {
-    let search: (String) -> Void
-    let select: (UUID) -> Void
-    let selectPlain: (UUID) -> Void
-    /// Puts the card on the pasteboard and closes, without pasting.
-    let copy: (UUID) -> Void
-    let copySelected: () -> Void
-    let transform: (UUID, TextTransform) -> Void
-    let openLink: (URL) -> Void
-    let revealFiles: ([String]) -> Void
-    let saveToDisk: (DragPayload) -> Void
-    let stack: (UUID) -> Void
-    let excludeSource: (_ bundleID: String, _ name: String) -> Void
-    let deleteAllFromSource: (String) -> Void
-    let beginEditing: (CardViewState) -> Void
-    let edit: (UUID, String) -> Void
-    let undo: () -> Void
-    let highlight: (UUID) -> Void
-    let activate: () -> Void
-    let activatePlain: () -> Void
-    let activateCard: (Int) -> Void
-    let navigate: (ArrowDirection) -> Void
-    let jumpToEdge: (SelectionEdge) -> Void
-    let switchChipGroup: () -> Void
-    let toggleSourceFilter: (String) -> Void
-    let toggleCategoryFilter: (String) -> Void
-    let focusSourceChip: (String) -> Void
-    let focusCategoryChip: (String) -> Void
-    let togglePin: (UUID) -> Void
-    let delete: (UUID) -> Void
-    let dragBegan: () -> Void
-    let togglePinSelected: () -> Void
-    let deleteSelected: () -> Void
-    let stackSelected: () -> Void
-    let panelWillShow: () -> Void
-    /// Starts the system's pasteboard permission flow and opens its settings.
-    let requestClipboardAccess: () -> Void
-    var editRich: (UUID, String, Data) -> Void = { _, _, _ in }
-    var selectSourceFilter: (String) -> Void = { _ in }
-    var clearHistory: () -> Void = {}
-    var updatePinnedMetadata: (UUID, PinnedMetadata) -> Void = { _, _ in }
-    var metadataEditorChanged: (Bool) -> Void = { _ in }
-    var cardMenuChanged: (Bool) -> Void = { _ in }
-    var split: (UUID) -> Void = { _ in }
-    var preparePinned: (Bool) -> Void = { _ in }
-}
-
-extension PanelActions {
-    func guarded(by isProtected: @escaping () -> Bool) -> PanelActions {
-        PanelActions(
-            search: { if !isProtected() { self.search($0) } },
-            select: { if !isProtected() { self.select($0) } },
-            selectPlain: { if !isProtected() { self.selectPlain($0) } },
-            copy: { if !isProtected() { self.copy($0) } },
-            copySelected: { if !isProtected() { self.copySelected() } },
-            transform: { if !isProtected() { self.transform($0, $1) } },
-            openLink: { if !isProtected() { self.openLink($0) } },
-            revealFiles: { if !isProtected() { self.revealFiles($0) } },
-            saveToDisk: { if !isProtected() { self.saveToDisk($0) } },
-            stack: { if !isProtected() { self.stack($0) } },
-            excludeSource: { if !isProtected() { self.excludeSource($0, $1) } },
-            deleteAllFromSource: { if !isProtected() { self.deleteAllFromSource($0) } },
-            beginEditing: { if !isProtected() { self.beginEditing($0) } },
-            edit: { if !isProtected() { self.edit($0, $1) } },
-            undo: { if !isProtected() { self.undo() } },
-            highlight: { if !isProtected() { self.highlight($0) } },
-            activate: { if !isProtected() { self.activate() } },
-            activatePlain: { if !isProtected() { self.activatePlain() } },
-            activateCard: { if !isProtected() { self.activateCard($0) } },
-            navigate: { if !isProtected() { self.navigate($0) } },
-            jumpToEdge: { if !isProtected() { self.jumpToEdge($0) } },
-            switchChipGroup: { if !isProtected() { self.switchChipGroup() } },
-            toggleSourceFilter: { if !isProtected() { self.toggleSourceFilter($0) } },
-            toggleCategoryFilter: { if !isProtected() { self.toggleCategoryFilter($0) } },
-            focusSourceChip: { if !isProtected() { self.focusSourceChip($0) } },
-            focusCategoryChip: { if !isProtected() { self.focusCategoryChip($0) } },
-            togglePin: { if !isProtected() { self.togglePin($0) } },
-            delete: { if !isProtected() { self.delete($0) } },
-            dragBegan: { if !isProtected() { self.dragBegan() } },
-            togglePinSelected: { if !isProtected() { self.togglePinSelected() } },
-            deleteSelected: { if !isProtected() { self.deleteSelected() } },
-            stackSelected: { if !isProtected() { self.stackSelected() } },
-            panelWillShow: { if !isProtected() { self.panelWillShow() } },
-            requestClipboardAccess: { if !isProtected() { self.requestClipboardAccess() } },
-            editRich: { if !isProtected() { self.editRich($0, $1, $2) } },
-            selectSourceFilter: { if !isProtected() { self.selectSourceFilter($0) } },
-            clearHistory: { if !isProtected() { self.clearHistory() } },
-            updatePinnedMetadata: { if !isProtected() { self.updatePinnedMetadata($0, $1) } },
-            metadataEditorChanged: { self.metadataEditorChanged($0) },
-            cardMenuChanged: { self.cardMenuChanged($0) },
-            split: { if !isProtected() { self.split($0) } },
-            preparePinned: { self.preparePinned($0) }
-        )
     }
 }

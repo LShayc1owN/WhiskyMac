@@ -76,21 +76,50 @@ struct RichTextView: NSViewRepresentable {
     }
 }
 
-struct RichTextPreviewPane: View {
-    let item: ClipboardItem
-    @State private var decoded: NSAttributedString?
+/// Every stored preview uses the same reader. Cancelled views waiting behind a
+/// slow read can drop the request before opening the next original.
+actor RichTextPreviewReader {
+    static let shared = RichTextPreviewReader()
 
-    var body: some View {
-        Group {
-            if let decoded { RichTextView(text: decoded) } else { ProgressView() }
-        }
-        .onAppear { decode() }
-        .onChange(of: item) { _, _ in decode() }
-        .onDisappear { decoded = nil }
+    func read(_ content: BinaryContent?, maximumBytes: Int) -> Data? {
+        guard !Task.isCancelled, let content, content.byteCount <= maximumBytes else { return nil }
+        return try? content.read()
+    }
+}
+
+struct RichTextPreviewPane: View {
+    let content: BinaryContent?
+    let fallback: String
+
+    init(item: ClipboardItem) {
+        self.init(content: item.richText, fallback: item.payload.searchableText ?? "")
     }
 
-    private func decode() {
-        decoded = RichTextCodec.decode(item.rtf, fallback: item.payload.searchableText ?? "")
+    init(content: BinaryContent?, fallback: String) {
+        self.content = content
+        self.fallback = fallback
+    }
+
+    private struct Request: Equatable {
+        let content: BinaryContent?
+        let fallback: String
+    }
+
+    @State private var result: (request: Request, text: NSAttributedString)?
+
+    var body: some View {
+        let request = Request(content: content, fallback: fallback)
+        Group {
+            if let result, result.request == request { RichTextView(text: result.text) } else { ProgressView() }
+        }
+        .task(id: request) {
+            result = nil
+            let data = await RichTextPreviewReader.shared.read(
+                request.content, maximumBytes: RichTextCodec.maximumBytes)
+            guard !Task.isCancelled else { return }
+            result = (request, RichTextCodec.decode(data, fallback: request.fallback))
+        }
+        .onDisappear { result = nil }
     }
 }
 
@@ -211,9 +240,8 @@ struct DeferredRichTextCardView: View {
         }
         .task(id: Request(content: content, active: isActive)) {
             data = nil
-            guard isActive, content.byteCount <= RichTextCardContent.maximumBytes else { return }
-            let source = content
-            let value = await Task.detached(priority: .utility) { try? source.read() }.value
+            guard isActive else { return }
+            let value = await RichTextPreviewReader.shared.read(content, maximumBytes: RichTextCardContent.maximumBytes)
             guard !Task.isCancelled else { return }
             data = value
         }

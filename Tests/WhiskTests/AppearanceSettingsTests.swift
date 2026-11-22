@@ -21,6 +21,8 @@ import Testing
         #expect(appearance.statusClick == .history)
         #expect(appearance.dockIcon == .followWindows)
         #expect(appearance.accentMode == .system)
+        #expect(appearance.settingsAppearance == .system)
+        #expect(appearance.clipboardAppearance == .system)
         let theme = AppAccent.color
         let language = AppLocalization.language
         var changes = 0
@@ -32,7 +34,9 @@ import Testing
         appearance.dockIcon = .always
         appearance.accentMode = .custom
         appearance.customAccent = AccentRGB(red: 0.1, green: 0.2, blue: 0.3)
-        #expect(changes == 6)
+        appearance.settingsAppearance = .light
+        appearance.clipboardAppearance = .dark
+        #expect(changes == 8)
         let restored = AppearanceSettingsStore(defaults: sandbox.defaults)
         #expect(restored.language == .simplifiedChinese)
         #expect(restored.navigation == .top)
@@ -40,17 +44,26 @@ import Testing
         #expect(restored.statusClick == .menu)
         #expect(restored.dockIcon == .always)
         #expect(restored.accentMode == .custom)
+        #expect(restored.settingsAppearance == .light)
+        #expect(restored.clipboardAppearance == .dark)
+        appearance.settingsAppearance = .system
+        #expect(AppearanceSettingsStore(defaults: sandbox.defaults).settingsAppearance == .system)
+        #expect(AppearanceSettingsStore(defaults: sandbox.defaults).clipboardAppearance == .dark)
         #expect(restored.customAccent == appearance.customAccent)
         #expect(restored.nsAccent == appearance.customAccent.nsColor)
         #expect(restored.accent == Color(nsColor: restored.nsAccent))
         #expect(AppearanceSettingsStore(defaults: other.defaults).language == .system)
+        #expect(AppearanceSettingsStore(defaults: other.defaults).clipboardAppearance == .system)
         #expect(AppAccent.color == theme)
         #expect(AppLocalization.language == language)
     }
 
     @Test func corrupt_preferences_fall_back_and_rgb_values_are_opaque_srgb() throws {
         let sandbox = try IsolatedDefaults()
-        for key in ["appLanguage", "settingsNavigation", "statusClick", "dockIcon", "accentMode"] {
+        for key in [
+            "appLanguage", "settingsNavigation", "statusClick", "dockIcon", "accentMode",
+            "settingsAppearance", "clipboardAppearance",
+        ] {
             sandbox.defaults.set("invalid", forKey: key)
         }
         sandbox.defaults.set(Data([0]), forKey: "customAccent")
@@ -60,6 +73,8 @@ import Testing
         #expect(settings.statusClick == .history)
         #expect(settings.dockIcon == .followWindows)
         #expect(settings.accentMode == .system)
+        #expect(settings.settingsAppearance == .system)
+        #expect(settings.clipboardAppearance == .system)
         #expect(settings.customAccent == .initial)
         #expect(settings.nsAccent == .controlAccentColor)
         let clipped = AccentRGB(red: -1, green: 5, blue: .nan)
@@ -92,6 +107,7 @@ import Testing
             ("de", "Kopieren", "1 Eintrag"),
             ("it", "Copia", "1 elemento"),
             ("zh-Hans", "拷贝", "1 项"),
+            ("zh-Hant", "拷貝", "1 項"),
         ] {
             let selected = AppLocalization.selectedBundle(in: .module, language: language)
             #expect(selected.bundleURL.pathExtension == "lproj")
@@ -216,6 +232,65 @@ import Testing
                 }
             }
         }
+    }
+
+    @Test func sidebar_expands_to_fit_the_version_without_overwriting_the_preferred_width() async throws {
+        _ = NSApplication.shared
+        let sandbox = try IsolatedDefaults()
+        let appearance = AppearanceSettingsStore(defaults: sandbox.defaults)
+        let narrowWidth = AppearanceSettingsStore.sidebarWidthRange.lowerBound
+        appearance.sidebarWidth = narrowWidth
+
+        func sidebarSize(version: String) async throws -> CGSize {
+            let hosting = NSHostingController(
+                rootView: SettingsView(
+                    store: KeyBindingsStore(defaults: sandbox.defaults),
+                    general: GeneralSettingsStore(defaults: sandbox.defaults), loginItem: LoginItemManager(),
+                    vimBindings: VimBindingsStore(defaults: sandbox.defaults),
+                    buildInfo: AppBuildInfo(version: version, isDebug: false), appearance: appearance))
+            let window = NSWindow(contentViewController: hosting)
+            window.isReleasedWhenClosed = false
+            defer { window.close() }
+            SettingsWindowConfiguration.apply(to: window)
+            window.setContentSize(CGSize(width: SettingsWindowSize.width, height: SettingsWindowSize.minimumHeight))
+            window.setFrameOrigin(CGPoint(x: -10000, y: -10000))
+            window.orderFront(nil)
+            hosting.view.layoutSubtreeIfNeeded()
+            try await Task.sleep(for: .milliseconds(100))
+            hosting.view.layoutSubtreeIfNeeded()
+
+            func scrollViews(in view: NSView) -> [NSScrollView] {
+                let current = (view as? NSScrollView).map { [$0] } ?? []
+                return current + view.subviews.flatMap { scrollViews(in: $0) }
+            }
+
+            let sidebar = try #require(
+                scrollViews(in: hosting.view).first {
+                    $0.bounds.height > 100 && $0.bounds.width <= AppearanceSettingsStore.sidebarWidthRange.upperBound
+                })
+            return sidebar.bounds.size
+        }
+
+        let release = try await sidebarSize(version: "0.1.11")
+        let longVersion = "2026.11022.123456789"
+        let longRelease = try await sidebarSize(version: longVersion)
+        #expect(release.width > narrowWidth)
+        #expect(longRelease.width > release.width)
+        #expect(abs(release.height - longRelease.height) < 1, "The version should still fit on a single line")
+        #expect(appearance.sidebarWidth == narrowWidth)
+
+        appearance.sidebarWidth = 280
+        let manuallyWidened = try await sidebarSize(version: "0.1.11")
+        #expect(abs(manuallyWidened.width - 280) < 1)
+
+        appearance.sidebarWidth = longRelease.width - 1
+        let shrunk = try await sidebarSize(version: longVersion)
+        #expect(abs(shrunk.width - longRelease.width) < 1)
+        #expect(abs(shrunk.height - longRelease.height) < 1)
+
+        appearance.sidebarWidth = longRelease.width + 12
+        let widened = try await sidebarSize(version: longVersion)
+        #expect(abs(widened.width - (longRelease.width + 12)) < 1)
     }
 
     @Test func settings_glass_supports_accessibility_appearance_and_expanded_controls() throws {

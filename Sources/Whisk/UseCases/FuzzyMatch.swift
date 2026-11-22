@@ -1,152 +1,149 @@
 import Foundation
 
-/// fzf-style fuzzy matching: the pattern's characters must appear in
-/// order — a subsequence — and the score rewards what fzf rewards,
-/// consecutive runs and word-boundary hits, with penalties for opening
-/// and stretching gaps, so the tightest, best-anchored match ranks
-/// first. Smart case: an all-lowercase pattern matches insensitively.
+/// Subsequence matching with smart case. An exact ASCII spelling takes precedence
+/// over a folded spelling, as it does for highlights in existing histories.
 enum FuzzyMatch {
-    private static let match = 16
-    private static let bonusConsecutive = 4
-    private static let bonusBoundary = 8
-    private static let penaltyGapStart = 3
-    private static let penaltyGapExtension = 1
+    private static let baseScore = 16
+    private static let consecutiveBonus = 4
+    private static let boundaryBonus = 8
+    private static let gapStartPenalty = 3
+    private static let gapExtensionPenalty = 1
 
-    /// A match with the offsets, in characters of the candidate, of the
-    /// characters the pattern landed on — what a card highlights.
     struct Match: Equatable {
         let score: Int
         let positions: [Int]
     }
 
+    struct Pattern: Equatable {
+        private let needle: [Character]
+        private let ascii: [UInt8]?
+        private let insensitive: Bool
+        private let canMatchASCII: Bool
+
+        init(_ pattern: String) {
+            insensitive = !pattern.contains(where: \.isUppercase)
+            let folded = insensitive ? pattern.lowercased() : pattern
+            needle = Array(folded)
+            let bytes = Array(pattern.utf8)
+            ascii = Self.hasSingleByteCharacters(bytes) ? bytes : nil
+            // Canonically equivalent characters (e.g. the Kelvin sign and K)
+            // can compare equal even when their original UTF-8 bytes differ.
+            canMatchASCII = ascii != nil || folded.precomposedStringWithCanonicalMapping.utf8.allSatisfy { $0 < 128 }
+        }
+
+        func score<S: StringProtocol>(in candidate: S) -> Int? {
+            evaluate(candidate, offsets: false)?.score
+        }
+
+        func match<S: StringProtocol>(in candidate: S) -> Match? {
+            evaluate(candidate, offsets: true)
+        }
+
+        // CRLF is one Swift Character. Lone CR and LF are each one byte.
+        private static func hasSingleByteCharacters<C: Collection>(_ bytes: C) -> Bool where C.Element == UInt8 {
+            guard bytes.allSatisfy({ $0 < 128 }) else { return false }
+            guard bytes.contains(13) else { return true }
+            return !zip(bytes, bytes.dropFirst()).contains { $0 == 13 && $1 == 10 }
+        }
+
+        private func evaluate<S: StringProtocol>(_ candidate: S, offsets: Bool) -> Match? {
+            guard !needle.isEmpty else { return Match(score: 0, positions: []) }
+            guard !candidate.isEmpty else { return nil }
+            func evaluateBytes(_ bytes: UnsafeBufferPointer<UInt8>) -> Match? {
+                if Self.hasSingleByteCharacters(bytes) {
+                    guard canMatchASCII else { return nil }
+                    if let ascii {
+                        guard ascii.count <= bytes.count else { return nil }
+                        if let exact = FuzzyMatch.search(
+                            bytes, for: ascii, offsets: offsets, equal: ==,
+                            boundary: { i in
+                                i == 0 || FuzzyMatch.asciiSeparator(bytes[i - 1])
+                                    || ((65...90).contains(bytes[i]) && (97...122).contains(bytes[i - 1]))
+                            })
+                        {
+                            return exact
+                        }
+                        guard insensitive else { return nil }
+                        return FuzzyMatch.search(
+                            bytes, for: ascii, offsets: offsets,
+                            equal: { byte, wanted in
+                                (byte >= 65 && byte <= 90 ? byte + 32 : byte) == wanted
+                            },
+                            boundary: { i in
+                                i == 0 || (9...13).contains(bytes[i - 1])
+                                    || FuzzyMatch.asciiSeparator(bytes[i - 1])
+                            })
+                    }
+                }
+                let text = insensitive ? candidate.lowercased() : String(candidate)
+                return FuzzyMatch.search(text, for: needle, offsets: offsets, equal: ==) { i in
+                    guard i != text.startIndex else { return true }
+                    let previous = text[text.index(before: i)]
+                    return previous.isWhitespace || previous.isPunctuation || previous.isSymbol
+                        || (text[i].isUppercase && previous.isLowercase)
+                }
+            }
+            if let result = candidate.utf8.withContiguousStorageIfAvailable(evaluateBytes) { return result }
+            return Array(candidate.utf8).withUnsafeBufferPointer(evaluateBytes)
+        }
+    }
+
     static func score<S: StringProtocol>(pattern: String, in candidate: S) -> Int? {
-        match(pattern: pattern, in: candidate)?.score
+        Pattern(pattern).score(in: candidate)
     }
 
     static func match<S: StringProtocol>(pattern: String, in candidate: S) -> Match? {
-        guard !pattern.isEmpty else { return Match(score: 0, positions: []) }
-        let insensitive = !pattern.contains(where: \.isUppercase)
-        // ASCII fast lane: raw bytes compare without a full lowercased
-        // copy of the candidate. ASCII byte offsets are character offsets,
-        // so highlight positions stay identical.
-        if candidate.utf8.count == candidate.count, pattern.utf8.count == pattern.count,
-            let ascii = matchASCII(pattern: pattern, in: candidate, insensitive: insensitive)
-        {
-            return ascii
-        }
-        let text = Array(insensitive ? candidate.lowercased() : String(candidate))
-        let needle = Array(insensitive ? pattern.lowercased() : pattern)
-        guard needle.count <= text.count else { return nil }
-
-        // Forward pass finds the earliest end of a full match; the
-        // backward pass then shrinks toward the tightest window ending
-        // there — fzf's two-pass v1 heart.
-        var needleIndex = 0
-        var end = -1
-        for (position, character) in text.enumerated() where character == needle[needleIndex] {
-            needleIndex += 1
-            if needleIndex == needle.count {
-                end = position
-                break
-            }
-        }
-        guard end >= 0 else { return nil }
-        needleIndex = needle.count - 1
-        var start = end
-        var position = end
-        while position >= 0 {
-            if text[position] == needle[needleIndex] {
-                if needleIndex == 0 {
-                    start = position
-                    break
-                }
-                needleIndex -= 1
-            }
-            position -= 1
-        }
-        return score(
-            window: text, needle: needle, start: start, end: end,
-            isWordStart: { Self.isWordStart($0, at: $1) })
+        Pattern(pattern).match(in: candidate)
     }
 
-    private static func matchASCII<S: StringProtocol>(pattern: String, in candidate: S, insensitive: Bool) -> Match? {
-        let needle = pattern.utf8.map { byte in insensitive && byte >= 65 && byte <= 90 ? byte + 32 : byte }
-        let text = Array(candidate.utf8)
-        guard needle.count <= text.count else { return nil }
-        var needleIndex = 0
-        var end = -1
-        for (position, byte) in text.enumerated() where byte == needle[needleIndex] {
-            needleIndex += 1
-            if needleIndex == needle.count {
-                end = position
-                break
-            }
-        }
-        guard end >= 0 else { return nil }
-        needleIndex = needle.count - 1
-        var start = end
-        var position = end
-        while position >= 0 {
-            if text[position] == needle[needleIndex] {
-                if needleIndex == 0 {
-                    start = position
-                    break
-                }
-                needleIndex -= 1
-            }
-            position -= 1
-        }
-        return score(
-            window: text, needle: needle, start: start, end: end,
-            isWordStart: { Self.asciiWordStart($0, at: $1) })
+    private static func asciiSeparator(_ previous: UInt8) -> Bool {
+        (32...47).contains(previous) || (58...64).contains(previous)
+            || (91...96).contains(previous) || (123...126).contains(previous)
     }
 
-    private static func asciiWordStart(_ text: [UInt8], at position: Int) -> Bool {
-        guard position > 0 else { return true }
-        let previous = text[position - 1]
-        if previous == 32 || previous == 95 || (33...47).contains(Int(previous))
-            || (58...64).contains(Int(previous)) || (91...96).contains(Int(previous))
-            || (123...126).contains(Int(previous))
-        {
-            return true
-        }
-        let current = text[position]
-        return current >= 65 && current <= 90 && previous >= 97 && previous <= 122
-    }
-
-    private static func score<C: RandomAccessCollection>(
-        window: C, needle: [C.Element], start: Int, end: Int, isWordStart: (C, Int) -> Bool
-    ) -> Match where C.Element: Equatable {
-        var total = 0
-        var positions: [Int] = []
+    /// Find the earliest end, shrink back to the tightest start, then score
+    /// that window. Only highlighters request character offsets.
+    private static func search<C: BidirectionalCollection>(
+        _ text: C, for needle: [C.Element], offsets: Bool,
+        equal: (C.Element, C.Element) -> Bool, boundary: (C.Index) -> Bool
+    ) -> Match? {
+        var end = text.startIndex
         var needleIndex = 0
-        var previousMatched = false
-        for position in start...end where needleIndex < needle.count {
-            if window[window.index(window.startIndex, offsetBy: position)] == needle[needleIndex] {
-                total += match
-                if previousMatched {
-                    total += bonusConsecutive
-                }
-                if isWordStart(window, position) {
-                    total += bonusBoundary
-                }
-                positions.append(position)
-                previousMatched = true
+        while end != text.endIndex {
+            if equal(text[end], needle[needleIndex]) {
                 needleIndex += 1
-            } else {
-                total -= previousMatched ? penaltyGapStart : penaltyGapExtension
-                previousMatched = false
+                if needleIndex == needle.count { break }
             }
+            text.formIndex(after: &end)
         }
-        return Match(score: total, positions: positions)
-    }
-
-    private static func isWordStart(_ text: [Character], at position: Int) -> Bool {
-        guard position > 0 else { return true }
-        let previous = text[position - 1]
-        if previous.isWhitespace || previous.isPunctuation || previous.isSymbol || previous == "_" {
-            return true
+        guard end != text.endIndex else { return nil }
+        var start = end
+        while true {
+            if equal(text[start], needle[needleIndex - 1]) {
+                needleIndex -= 1
+                if needleIndex == 0 { break }
+            }
+            text.formIndex(before: &start)
         }
-        return text[position].isUppercase && previous.isLowercase
+        var points = 0
+        var positions: [Int] = []
+        var offset = offsets ? text.distance(from: text.startIndex, to: start) : 0
+        var previousHit = false
+        var cursor = start
+        while true {
+            if equal(text[cursor], needle[needleIndex]) {
+                points += baseScore + (previousHit ? consecutiveBonus : 0) + (boundary(cursor) ? boundaryBonus : 0)
+                if offsets { positions.append(offset) }
+                needleIndex += 1
+                if needleIndex == needle.count { break }
+                previousHit = true
+            } else {
+                points -= previousHit ? gapStartPenalty : gapExtensionPenalty
+                previousHit = false
+            }
+            text.formIndex(after: &cursor)
+            offset += 1
+        }
+        return Match(score: points, positions: positions)
     }
 }

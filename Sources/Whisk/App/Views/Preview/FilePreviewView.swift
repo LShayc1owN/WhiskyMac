@@ -62,9 +62,10 @@ struct FilePreviewView: View {
             }
         }
         .task(id: Request(path: thumbnailPath, active: isActive)) {
+            guard !Task.isCancelled else { return }
             if let ticket { store.cancel(ticket) }
             ticket = nil
-            if isActive, let path = thumbnailPath { ticket = store.load(path) }
+            if isActive, let path = thumbnailPath { ticket = store.load(path, checkingCachedFile: true) }
         }
         .onDisappear {
             if let ticket { store.cancel(ticket) }

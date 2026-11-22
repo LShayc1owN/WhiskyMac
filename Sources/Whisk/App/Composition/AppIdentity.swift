@@ -52,12 +52,4 @@ enum AppIdentity {
         )
         return base.appendingPathComponent(dataDirectoryName, isDirectory: true)
     }
-
-    static func importedIconsDirectory(in dataDirectory: URL) -> URL {
-        dataDirectory.appendingPathComponent("ImportedIcons", isDirectory: true)
-    }
-
-    static func previewCacheDirectory(in dataDirectory: URL) -> URL {
-        dataDirectory.appendingPathComponent("PreviewCache", isDirectory: true)
-    }
 }

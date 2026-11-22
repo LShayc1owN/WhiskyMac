@@ -51,6 +51,7 @@ struct StatusSymbolPicker: View {
     }
 
     var body: some View {
+        let matches = matches
         VStack(spacing: 16) {
             HStack {
                 Text(title).font(.title3.weight(.semibold))

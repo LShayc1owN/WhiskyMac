@@ -8,16 +8,20 @@ import SwiftUI
 
 enum HistoryPanelHosting {
     static func make(
-        store: HistoryViewStateStore, actions: PanelActions, keyBindings: KeyBindingsStore? = nil
+        store: HistoryViewStateStore, actions: PanelActions, keyBindings: KeyBindingsStore? = nil,
+        popoverCoordinator: CardPopoverCoordinator? = nil
     ) -> NSHostingView<HistoryPanelView> {
-        let host = NSHostingView(rootView: HistoryPanelView(store: store, actions: actions, keyBindings: keyBindings))
+        let host = NSHostingView(
+            rootView: HistoryPanelView(
+                store: store, actions: actions, keyBindings: keyBindings, popoverCoordinator: popoverCoordinator))
         // The panel frame is authoritative; do not measure a full scroll
         // document as an intrinsic window size before the viewport exists.
         host.sizingOptions = []
         if store.isProtected {
             host.setAccessibilityLabel(localized("Content hidden by Privacy Mode"))
-            if store.protectedCardIDs.isEmpty, !store.privacyAllowsSearch,
-                !store.privacyShowsSourceApps, !store.privacyAllowsFiltering, !store.privacyAllowsAppFiltering
+            if store.protectedCardCount == 0, !store.privacyAllowsSearch,
+                !store.privacyShowsSourceApps, !store.privacyAllowsFiltering, !store.privacyAllowsAppFiltering,
+                !store.privacyAllowsHandoffFiltering, !store.canToggleHistoryVisibility
             {
                 host.setAccessibilityElement(true)
                 host.setAccessibilityRole(.group)

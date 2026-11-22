@@ -32,11 +32,12 @@ verify_output "$OUTPUT"
 printf '%s\n' "$OUTPUT" | grep -Fx "preference smoke passed: runtime language, accent, Dock windows and menu mapping"
 
 # Each launch uses fresh preferences and history, including the English fallback.
-for language in en fr zh-Hans de it es; do
+for language in en fr zh-Hans zh-Hant zh-TW zh-HK de it es; do
   case "$language" in
     fr) copy_label="Copier"; count_label="1 élément" ;;
     de) copy_label="Kopieren"; count_label="1 Eintrag" ;;
     it) copy_label="Copia"; count_label="1 elemento" ;;
+    zh-Hant|zh-TW|zh-HK) copy_label="拷貝"; count_label="1 項" ;;
     zh-Hans) copy_label="拷贝"; count_label="1 项" ;;
     *) copy_label="Copy"; count_label="1 item" ;;
   esac

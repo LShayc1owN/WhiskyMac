@@ -11,12 +11,14 @@ import SwiftUI
 final class SettingsSearchToolbar: NSObject, NSToolbarDelegate {
     static let itemID = NSToolbarItem.Identifier("WhiskyMac.settingsSearch")
     static let navigationID = NSToolbarItem.Identifier("WhiskyMac.settingsNavigation")
+    static let brandID = NSToolbarItem.Identifier("WhiskyMac.settingsBrand")
     private weak var window: NSWindow?
     private let search: SettingsSearchModel
     private let appearance: AppearanceSettingsStore
     let fieldHost: NSHostingView<SettingsSearchField>
     private let canFocus: () -> Bool
     private var observation: AnyCancellable?
+    private var navigationObservation: AnyCancellable?
     private var events: Any?
     private var notifications: [NSObjectProtocol] = []
     private(set) var resultsPanel: NSPanel?
@@ -44,6 +46,8 @@ final class SettingsSearchToolbar: NSObject, NSToolbarDelegate {
         observation = search.objectWillChange.receive(on: DispatchQueue.main).sink { [weak self] _ in
             self?.updateResultsPanel()
         }
+        navigationObservation = appearance.$navigation.removeDuplicates().receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.updateBrandItem() }
         events = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .leftMouseDown, .rightMouseDown]) {
             [weak self] event in
             guard let self else { return event }
@@ -73,11 +77,21 @@ final class SettingsSearchToolbar: NSObject, NSToolbarDelegate {
     }
 
     func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        [Self.navigationID, Self.itemID, .flexibleSpace]
+        [Self.navigationID, Self.itemID, .flexibleSpace] + (appearance.navigation == .top ? [Self.brandID] : [])
     }
 
     func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        toolbarDefaultItemIdentifiers(toolbar)
+        [Self.navigationID, Self.itemID, .flexibleSpace, Self.brandID]
+    }
+
+    private func updateBrandItem() {
+        guard let toolbar = window?.toolbar else { return }
+        let index = toolbar.items.firstIndex { $0.itemIdentifier == Self.brandID }
+        if appearance.navigation == .top {
+            if index == nil { toolbar.insertItem(withItemIdentifier: Self.brandID, at: toolbar.items.count) }
+        } else if let index {
+            toolbar.removeItem(at: index)
+        }
     }
 
     func toolbar(
@@ -93,6 +107,12 @@ final class SettingsSearchToolbar: NSObject, NSToolbarDelegate {
             item.label = localized("Settings layout")
             let host = NSHostingView(rootView: SettingsNavigationControl(appearance: appearance))
             host.frame.size = NSSize(width: 40, height: 28)
+            item.view = host
+        case Self.brandID:
+            item.label = AppIdentity.displayName
+            let host = NSHostingView(
+                rootView: SettingsBrandView(appearance: appearance, placement: .toolbar).frame(width: 240))
+            host.setFrameSize(host.fittingSize)
             item.view = host
         default: return nil
         }
@@ -162,7 +182,7 @@ final class SettingsSearchToolbar: NSObject, NSToolbarDelegate {
         let width: CGFloat = 360
         let x = min(max(field.minX, screen.minX + 8), screen.maxX - width - 8)
         let y = max(screen.minY + 8, field.minY - height - 6)
-        panel.appearance = window.effectiveAppearance
+        panel.appearance = window.appearance
         panel.level = NSWindow.Level(rawValue: window.level.rawValue + 1)
         panel.setFrame(NSRect(x: x, y: y, width: width, height: height), display: true)
         if panel.parent == nil { window.addChildWindow(panel, ordered: .above) }
@@ -178,6 +198,7 @@ private final class SettingsSearchResultsPanel: NSPanel {
 struct SettingsSearchField: View {
     @ObservedObject var search: SettingsSearchModel
     @FocusState private var focused: Bool
+    @Environment(\.colorScheme) private var scheme
 
     private var hasMarkedText: Bool {
         (NSApp.keyWindow?.firstResponder as? NSTextView)?.hasMarkedText() == true
@@ -186,30 +207,33 @@ struct SettingsSearchField: View {
     var body: some View {
         HStack(spacing: 6) {
             Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
-            TextField(localized("Search settings"), text: $search.query)
-                .textFieldStyle(.plain)
-                .focused($focused)
-                .accessibilityIdentifier("settingsSearchField")
-                .onSubmit {
-                    search.activateSelection()
+            TextField(
+                localized("Search settings"), text: $search.query,
+                prompt: scheme == .light ? Text(localized("Search settings")).foregroundStyle(.secondary) : nil
+            )
+            .textFieldStyle(.plain)
+            .focused($focused)
+            .accessibilityIdentifier("settingsSearchField")
+            .onSubmit {
+                search.activateSelection()
+            }
+            .onKeyPress(.downArrow) {
+                guard !hasMarkedText else {
+                    return .ignored
                 }
-                .onKeyPress(.downArrow) {
-                    guard !hasMarkedText else {
-                        return .ignored
-                    }
-                    search.move(1)
-                    return .handled
+                search.move(1)
+                return .handled
+            }
+            .onKeyPress(.upArrow) {
+                guard !hasMarkedText else {
+                    return .ignored
                 }
-                .onKeyPress(.upArrow) {
-                    guard !hasMarkedText else {
-                        return .ignored
-                    }
-                    search.move(-1)
-                    return .handled
-                }
-                .onExitCommand {
-                    search.dismiss(); focused = false
-                }
+                search.move(-1)
+                return .handled
+            }
+            .onExitCommand {
+                search.dismiss(); focused = false
+            }
 
             if !search.query.isEmpty {
                 Image(systemName: "xmark.circle.fill")
@@ -224,8 +248,17 @@ struct SettingsSearchField: View {
         .font(.system(size: 12))
         .padding(.horizontal, 10)
         .frame(width: 260, height: 28)
-        .background(.quaternary.opacity(0.5), in: Capsule())
-        .overlay(Capsule().strokeBorder(Color.primary.opacity(0.12)))
+        .background {
+            if scheme == .light {
+                Capsule().fill(.white.opacity(0.72))
+            } else {
+                Capsule().fill(.quaternary.opacity(0.5))
+            }
+        }
+        .overlay {
+            Capsule().strokeBorder(Color.primary.opacity(focused && scheme == .light ? 0.28 : 0.12))
+                .allowsHitTesting(false)
+        }
         .onChange(of: search.focusRevision) { _, _ in
             focused = true
         }
@@ -246,6 +279,9 @@ struct SettingsSearchResults: View {
     static let rowHeight: CGFloat = 80
     @ObservedObject var search: SettingsSearchModel
     @ObservedObject var appearance: AppearanceSettingsStore
+    @Environment(\.colorScheme) private var scheme
+
+    private var accent: Color { .readableAccent(in: scheme, color: appearance.nsAccent) }
 
     var body: some View {
         Group {
@@ -257,11 +293,11 @@ struct SettingsSearchResults: View {
                 ScrollViewReader { proxy in
                     ScrollView {
                         LazyVStack(spacing: 0) {
-                            ForEach(Array(search.results.enumerated()), id: \.element.id) { index, entry in
+                            IndexedForEach(search.results) { index, entry in
                                 HStack(alignment: .center, spacing: 10) {
                                     Image(systemName: entry.symbol)
                                         .font(.system(size: 17))
-                                        .foregroundStyle(appearance.accent)
+                                        .foregroundStyle(accent)
                                         .frame(width: 22)
                                         .accessibilityHidden(true)
                                     VStack(alignment: .leading, spacing: 3) {
@@ -311,7 +347,7 @@ struct SettingsSearchResults: View {
             if let start = AttributedString.Index(range.lowerBound, within: text),
                 let end = AttributedString.Index(range.upperBound, within: text)
             {
-                text[start..<end].foregroundColor = appearance.accent
+                text[start..<end].foregroundColor = accent
             }
         }
         return Text(text)

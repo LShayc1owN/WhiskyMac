@@ -16,6 +16,8 @@ struct ProfileHomepage: Identifiable {
 struct ExternalHomepageLink: View {
     private static let githubIcon = AppResources.bundle.url(forResource: "GitHub", withExtension: "png")
         .flatMap(NSImage.init(contentsOf:))
+    private static let coffeeIcon = AppResources.bundle.url(forResource: "BuyMeACoffee", withExtension: "png")
+        .flatMap(NSImage.init(contentsOf:))
     let title: String
     let destination: URL
 
@@ -26,6 +28,16 @@ struct ExternalHomepageLink: View {
                     Image(nsImage: icon)
                         .resizable()
                         .renderingMode(.template)
+                        .frame(width: 16, height: 16)
+                        .accessibilityHidden(true)
+                } else if destination.host?.lowercased() == "buymeacoffee.com", let icon = Self.coffeeIcon {
+                    Image(nsImage: icon)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 16, height: 16)
+                        .accessibilityHidden(true)
+                } else if destination.scheme?.lowercased() == "mailto" {
+                    Image(systemName: "envelope")
                         .frame(width: 16, height: 16)
                         .accessibilityHidden(true)
                 } else {
@@ -39,6 +51,7 @@ struct ExternalHomepageLink: View {
                     .accessibilityHidden(true)
             }
         }
+        .buttonStyle(.bordered)
     }
 }
 
@@ -79,7 +92,7 @@ struct HoverProfileLink: View {
                     ExternalHomepageLink(title: homepage.title, destination: homepage.destination)
                 }
             }
-            .buttonStyle(SettingsSurfaceButtonStyle())
+            .buttonStyle(.bordered)
             .padding(12)
             .onHover { inside in
                 if inside { dismissal?.cancel() } else { scheduleDismissal() }

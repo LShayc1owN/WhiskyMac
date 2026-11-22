@@ -9,14 +9,18 @@ enum SourceAppStyle {
     struct Resolved {
         let icon: NSImage?
         let tint: Color
-        let darkSurfaceTint: Color
-        let lightSurfaceTint: Color
+        let darkSurfaceColor: Color
+        let lightSurfaceColor: Color
 
         /// The frosted-surface wash: the app color leaning darker on the
         /// dark theme, lighter and softer on the light one, translucent so
         /// the behind-window blur still reads through.
         func surfaceTint(dark: Bool) -> Color {
-            dark ? darkSurfaceTint : lightSurfaceTint
+            dark ? darkSurfaceColor.opacity(0.38) : lightSurfaceColor.opacity(0.13)
+        }
+
+        func filterTint(dark: Bool) -> Color {
+            dark ? darkSurfaceColor.opacity(0.42) : lightSurfaceColor.opacity(0.17)
         }
     }
 
@@ -37,8 +41,8 @@ enum SourceAppStyle {
         Resolved(
             icon: icon,
             tint: Color(nsColor: base),
-            darkSurfaceTint: Color(nsColor: shifted(base, saturation: 1, brightness: 0.6)).opacity(0.38),
-            lightSurfaceTint: Color(nsColor: shifted(base, saturation: 0.55, brightness: 1.55)).opacity(0.45)
+            darkSurfaceColor: Color(nsColor: shifted(base, saturation: 1, brightness: 0.6)),
+            lightSurfaceColor: Color(nsColor: shifted(base, saturation: 0.65, brightness: 0.95))
         )
     }
 

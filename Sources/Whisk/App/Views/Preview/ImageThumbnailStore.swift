@@ -17,6 +17,8 @@ private enum ImageThumbnailWork {
 }
 
 struct ImageThumbnailRequest: Equatable, Sendable {
+    /// A prepared card uses the same cache key on any display and at either selection scale.
+    static let cardPixelLimit = 512
     let id: UUID
     let content: BinaryContent
     let maxPixelSize: Int
@@ -38,6 +40,7 @@ final class ImageThumbnailStore: ObservableObject {
     typealias Decoder = (Data, Int) -> CGImage?
 
     @Published private(set) var isProtected = false
+    @Published private(set) var lightweightMode = false
     private(set) var cachedBytes = 0
     var cachedCount: Int { cache.count }
     var pendingCount: Int { pending.count }
@@ -133,10 +136,10 @@ final class ImageThumbnailStore: ObservableObject {
         let decoder = self.decoder
         let operation = BlockOperation { [weak self] in
             guard !cancellation.isCancelled else { return }
-            let bitmap = autoreleasepool { (try? request.content.read()).flatMap { decoder($0, request.maxPixelSize) } }
+            let decoded = autoreleasepool { Result { decoder(try request.content.read(), request.maxPixelSize) } }
             guard !cancellation.isCancelled else { return }
             DispatchQueue.main.async { [weak self] in
-                self?.complete(key, generation: generation, bitmap: bitmap)
+                self?.complete(key, generation: generation, decoded: decoded)
             }
         }
         operation.queuePriority = priority
@@ -157,6 +160,16 @@ final class ImageThumbnailStore: ObservableObject {
         releaseCache()
     }
 
+    func setLightweightMode(_ enabled: Bool) {
+        if enabled != lightweightMode { lightweightMode = enabled }
+    }
+
+    func keepOpeningCards(_ ids: Set<UUID>) {
+        func wanted(_ key: Key) -> Bool { key.pixels == ImageThumbnailRequest.cardPixelLimit && ids.contains(key.id) }
+        for key in cache.keys where !wanted(key) { removeCached(key) }
+        for key in pending.keys where !wanted(key) { cancelJob(key) }
+    }
+
     func releaseCache() {
         cache.removeAll()
         cachedBytes = 0
@@ -170,14 +183,19 @@ final class ImageThumbnailStore: ObservableObject {
         job.waiters.values.forEach { $0(nil) }
     }
 
-    private func complete(_ key: Key, generation: UUID, bitmap: CGImage?) {
+    private func complete(_ key: Key, generation: UUID, decoded: Result<CGImage?, Error>) {
         guard !isProtected, let job = pending[key], job.generation == generation else { return }
         pending[key] = nil
+        // The first visible request can retry a temporarily unavailable original.
+        guard case .success(let bitmap) = decoded else {
+            job.waiters.values.forEach { $0(nil) }
+            return
+        }
         let image = bitmap.map { NSImage(cgImage: $0, size: NSSize(width: $0.width, height: $0.height)) }
         // Retained encoded bytes count too, so a cached source cannot evade the memory budget.
         let sourceCost = job.request.content.reference == nil ? job.request.content.byteCount : 0
         let cost = sourceCost + (bitmap.map { $0.bytesPerRow * $0.height } ?? 0)
-        if cost <= byteLimit {
+        if byteLimit > 0 && cost <= byteLimit {
             while !cache.isEmpty, cachedBytes + cost > byteLimit || cache.count >= countLimit {
                 guard let oldest = cache.min(by: { $0.value.access < $1.value.access })?.key else { break }
                 removeCached(oldest)
@@ -226,15 +244,16 @@ final class ImageThumbnailLoader: ObservableObject {
         if displayed?.id != request.id || displayed?.content != request.content { image = nil; displayed = nil }
         self.store = store
         requested = request
-        isLoading = true
         let generation = self.generation
         ticket = store.load(request, priority: priority) { [weak self] image in
             guard let self, self.generation == generation else { return }
-            self.image = image
             self.displayed = request
-            self.isLoading = false
+            self.image = image
+            if self.isLoading { self.isLoading = false }
             self.ticket = nil
         }
+        // A memory hit calls back synchronously and never enters the loading state.
+        if ticket != nil, !isLoading { isLoading = true }
     }
 
     func cancel() {

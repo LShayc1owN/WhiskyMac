@@ -6,7 +6,7 @@
 import Foundation
 
 enum SettingsPage: String, CaseIterable, Identifiable {
-    case general, appearance, history, interactions, privacy, shortcuts, about
+    case general, appearance, history, interactions, privacy, shortcuts, about, debug
     var id: String {
         rawValue
     }
@@ -26,11 +26,15 @@ enum SettingsPage: String, CaseIterable, Identifiable {
             localized("Shortcuts")
         case .about:
             localized("About")
+        case .debug:
+            "Debug"
         }
     }
     var title: String { label }
     var summary: String {
         switch self {
+        case .debug:
+            localized("Tools for testing WhiskyMac.")
         case .general:
             localized("Choose how WhiskyMac starts and where you open it.")
         case .appearance:
@@ -51,6 +55,7 @@ enum SettingsPage: String, CaseIterable, Identifiable {
     }
     var symbol: String {
         switch self {
+        case .debug: "ladybug"
         case .general: "gearshape"
         case .appearance: "paintpalette"
         case .history: "clock"
@@ -64,19 +69,21 @@ enum SettingsPage: String, CaseIterable, Identifiable {
 
 enum SettingsSectionID: String, CaseIterable, Identifiable {
     case startup, menuAndDock, language, sounds
-    case statusIcons, navigation, colors, cards
+    case statusIcons, navigation, colors, cards, filterTags
     case retention, clearHistory
     case filters, normalInteractions, privacyInteractions, pinnedItems
     case screenPrivacy, privacyVisibility, sensitiveAccess, network
     case globalShortcuts, panelShortcuts, vim, resetShortcuts
     case aboutApp, aboutDeveloper, licenses
+    case debugging
 
     var id: String { rawValue }
 
     var page: SettingsPage {
         switch self {
+        case .debugging: .debug
         case .startup, .menuAndDock, .language, .sounds: .general
-        case .statusIcons, .navigation, .colors, .cards: .appearance
+        case .statusIcons, .navigation, .colors, .cards, .filterTags: .appearance
         case .retention, .clearHistory: .history
         case .filters, .normalInteractions, .privacyInteractions, .pinnedItems: .interactions
         case .screenPrivacy, .privacyVisibility, .sensitiveAccess, .network: .privacy
@@ -87,7 +94,8 @@ enum SettingsSectionID: String, CaseIterable, Identifiable {
 
     var title: SettingsSearchText {
         switch self {
-        case .startup: settingsSearchText("Startup")
+        case .debugging: settingsSearchText("Debug tools")
+        case .startup: settingsSearchText("Startup and loading")
         case .menuAndDock: settingsSearchText("Menu bar and Dock")
         case .language: settingsSearchText("Language")
         case .sounds: settingsSearchText("Sounds and effects")
@@ -95,6 +103,7 @@ enum SettingsSectionID: String, CaseIterable, Identifiable {
         case .navigation: settingsSearchText("Settings navigation")
         case .colors: settingsSearchText("Colors")
         case .cards: settingsSearchText("Clipboard cards")
+        case .filterTags: settingsSearchText("Filter tags")
         case .retention: settingsSearchText("Recording settings")
         case .clearHistory: settingsSearchText("Storage management")
         case .pinnedItems: settingsSearchText("Pinned items")
@@ -117,8 +126,15 @@ enum SettingsSectionID: String, CaseIterable, Identifiable {
 }
 
 extension SettingsPage {
-    func sections(isProtected: Bool) -> [SettingsSectionID] {
-        SettingsSectionID.allCases.filter { $0.page == self && (!isProtected || $0 != .sensitiveAccess) }
+    static func visiblePages(showsDeveloperTools: Bool) -> [SettingsPage] {
+        allCases.filter { $0 != .debug || showsDeveloperTools }
+    }
+
+    func sections(isProtected: Bool, showsDeveloperTools: Bool = AppBuildInfo.current.channel == .debug)
+        -> [SettingsSectionID]
+    {
+        guard self != .debug || showsDeveloperTools else { return [] }
+        return SettingsSectionID.allCases.filter { $0.page == self && (!isProtected || $0 != .sensitiveAccess) }
     }
 }
 
@@ -142,8 +158,10 @@ struct SettingsDestination: Equatable {
         self.anchor = anchor
     }
 
-    func resolvedSection(isProtected: Bool) -> SettingsSectionID? {
-        let available = page.sections(isProtected: isProtected)
+    func resolvedSection(
+        isProtected: Bool, showsDeveloperTools: Bool = AppBuildInfo.current.channel == .debug
+    ) -> SettingsSectionID? {
+        let available = page.sections(isProtected: isProtected, showsDeveloperTools: showsDeveloperTools)
         if let section { return available.contains(section) ? section : nil }
         return available.indices.contains(sectionIndex) ? available[sectionIndex] : available.first
     }

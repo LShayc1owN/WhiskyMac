@@ -11,12 +11,6 @@ enum SharingDetectionState: Equatable {
     case unknown
 }
 
-enum SharingDetectorKind {
-    case publicAPI
-    case experimental
-    case manual
-}
-
 enum SharingDetectionReason: Equatable {
     case toolbarPresent
     case noMatchingToolbar
@@ -31,6 +25,5 @@ struct SharingReport: Equatable {
 }
 
 protocol SharingDetector {
-    var kind: SharingDetectorKind { get }
     func sample() -> SharingReport
 }

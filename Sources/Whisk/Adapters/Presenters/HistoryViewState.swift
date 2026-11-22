@@ -8,14 +8,20 @@ import Foundation
 /// Display-ready state for the history panel. Views render this verbatim;
 /// all formatting decisions were made by the presenter.
 struct HistoryViewState: Equatable {
-    let cards: [CardViewState]
+    private(set) var cards: [CardViewState]
     let countLabel: String
     let query: String
-    let selectedID: UUID?
+    private(set) var selectedID: UUID?
+    private(set) var selectedCardIndex: Int?
     let stackCount: Int
     /// Reflects all history, including items hidden by search or filters.
     let canClearHistory: Bool
-    let filters: FilterBarViewState
+    let isHistoryHidden: Bool
+    let canHideHistory: Bool
+    let historyHidingCutoff: Date?
+    let typeHidingRule: HistoryHidingRule?
+    var isTypeHistoryHidden: Bool { typeHidingRule != nil }
+    private(set) var filters: FilterBarViewState
     /// What the rail says when it has no card to show; nil while it has.
     let emptyMessage: String?
     /// What to tell the user while the system keeps Whisk from reading the
@@ -31,14 +37,23 @@ struct HistoryViewState: Equatable {
         filters: FilterBarViewState,
         emptyMessage: String? = nil,
         accessPrompt: AccessPromptViewState? = nil,
-        canClearHistory: Bool = false
+        canClearHistory: Bool = false,
+        isHistoryHidden: Bool = false,
+        canHideHistory: Bool = false,
+        historyHidingCutoff: Date? = nil,
+        typeHidingRule: HistoryHidingRule? = nil
     ) {
         self.cards = cards
         self.countLabel = countLabel
         self.query = query
         self.selectedID = selectedID
+        selectedCardIndex = cards.firstIndex(where: \.isSelected)
         self.stackCount = stackCount
         self.canClearHistory = canClearHistory
+        self.isHistoryHidden = isHistoryHidden
+        self.canHideHistory = canHideHistory
+        self.historyHidingCutoff = historyHidingCutoff
+        self.typeHidingRule = typeHidingRule
         self.filters = filters
         self.emptyMessage = emptyMessage
         self.accessPrompt = accessPrompt
@@ -46,7 +61,12 @@ struct HistoryViewState: Equatable {
 
     /// The card the preview overlay follows.
     var selectedCard: CardViewState? {
-        cards.first(where: \.isSelected)
+        selectedCardIndex.map { cards[$0] }
+    }
+
+    mutating func updateTime(at index: Int, label: String, accessibilityValue: String) {
+        cards[index].timeLabel = label
+        cards[index].accessibilityValue = accessibilityValue
     }
 
     static let empty = HistoryViewState(
@@ -60,16 +80,17 @@ struct HistoryViewState: Equatable {
 
     /// Resetting the cursor changes two cards, not their previews, labels,
     /// rich-text groups or filter facets. The original bytes stay deferred.
-    func selecting(_ id: UUID?) -> HistoryViewState {
-        guard selectedID != id else { return self }
-        var cards = cards
-        for index in cards.indices where cards[index].isSelected != (cards[index].id == id) {
-            cards[index].isSelected = cards[index].id == id
+    func selecting(_ id: UUID?, filters newFilters: FilterBarViewState? = nil) -> HistoryViewState {
+        guard selectedID != id || newFilters != nil else { return self }
+        var next = self
+        if selectedID != id {
+            if let previous = selectedCardIndex { next.cards[previous].isSelected = false }
+            next.selectedID = id
+            next.selectedCardIndex = id.flatMap { id in cards.firstIndex { $0.id == id } }
+            if let index = next.selectedCardIndex { next.cards[index].isSelected = true }
         }
-        return HistoryViewState(
-            cards: cards, countLabel: countLabel, query: query, selectedID: id, stackCount: stackCount,
-            filters: filters, emptyMessage: emptyMessage, accessPrompt: accessPrompt,
-            canClearHistory: canClearHistory)
+        if let newFilters { next.filters = newFilters }
+        return next
     }
 }
 
@@ -81,36 +102,40 @@ struct AccessPromptViewState: Equatable {
 }
 
 /// The chip bar, in display order: All, the pinned toggle, one
-/// chip per source application, one per content category — all adapted to
+/// independent origins, source applications and content categories — all adapted to
 /// what the current selection can still match.
 struct FilterBarViewState: Equatable {
     let all: [FilterChip]
     let pinned: [FilterChip]
     let apps: [FilterChip]
     let kinds: [FilterChip]
-    var tags: [FilterChip] = []
+    let tags: [FilterChip]
+    let origins: [FilterChip]
+    let focusedChipID: String?
+    let activeChipIDs: [String]
 
     init(
         all: [FilterChip] = [], pinned: [FilterChip] = [], apps: [FilterChip], kinds: [FilterChip],
-        tags: [FilterChip] = []
+        tags: [FilterChip] = [], origins: [FilterChip] = []
     ) {
         self.all = all
         self.pinned = pinned
         self.apps = apps
         self.kinds = kinds
         self.tags = tags
+        self.origins = origins
+        let groups = [all, pinned, origins, apps, kinds, tags]
+        focusedChipID = groups.lazy.compactMap { $0.first(where: \.isFocused)?.id }.first
+        activeChipIDs = groups.flatMap { $0.compactMap { $0.isActive ? $0.id : nil } }
     }
 
     var isEmpty: Bool {
-        all.isEmpty && pinned.isEmpty && apps.isEmpty && kinds.isEmpty && tags.isEmpty
+        all.isEmpty && pinned.isEmpty && origins.isEmpty && apps.isEmpty && kinds.isEmpty && tags.isEmpty
     }
 
-    var hasActiveChip: Bool {
-        (pinned + apps + kinds + tags).contains(where: \.isActive)
-    }
-
-    var focusedChipID: String? {
-        (all + pinned + apps + kinds + tags).first(where: \.isFocused)?.id
+    var orderedChips: [FilterChip] {
+        let groups: [[FilterChip]] = [all, pinned, origins, apps, kinds, tags]
+        return groups.flatMap { $0 }
     }
 
     static let empty = FilterBarViewState(apps: [], kinds: [])
@@ -156,7 +181,7 @@ struct CardViewState: Equatable, Identifiable {
     let sourceBundleID: String?
     let kindLabel: String
     let kindSymbol: String
-    let timeLabel: String
+    var timeLabel: String
     /// Extra footer fact, e.g. the character count of textual payloads.
     let detailLabel: String?
     let isPinned: Bool
@@ -167,7 +192,7 @@ struct CardViewState: Equatable, Identifiable {
     /// summary of the content. The icons and texts inside are decorative.
     let accessibilityLabel: String
     /// The card's state for VoiceOver: pin, paste-stack rank, age.
-    let accessibilityValue: String
+    var accessibilityValue: String
     /// What leaves the app when the card is dragged out.
     let dragPayload: DragPayload
     /// Whether the card holds text a paste-time transform can rewrite.
@@ -182,7 +207,6 @@ struct CardViewState: Equatable, Identifiable {
     let matches: [MatchSpan]
     /// Opaque bytes; decoded only by mounted rich-text card views.
     let richText: BinaryContent?
-    var rtf: Data? { try? richText?.read() }
     let preview: CardPreview
     var splitCount = 0
     var isSplitGroup: Bool { splitCount > 0 }
@@ -209,7 +233,6 @@ struct CardViewState: Equatable, Identifiable {
         sourceKey: String? = nil,
         matches: [MatchSpan] = [],
         preview: CardPreview,
-        rtf: Data? = nil,
         pinnedMetadata: PinnedMetadata = PinnedMetadata(), splitCount: Int = 0, richText: BinaryContent? = nil
     ) {
         self.id = id
@@ -230,7 +253,7 @@ struct CardViewState: Equatable, Identifiable {
         self.sourceKey = sourceKey
         self.matches = matches
         self.preview = preview
-        self.richText = richText ?? rtf.map(BinaryContent.inline)
+        self.richText = richText
         self.pinnedMetadata = pinnedMetadata
         self.splitCount = splitCount
     }

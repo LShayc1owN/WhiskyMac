@@ -7,21 +7,25 @@ import AppKit
 import Carbon.HIToolbox
 import Combine
 import SwiftUI
+import UniformTypeIdentifiers
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private typealias Controller = ClipboardController<AppKitPasteboard, SystemClock, AnyHistoryStore, ConsoleLogger>
 
     private let privacy = PrivacyController(startInDefaultMode: true)
-    private let logger = ConsoleLogger()
-    private let defaults = AppIdentity.defaults
-    private let keyBindings = KeyBindingsStore()
-    private let generalSettings = GeneralSettingsStore()
+    private let diagnostics: DiagnosticLogStore
+    private let logger: ConsoleLogger
+    private let defaults: UserDefaults
+    private let developerMode: DeveloperModeStore
+    private let keyBindings: KeyBindingsStore
+    private let generalSettings: GeneralSettingsStore
     private let copySoundPlayer = CopySoundPlayer()
     private let appearance = AppearanceSettingsStore()
     private let vimKeymap = VimBindingsStore()
     private let loginItem = LoginItemManager()
-    private let updateChecker = UpdateChecker()
+    private let updateChecker: UpdateChecker
     private var onboardingWindow: NSWindow?
+    private var onboardingState: OnboardingState?
     private var settingsObserver: AnyCancellable?
     private var privacyObserver: AnyCancellable?
     private var statusItem: NSStatusItem?
@@ -38,12 +42,32 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var settingsSearchToolbar: SettingsSearchToolbar?
     private var stateStore: HistoryViewStateStore?
     private var clipboard: Controller?
+    private var thumbnailPreparation: PanelThumbnailPreparation?
     private var pollTimer: Timer?
     private var memoryPressure: DispatchSourceMemoryPressure?
     private var sharingMonitor: SharingMonitor?
     private var windowObserver: NSObjectProtocol?
     private var colorObserver: NSObjectProtocol?
     private var sessionObservers: [NSObjectProtocol] = []
+
+    override init() {
+        let defaults = AppIdentity.defaults
+        let build = AppBuildInfo.current
+        let diagnostics = DiagnosticLogStore(build: build) {
+            try AppIdentity.dataDirectory().appendingPathComponent("Logs", isDirectory: true)
+        }
+        let smokeTest = CommandLine.arguments.contains("--smoke-test")
+        let logger = ConsoleLogger(record: smokeTest ? nil : diagnostics.record)
+        logger.log(.appStarted)
+        self.defaults = defaults
+        self.diagnostics = diagnostics
+        self.logger = logger
+        developerMode = DeveloperModeStore(defaults: defaults, channel: build.channel)
+        keyBindings = KeyBindingsStore(defaults: defaults, logger: logger)
+        generalSettings = GeneralSettingsStore(defaults: defaults, logger: logger)
+        updateChecker = UpdateChecker(logger: logger, defaults: defaults)
+        super.init()
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         AppLocalization.language = appearance.language.code
@@ -56,8 +80,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 window === self.settingsWindow || window === self.onboardingWindow
             else { return }
             if window === self.settingsWindow {
-                self.generalSettings.cancelCardSizePreview()
+                self.panelController?.cancelSizePreview()
                 NotificationCenter.default.post(name: .settingsWindowClosed, object: nil)
+            } else {
+                self.keyBindings.endRecording()
+                self.onboardingWindow = nil
             }
             self.updateDockIcon(excluding: window)
         }
@@ -73,7 +100,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             allowSearch: privacy.allowSearchWhileProtected,
             showSourceApps: privacy.showSourceAppsWhileProtected,
             allowFiltering: privacy.allowFilteringWhileProtected,
-            allowAppFiltering: privacy.allowAppFilteringWhileProtected)
+            allowAppFiltering: privacy.allowAppFilteringWhileProtected,
+            allowHandoffFiltering: privacy.allowHandoffFilteringWhileProtected)
         stateStore.setPrivacy(privacy.isProtected)
         stateStore.setSpotlightAllowed(privacy.allowsSpotlight)
         stateStore.spotlight = privacy.spotlight
@@ -92,27 +120,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             retention: generalSettings.policy,
             initialItems: opened.items,
             logger: logger
-        ) { state in
+        ) { [weak self] state in
             stateStore.update(state)
+            self?.thumbnailPreparation?.schedule()
         }
         self.stateStore = stateStore
         self.clipboard = clipboard
-        stateStore.contentCacheVisibility = { [weak clipboard] visible in
+        stateStore.contentCacheVisibility = { [weak self, weak clipboard] visible in
             clipboard?.setContentCacheEnabled(visible)
-            if !visible {
-                ImageThumbnailStore.shared.releaseCache()
-                LinkPreviewStore.shared.releaseCache()
-                FileThumbnailStore.shared.releaseCache()
-            }
+            self?.thumbnailPreparation?.setPanelVisible(visible)
+            if !visible { LinkPreviewStore.shared.releaseCache() }
         }
         clipboard.setContentCacheEnabled(false)
-        let pressure = DispatchSource.makeMemoryPressureSource(eventMask: [.warning, .critical], queue: .main)
+        let pressure = DispatchSource.makeMemoryPressureSource(eventMask: [.normal, .warning, .critical], queue: .main)
         pressure.setEventHandler { [weak self] in
-            self?.clipboard?.releaseContentCache()
+            guard let self, let event = self.memoryPressure?.data else { return }
+            let pressured = !event.intersection([.warning, .critical]).isEmpty
+            self.thumbnailPreparation?.setMemoryPressure(pressured)
+            guard pressured else { return }
+            self.clipboard?.releaseContentCache()
             SourceAppStyle.releaseCache()
-            ImageThumbnailStore.shared.releaseCache()
             LinkPreviewStore.shared.releaseCache()
-            FileThumbnailStore.shared.releaseCache()
         }
         pressure.resume()
         memoryPressure = pressure
@@ -129,6 +157,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             switch action {
             case .toggleApp(let key): clipboard?.toggleSourceFilter(key)
             case .selectApp(let key): clipboard?.selectSourceFilter(key)
+            case .selectKind(let key): clipboard?.selectCategoryFilter(key)
             case .toggleKind(let key): clipboard?.toggleCategoryFilter(key)
             case .reset: clipboard?.toggleCategoryFilter(allFiltersChipID)
             }
@@ -171,7 +200,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 revealFiles: { paths in
                     NSWorkspace.shared.activateFileViewerSelecting(paths.map { URL(fileURLWithPath: $0) })
                 },
-                saveToDisk: { SaveToDisk.present($0) },
+                saveToDisk: { [logger] in SaveToDisk.present($0, logger: logger) },
                 excludeSource: { [weak self] bundleID, name in
                     guard let self, !self.generalSettings.excludedApps.contains(where: { $0.bundleID == bundleID })
                     else { return }
@@ -245,22 +274,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         guardedActions.editRich = { [weak clipboard] id, text, rtf in clipboard?.editRich(id, text: text, rtf: rtf) }
-        guardedActions.metadataEditorChanged = { [weak stateStore] in stateStore?.pinMetadataEditing = $0 }
+        guardedActions.metadataEditorChanged = { [weak stateStore] editing in
+            guard let stateStore, stateStore.pinMetadataEditing != editing else { return }
+            stateStore.pinMetadataEditing = editing
+        }
         guardedActions.cardMenuChanged = { [weak stateStore] in stateStore?.cardMenuOpen = $0 }
         guardedActions = guardedActions.guarded { [weak stateStore] in stateStore?.isProtected != false }
         let panelController = PanelController(
             stateStore: stateStore, actions: guardedActions, keyBindings: keyBindings,
-            vimBindings: vimKeymap,
+            vimBindings: vimKeymap, appearanceMode: appearance.clipboardAppearance,
             vimMode: { [weak self] in self?.generalSettings.vimNavigation ?? false }
         )
         self.panelController = panelController
+        panelController.sizePreviewEnded = { [weak self] in self?.applyClipboardSizing() }
         privacy.displayPermissionsChanged = { [weak self, weak stateStore] in
             guard let self else { return }
             stateStore?.setPrivacyPermissions(
                 allowSearch: self.privacy.allowSearchWhileProtected,
                 showSourceApps: self.privacy.showSourceAppsWhileProtected,
                 allowFiltering: self.privacy.allowFilteringWhileProtected,
-                allowAppFiltering: self.privacy.allowAppFilteringWhileProtected)
+                allowAppFiltering: self.privacy.allowAppFilteringWhileProtected,
+                allowHandoffFiltering: self.privacy.allowHandoffFilteringWhileProtected)
             if self.privacy.isProtected { self.panelController?.privacyDidChange() }
         }
         privacy.spotlightSettingsChanged = { [weak stateStore] in stateStore?.spotlight = $0 }
@@ -270,17 +304,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         privacy.willChangeProtection = { [weak self, weak stateStore] protected in
             searchDebounce.cancel()
             if protected { self?.copySoundPlayer.stop() }
+            self?.thumbnailPreparation?.setPrivacy(protected)
             stateStore?.setPrivacy(protected)
             self?.panelController?.privacyDidChange()
             LinkPreviewStore.shared.setPrivacy(protected)
-            FileThumbnailStore.shared.setPrivacy(protected)
-            ImageThumbnailStore.shared.setPrivacy(protected)
             if protected { self?.clipboard?.releaseContentCache() }
             self?.updateStatusIcon(protected: protected)
         }
         LinkPreviewStore.shared.setPrivacy(privacy.isProtected)
-        FileThumbnailStore.shared.setPrivacy(privacy.isProtected)
-        ImageThumbnailStore.shared.setPrivacy(privacy.isProtected)
 
         sharingMonitor = SharingMonitor { [weak self] report in
             self?.privacy.receive([report])
@@ -314,7 +345,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         clipboard.applySensitiveSources(generalSettings.sensitiveBundleIDs)
         stateStore.sensitiveSession.setRetention(minutes: generalSettings.sensitiveRetentionMinutes)
         LinkPreviewStore.shared.setEnabled(generalSettings.linkPreviews)
-        stateStore.configureCards(side: CGFloat(generalSettings.effectiveCardSide))
+        applyClipboardSizing()
+        thumbnailPreparation = PanelThumbnailPreparation(
+            images: .shared, files: .shared, lightweight: generalSettings.lightweightMode,
+            protected: privacy.isProtected
+        ) { [weak clipboard, weak stateStore] in
+            guard let clipboard, let stateStore else { return [] }
+            let width = NSScreen.screens.map(\.frame.width).max() ?? 0
+            return clipboard.openingThumbnailItems(
+                slotLimit: PanelThumbnailPreparation.slotLimit(width: width, stride: stateStore.cardStride))
+        }
         clipboard.setLayoutDirection(
             NSApp.userInterfaceLayoutDirection == .rightToLeft ? .rightToLeft : .leftToRight)
         // willSet semantics again: hop to the next cycle so the policy is
@@ -325,29 +365,36 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 guard let self else { return }
+                self.thumbnailPreparation?.setLightweightMode(self.generalSettings.lightweightMode)
                 if self.generalSettings.copySound.safeVolume == 0
                     || (!self.generalSettings.copySound.onCapture && !self.generalSettings.copySound.onHistoryCopy)
                 {
                     self.copySoundPlayer.stop()
                 }
                 self.clipboard?.applyRetention(self.generalSettings.policy)
-                self.clipboard?.applyExclusions(self.generalSettings.excludedBundleIDs)
-                self.clipboard?.applySensitiveSources(self.generalSettings.sensitiveBundleIDs)
-                self.stateStore?.sensitiveSession.setRetention(minutes: self.generalSettings.sensitiveRetentionMinutes)
+                if let session = self.stateStore?.sensitiveSession,
+                    session.retentionMinutes != self.generalSettings.sensitiveRetentionMinutes
+                {
+                    session.setRetention(minutes: self.generalSettings.sensitiveRetentionMinutes)
+                }
                 LinkPreviewStore.shared.setEnabled(self.generalSettings.linkPreviews)
-                if let stateStore = self.stateStore {
-                    let side = CGFloat(self.generalSettings.effectiveCardSide)
-                    if stateStore.cardSide != side {
-                        stateStore.configureCards(side: side)
-                        self.panelController?.cardSizeDidChange()
+                self.applyClipboardSizing()
+                if let state = self.stateStore {
+                    if state.interactions != self.generalSettings.interactions {
+                        state.interactions = self.generalSettings.interactions
+                    }
+                    if state.privacyInteractions != self.generalSettings.privacyInteractions {
+                        state.privacyInteractions = self.generalSettings.privacyInteractions
+                    }
+                    if state.appFilterTrigger != self.generalSettings.appFilterTrigger {
+                        state.appFilterTrigger = self.generalSettings.appFilterTrigger
                     }
                 }
-                self.stateStore?.interactions = self.generalSettings.interactions
-                self.stateStore?.privacyInteractions = self.generalSettings.privacyInteractions
-                self.stateStore?.appFilterTrigger = self.generalSettings.appFilterTrigger
                 if sensitivePolicy != self.generalSettings.sensitiveApps
                     || exclusions != self.generalSettings.excludedApps
                 {
+                    self.clipboard?.applyExclusions(self.generalSettings.excludedBundleIDs)
+                    self.clipboard?.applySensitiveSources(self.generalSettings.sensitiveBundleIDs)
                     self.stateStore?.sensitiveSession.clear()
                     sensitivePolicy = self.generalSettings.sensitiveApps
                     exclusions = self.generalSettings.excludedApps
@@ -405,6 +452,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         precondition(localized("Copy") == "Kopieren")
         appearance.language = .italian
         precondition(localized("Copy") == "Copia")
+        appearance.language = .traditionalChinese
+        precondition(localized("Copy") == "拷貝")
         appearance.language = .simplifiedChinese
         precondition(localized("Copy") == "拷贝")
         precondition(settingsWindow == nil)
@@ -440,7 +489,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         do {
             return HistoryStorage.openAndLoad(in: try HistoryStorage.defaultDirectory(), log: logger.log)
         } catch {
-            logger.log("Application Support unavailable — \(error); history will not be saved this session")
+            logger.log(.historyDirectoryUnavailable)
             return HistoryStorage.OpenedHistory(store: AnyHistoryStore(VolatileHistoryStore()), items: [])
         }
     }
@@ -508,7 +557,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func startPolling(_ clipboard: Controller) {
         let timer = Timer(timeInterval: 0.25, repeats: true) { _ in
-            clipboard.pollTickAsync()
+            clipboard.pollTick()
         }
         RunLoop.main.add(timer, forMode: .common)
         pollTimer = timer
@@ -582,18 +631,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             menu.addItem(
                 menuItem(title: localized("Allow Clipboard Access…"), action: #selector(allowClipboardAccess)))
         }
-        if let version = updateChecker.availableVersion {
+        if let release = updateChecker.availableRelease {
             menu.addItem(.separator())
-            menu.addItem(
-                menuItem(
-                    title: String(format: localized("Update Available (v%@)…"), version),
-                    action: #selector(openReleasesPage)))
+            let update = menuItem(
+                title: String(format: localized("Update Available (v%@)…"), release.version),
+                action: #selector(openUpdateRelease(_:)))
+            update.representedObject = release.page
+            menu.addItem(update)
         }
         menu.addItem(.separator())
         if Distribution.current.checksForUpdates {
             menu.addItem(menuItem(title: localized("Check for updates"), action: #selector(checkForUpdatesFromMenu)))
         }
         menu.addItem(menuItem(title: localized("Settings…"), action: #selector(openSettings)))
+        menu.addItem(menuItem(title: localized("Welcome Guide"), action: #selector(openWelcomeGuide)))
         menu.addItem(menuItem(title: localized("Licenses and notices…"), action: #selector(openLegalNotices)))
         menu.addItem(menuItem(title: localized("Quit WhiskyMac"), action: #selector(quit)))
         statusItem?.menu = menu
@@ -637,10 +688,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSWorkspace.shared.open(url)
     }
 
-    @objc private func openReleasesPage() {
-        if let url = UpdateChecker.releasesPage {
-            NSWorkspace.shared.open(url)
-        }
+    @objc private func openUpdateRelease(_ item: NSMenuItem) {
+        guard let url = item.representedObject as? URL, url == updateChecker.availableRelease?.page else { return }
+        NSWorkspace.shared.open(url)
     }
 
     @objc private func checkForUpdatesFromMenu() {
@@ -648,27 +698,63 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         showSettings(destination: SettingsDestination(section: .aboutApp))
     }
 
-    private func showOnboarding() {
+    @objc private func openWelcomeGuide() {
+        if onboardingWindow?.isVisible != true, defaults.bool(forKey: "didShowOnboarding") {
+            onboardingState?.select(.welcome)
+        }
+        showOnboarding()
+    }
+
+    private func closeOnboarding() {
+        keyBindings.endRecording()
+        onboardingWindow?.close()
+        onboardingWindow = nil
+    }
+
+    private func showOnboarding(fromBeginning: Bool = false) {
+        if let window = onboardingWindow, window.isVisible {
+            if fromBeginning { onboardingState?.restart() }
+            NSApp.activate(ignoringOtherApps: true)
+            window.makeKeyAndOrderFront(nil)
+            return
+        }
+        let state =
+            onboardingState
+            ?? OnboardingState(
+                defaults: defaults,
+                readClipboardAccess: { [weak self] in self?.clipboard?.clipboardAccess ?? .requiresConsent })
+        onboardingState = state
+        if fromBeginning { state.restart() }
         let hosting = NSHostingController(
             rootView: OnboardingView(
-                toggleShortcut: keyBindings.label(for: .togglePanel),
-                shortcutEnabled: keyBindings.isGlobalEnabled(.togglePanel),
-                clipboardAccess: clipboard?.clipboardAccess ?? .granted,
-                onAllowClipboard: { [weak self] in
-                    self?.clipboard?.requestClipboardAccess()
-                    self?.openPasteboardSettings()
-                }
-            ) { [weak self] in
-                self?.defaults.set(true, forKey: "didShowOnboarding")
-                self?.onboardingWindow?.close()
-                self?.onboardingWindow = nil
-            }
+                state: state, bindings: keyBindings, general: generalSettings,
+                appearance: appearance, loginItem: loginItem,
+                actions: OnboardingActions(
+                    allowClipboard: { [weak self] in
+                        self?.clipboard?.requestClipboardAccess()
+                        self?.openPasteboardSettings()
+                    },
+                    allowAccessibility: {
+                        let options =
+                            [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+                        _ = AXIsProcessTrustedWithOptions(options)
+                        if let url = URL(
+                            string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")
+                        {
+                            NSWorkspace.shared.open(url)
+                        }
+                    },
+                    openSettings: { [weak self] in self?.showSettings(destination: $0) },
+                    later: { [weak self] in self?.closeOnboarding() },
+                    finish: { [weak self] in
+                        self?.closeOnboarding()
+                        self?.panelController?.show()
+                    }))
         )
         let window = NSWindow(contentViewController: hosting)
-        window.setContentSize(hosting.view.fittingSize)
-        window.styleMask.remove([.resizable, .miniaturizable])
-        window.title = localized("Welcome")
-        window.isReleasedWhenClosed = false
+        OnboardingWindowConfiguration.apply(to: window)
+        let visible = NSScreen.main?.visibleFrame.size ?? NSSize(width: 1100, height: 800)
+        window.setContentSize(NSSize(width: min(980, visible.width - 60), height: min(700, visible.height - 80)))
         onboardingWindow = window
         window.center()
         NSApp.activate(ignoringOtherApps: true)
@@ -681,14 +767,53 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         showSettings(destination: nil)
     }
 
-    private func showSettings(destination: SettingsDestination?) {
+    private func applyClipboardSizing() {
+        guard let stateStore, panelController?.isSizePreview != true else { return }
+        let side = CGFloat(generalSettings.cardSide)
+        let scale = generalSettings.filterTagScale
+        guard stateStore.cardSide != side || stateStore.filterTagScale != scale else { return }
+        stateStore.configureCards(side: side)
+        stateStore.configureFilterTags(scale: scale)
+        panelController?.cardSizeDidChange()
+    }
+
+    @MainActor private func exportDiagnostics() async throws {
+        guard developerMode.showsTools, let window = settingsWindow, window.isVisible else { return }
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.plainText]
+        panel.nameFieldStringValue = DiagnosticLogStore.suggestedFilename()
+        panel.canCreateDirectories = true
+        let destination: URL? = await withCheckedContinuation { continuation in
+            panel.beginSheetModal(for: window) { response in
+                continuation.resume(returning: response == .OK ? panel.url : nil)
+            }
+        }
+        guard developerMode.showsTools else { return }
+        try await diagnostics.export(to: destination)
+    }
+
+    private func showSettings(destination requested: SettingsDestination?) {
+        let destination = requested.flatMap {
+            $0.resolvedSection(isProtected: privacy.isProtected, showsDeveloperTools: developerMode.showsTools) != nil
+                ? $0 : nil
+        }
         if settingsWindow == nil {
             let hosting = NSHostingController(
                 rootView: SettingsView(
                     store: keyBindings, general: generalSettings, loginItem: loginItem,
                     vimBindings: vimKeymap, privacy: privacy,
                     clearHistory: { [weak self] in self?.clipboard?.clear() },
+                    showWelcomeGuide: { [weak self] in
+                        guard let self, self.developerMode.showsTools else { return }
+                        self.showOnboarding(fromBeginning: true)
+                    },
+                    exportDiagnostics: { [weak self] in try await self?.exportDiagnostics() },
+                    previewClipboard: { [weak self] side, scale in
+                        self?.panelController?.previewSize(cardSide: side, tagScale: scale)
+                    },
+                    cancelClipboardPreview: { [weak self] in self?.panelController?.cancelSizePreview() },
                     appearance: appearance, updateChecker: updateChecker, search: settingsSearch,
+                    developerMode: developerMode,
                     selectedPage: destination?.page ?? .general)
             )
             let window = NSWindow(contentViewController: hosting)
@@ -697,6 +822,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             window.setContentSize(hosting.view.fittingSize)
             window.styleMask.remove([.resizable, .miniaturizable])
             SettingsWindowConfiguration.apply(to: window)
+            window.appearance = appearance.settingsAppearance.nsAppearance
             settingsSearchToolbar = SettingsSearchToolbar(
                 window: window, search: settingsSearch, appearance: appearance
             ) { [weak self] in
@@ -740,6 +866,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let accentChanged = !AppAccent.color.isEqual(appearance.nsAccent)
         AppLocalization.language = appearance.language.code
         AppAccent.color = appearance.nsAccent
+        settingsWindow?.appearance = appearance.settingsAppearance.nsAppearance
+        panelController?.appearanceMode = appearance.clipboardAppearance
         if languageChanged { clipboard?.refreshLocalization() }
         if languageChanged || accentChanged || forceColor {
             stateStore?.appearanceDidChange()
@@ -787,6 +915,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         pollTimer?.invalidate()
         memoryPressure?.cancel()
         memoryPressure = nil
+        thumbnailPreparation?.release()
+        thumbnailPreparation = nil
         if let layoutObserver { DistributedNotificationCenter.default().removeObserver(layoutObserver) }
         bindingsObserver?.cancel()
         settingsObserver?.cancel()

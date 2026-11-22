@@ -10,19 +10,31 @@ struct HistoryFilter: Equatable {
     var categories: Set<ContentCategory>
     var pinnedOnly: Bool
     var tags: Set<PinTagColor>
+    var handoffOnly: Bool
 
     init(
         query: String = "",
         sources: [SourceApp] = [],
         categories: Set<ContentCategory> = [],
         pinnedOnly: Bool = false,
-        tags: Set<PinTagColor> = []
+        tags: Set<PinTagColor> = [],
+        handoffOnly: Bool = false
     ) {
         self.query = query
         self.sources = sources
         self.categories = categories
         self.pinnedOnly = pinnedOnly
         self.tags = tags
+        self.handoffOnly = handoffOnly
+    }
+
+    /// The selected facets, independent of the text query and its ranking.
+    func includes(_ item: ClipboardItem) -> Bool {
+        if handoffOnly, item.source?.origin != .handoffMarker { return false }
+        if !tags.isEmpty, !item.isPinned || item.pinnedMetadata.tags.isDisjoint(with: tags) { return false }
+        if pinnedOnly, !item.isPinned { return false }
+        if !sources.isEmpty, !sources.contains(where: { item.source?.matches($0) ?? false }) { return false }
+        return categories.isEmpty || categories.contains(item.category)
     }
 }
 
@@ -35,30 +47,18 @@ struct FilterHistory {
     init() {}
 
     func callAsFunction(_ history: History, filter: HistoryFilter) -> [ClipboardItem] {
+        guard filter != HistoryFilter() else { return history.items }
         let query = ParsedQuery(filter.query)
+        if query.words.isEmpty {
+            return history.items.filter { filter.includes($0) && query.score($0) != nil }
+        }
         var scored: [(item: ClipboardItem, score: Int, recency: Int)] = []
-        for (recency, item) in history.items.enumerated() {
-            if !filter.tags.isEmpty, (!item.isPinned || item.pinnedMetadata.tags.isDisjoint(with: filter.tags)) {
-                continue
-            }
-            if filter.pinnedOnly, !item.isPinned {
-                continue
-            }
-            if !filter.sources.isEmpty,
-                !filter.sources.contains(where: { item.source?.matches($0) ?? false })
-            {
-                continue
-            }
-            if !filter.categories.isEmpty, !filter.categories.contains(item.category) {
-                continue
-            }
+        for (recency, item) in history.items.enumerated() where filter.includes(item) {
             guard let score = query.score(item) else { continue }
             scored.append((item, score, recency))
         }
-        if !query.words.isEmpty {
-            scored.sort {
-                $0.score == $1.score ? $0.recency < $1.recency : $0.score > $1.score
-            }
+        scored.sort {
+            $0.score == $1.score ? $0.recency < $1.recency : $0.score > $1.score
         }
         return scored.map(\.item)
     }
@@ -70,7 +70,7 @@ struct ParsedQuery: Equatable {
     private(set) var appTerms: [String] = []
     private(set) var typeTerms: [String] = []
     private(set) var pinnedOnly = false
-    private(set) var words: [String] = []
+    private(set) var words: [FuzzyMatch.Pattern] = []
 
     init(_ raw: String) {
         for token in raw.split(separator: " ") {
@@ -84,7 +84,7 @@ struct ParsedQuery: Equatable {
             } else if lowered == "pinned" {
                 pinnedOnly = true
             } else {
-                words.append(String(token))
+                words.append(FuzzyMatch.Pattern(String(token)))
             }
         }
     }
@@ -100,18 +100,17 @@ struct ParsedQuery: Equatable {
         for term in typeTerms where !item.category.rawValue.hasPrefix(term) {
             return nil
         }
-        // The source text is the same for every word — resolve it once.
+        guard !words.isEmpty else { return 0 }
         let source = sourceText(item)
+        var text = item.pinnedMetadata.hidesContent ? nil : item.payload.searchableText
+        if !item.pinnedMetadata.hidesContent, let group = item.splitGroup {
+            text = ([text].compactMap { $0 } + group.parts.map(\.text)).joined(separator: "\n")
+        }
         var total = 0
         for word in words {
-            let text =
-                item.pinnedMetadata.hidesContent
-                ? nil
-                : ([item.payload.searchableText].compactMap { $0 } + (item.splitGroup?.parts.map(\.text) ?? [])).joined(
-                    separator: "\n")
-            let content = text.flatMap { FuzzyMatch.score(pattern: word, in: $0) }
-            let note = FuzzyMatch.score(pattern: word, in: item.pinnedMetadata.note)
-            let sourceScore = source.flatMap { FuzzyMatch.score(pattern: word, in: $0) }
+            let content = text.flatMap { word.score(in: $0) }
+            let note = word.score(in: item.pinnedMetadata.note)
+            let sourceScore = source.flatMap { word.score(in: $0) }
             guard let best = [content, note, sourceScore].compactMap({ $0 }).max() else { return nil }
             total += best
         }
@@ -120,8 +119,8 @@ struct ParsedQuery: Equatable {
 
     private func sourceText(_ item: ClipboardItem) -> String? {
         guard let source = item.source else { return nil }
-        let parts = [source.name, source.bundleID].compactMap { $0 }
-        return parts.isEmpty ? nil : parts.joined(separator: " ")
+        if let name = source.name, let bundleID = source.bundleID { return name + " " + bundleID }
+        return source.name ?? source.bundleID
     }
 
     private func sourceMatches(_ item: ClipboardItem, _ term: String) -> Bool {

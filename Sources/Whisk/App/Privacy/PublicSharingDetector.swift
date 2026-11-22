@@ -18,11 +18,31 @@ final class PublicSharingDetector: SharingDetector {
         case titles([String])
         case unavailable
     }
-    let kind = SharingDetectorKind.publicAPI
     private let applications: () -> [Application]
     private let trusted: () -> Bool
     private let readWindows: (pid_t) -> WindowRead
     static let supportedBundleIDs: Set<String> = ["us.zoom.xos", "com.microsoft.teams", "com.microsoft.teams2"]
+
+    // Teams can use a language different from WhiskyMac or macOS. Match across
+    // all known titles. The presenter labels come from Microsoft Support;
+    // localized AXTitle variants are candidates unless marked as observed.
+    private static let teamsSharingTitles = Set(
+        [
+            // English
+            "Screen sharing toolbar", "Sharing control bar", "Presenter toolbar",
+            // Traditional Chinese (Taiwan)
+            "螢幕共用工具列",  // Observed on macOS in Teams 1.10.00.XXX during full-screen sharing.
+            "共用控制列", "簡報者工具列",
+            // Simplified Chinese
+            "屏幕共享工具栏", "共享控制栏", "演示者工具栏",
+            // French
+            "Barre d’outils de partage d’écran", "Barre de contrôle du partage", "Barre d’outils du présentateur",
+            // German
+            "Symbolleiste für die Bildschirmfreigabe", "Steuerleiste für die Freigabe", "Referentensymbolleiste",
+            // Italian
+            "Barra degli strumenti di condivisione dello schermo", "Barra di controllo della condivisione",
+            "Barra degli strumenti del relatore",
+        ].map(normalizedTeamsTitle))
 
     init(
         applications: @escaping () -> [Application] = {
@@ -64,9 +84,16 @@ final class PublicSharingDetector: SharingDetector {
         case "us.zoom.xos":
             return ["as_toolbar", "Zoom Share Statusbar Window"].contains(title)
         case "com.microsoft.teams", "com.microsoft.teams2":
-            return ["Screen sharing toolbar", "Sharing control bar"].contains(title)
+            return teamsSharingTitles.contains(normalizedTeamsTitle(title))
         default: return false
         }
+    }
+
+    private static func normalizedTeamsTitle(_ title: String) -> String {
+        title.replacingOccurrences(of: "’", with: "'")
+            .split(whereSeparator: \.isWhitespace)
+            .joined(separator: " ")
+            .lowercased()
     }
 
     private static func windowTitles(_ pid: pid_t) -> WindowRead {

@@ -70,7 +70,8 @@ import Testing
         f.show()
         let window = try #require(f.controller?.window)
 
-        #expect(window.frame == f.frame)
+        #expect(window.frame.origin == f.frame.origin)
+        #expect(window.frame.width == f.frame.width && window.frame.height == 400)
         #expect(window.level == .statusBar && window.isFloatingPanel)
         #expect(window.collectionBehavior == [.canJoinAllSpaces, .fullScreenAuxiliary])
         #expect(window.ignoresMouseEvents && !window.isOpaque && !window.hasShadow)
@@ -176,7 +177,8 @@ import Testing
         #expect(f.creations == 0)
         f.show()
         f.controller?.updateFrame(moved)
-        #expect(f.controller?.window?.frame == moved)
+        #expect(f.controller?.window?.frame.origin == moved.origin)
+        #expect(f.controller?.window?.frame.width == moved.width && f.controller?.window?.frame.height == 446)
         #expect(f.creations == 1 && f.orderedBelow == [42])
     }
 

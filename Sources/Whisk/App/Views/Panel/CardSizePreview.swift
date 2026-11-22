@@ -5,18 +5,17 @@
 
 import SwiftUI
 
-/// Keep the sample at its actual size while confirmation controls stay visible.
+/// Keep the inline sample at its actual size; the settings page scrolls vertically.
 struct CardSizePreviewViewport: View {
     let side: CGFloat
 
     var body: some View {
-        ScrollView([.horizontal, .vertical]) {
+        ScrollView(.horizontal) {
             CardSizePreview(side: side)
                 .padding(8)
         }
-        .defaultScrollAnchor(.topLeading, for: .initialOffset)
-        .defaultScrollAnchor(.center, for: .alignment)
-        .frame(height: min(side + 16, 336))
+        .defaultScrollAnchor(.leading)
+        .frame(height: side + 16)
     }
 }
 
@@ -56,11 +55,13 @@ struct CardSizePreview: View {
         .padding(.top, 12)
         .padding(.bottom, 12)
         .frame(width: side, height: side)
-        .frostedSurface(
-            in: RoundedRectangle(cornerRadius: 18, style: .continuous), cornerRadius: 18,
-            tint: SourceAppStyle.resolve(bundleID: nil).surfaceTint(dark: scheme == .dark)
-        )
+        .background {
+            ClipboardMaterialSurface(
+                shape: RoundedRectangle(cornerRadius: 18, style: .continuous), cornerRadius: 18,
+                tint: SourceAppStyle.resolve(bundleID: nil).surfaceTint(dark: scheme == .dark))
+        }
         .allowsHitTesting(false)
+        .clipboardShadow(in: RoundedRectangle(cornerRadius: 18, style: .continuous))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(localized("Card size"))
         .accessibilityValue("\(Int(side.rounded())) \(localized("pt"))")

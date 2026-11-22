@@ -162,6 +162,58 @@ import Testing
         #expect(list.rtf == Data(#"{\rtf1 old}"#.utf8))
     }
 
+    @Test func reordering_does_not_rewrite_unchanged_split_rtf_links() throws {
+        let (directory, store) = try database()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let bytes = Data(#"{\rtf1 same formatting}"#.utf8)
+        let parts = ["first", "second"].map { SplitPart(id: UUID(), text: $0, link: nil, rtf: bytes) }
+        let group = anItem(.text("original")).withSplitGroup(SplitGroup(parts: parts, plainText: false))
+        try store.save([group, anItem(.text("second item"))])
+        try sql(
+            directory,
+            """
+            CREATE TRIGGER refuse_link_rewrite BEFORE DELETE ON split_blob_links
+            BEGIN SELECT RAISE(ABORT, 'unexpected split link rewrite'); END
+            """)
+        try store.save(Array(try store.loadList().reversed()), changedContentIDs: [])
+        #expect(store.contentStorage.readCount == 0)
+        #expect(try store.load().last?.splitGroup?.parts.map(\.rtf) == [bytes, bytes])
+        try sql(directory, "DROP TRIGGER refuse_link_rewrite")
+        try store.save([group.withSplitGroup(nil)], changedContentIDs: [])
+        #expect(try store.loadList().first?.splitGroup == nil)
+    }
+
+    @Test func sparse_details_follow_the_snapshot_across_connections_and_retries() throws {
+        let (directory, writer) = try database()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let other = try SQLiteHistoryStore(databaseURL: directory.appendingPathComponent("history.sqlite"))
+        let rtf = Data(#"{\rtf1\ansi\b Keep me}"#.utf8)
+        let part = SplitPart(id: UUID(), text: "Keep me", link: nil, rtf: rtf)
+        let group = SplitGroup(parts: [part], plainText: false)
+        let parent = anItem(.text("parent"), pinned: true)
+        let child = ClipboardItem(
+            id: UUID(), payload: .text("child"), source: nil, copiedAt: parent.copiedAt,
+            isPinned: false, splitSourceID: parent.id)
+        let tagged = parent.withPinnedMetadata(PinnedMetadata(note: "note", tags: [.red])).withSplitGroup(group)
+        let keep = ClipboardItem(
+            id: UUID(), payload: .text("retained"), source: nil, copiedAt: parent.copiedAt,
+            isPinned: true, pinnedMetadata: PinnedMetadata(note: "retained"),
+            splitGroup: group, splitSourceID: parent.id)
+        let plainChild = anItem(.text("unrelated"))
+        try writer.save([keep])
+        try other.save([keep, tagged, child])
+        let next = [plainChild, keep, parent]
+        try sql(
+            directory,
+            "CREATE TRIGGER reject_pin_removal BEFORE DELETE ON pin_details BEGIN SELECT RAISE(ABORT,'test'); END")
+        #expect(throws: HistoryStoreError.self) { try writer.save(next) }
+        #expect(try other.load() == [keep, tagged, child])
+        try sql(directory, "DROP TRIGGER reject_pin_removal")
+        try writer.save(next)
+        #expect(try other.load() == next)
+        #expect(try other.load()[1].splitGroup?.parts.first?.rtf == rtf)
+    }
+
     @Test func binary_equality_and_hashes_do_not_hydrate_payloads() throws {
         let (directory, store) = try database()
         defer { try? FileManager.default.removeItem(at: directory) }

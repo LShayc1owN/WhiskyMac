@@ -14,6 +14,9 @@ final class BackgroundVeilController {
     private var phase = Phase.visible
     private var generation = 0
     private(set) var window: NSPanel?
+    var appearanceMode: AppearanceMode = .system {
+        didSet { window?.appearance = appearanceMode.nsAppearance }
+    }
     private let makeWindow: () -> NSPanel
     private let orderBelow: (NSPanel, Int) -> Void
     private let animateAlpha: AlphaAnimation
@@ -51,13 +54,17 @@ final class BackgroundVeilController {
         phase = .visible
         let window = self.window ?? makeWindow()
         self.window = window
-        window.setFrame(frame, display: true)
+        window.appearance = appearanceMode.nsAppearance
+        updateFrame(frame)
         window.alphaValue = 0
         orderBelow(window, number)
         animate(window, to: 1, duration: 0.22, complete: {})
     }
 
-    func updateFrame(_ frame: NSRect) {
+    func updateFrame(_ panelFrame: NSRect) {
+        // Keep the veil's bottom aligned with the panel while lowering its top edge.
+        var frame = panelFrame
+        frame.size.height = (panelFrame.height * 0.93).rounded()
         window?.setFrame(frame, display: true)
     }
 

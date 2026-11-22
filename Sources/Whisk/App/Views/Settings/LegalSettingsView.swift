@@ -78,7 +78,7 @@ struct LegalSettingsView: View {
                     }
                     .beButton { NSWorkspace.shared.activateFileViewerSelecting([fileURL]) }
                 }
-                .buttonStyle(SettingsSurfaceButtonStyle())
+                .buttonStyle(.bordered)
             }
         }
         .padding(.horizontal, 24)

@@ -6,7 +6,7 @@ import SwiftUI
 /// Keeps each element's identity while also exposing its position to the row.
 struct IndexedForEach<Data: RandomAccessCollection, ID: Hashable, Content: View>: View {
     let data: Data
-    let id: KeyPath<Data.Element, ID>
+    let identity: (Data.Index, Data.Element) -> ID
     let content: (Data.Index, Data.Element) -> Content
 
     init(
@@ -14,17 +14,29 @@ struct IndexedForEach<Data: RandomAccessCollection, ID: Hashable, Content: View>
         @ViewBuilder content: @escaping (Data.Index, Data.Element) -> Content
     ) {
         self.data = data
-        self.id = id
+        self.identity = { _, element in element[keyPath: id] }
         self.content = content
     }
 
     var body: some View {
         let indexed = zip(data.indices, data).map { index, element in
-            IndexedElement(index: index, element: element, id: element[keyPath: id])
+            IndexedElement(index: index, element: element, id: identity(index, element))
         }
         ForEach(indexed) { entry in
             content(entry.index, entry.element)
         }
+    }
+}
+
+extension IndexedForEach where Data.Index: Hashable, ID == Data.Index {
+    /// Use the position as identity when the elements have no stable ID.
+    init(
+        _ data: Data, indexID: KeyPath<Data.Index, ID>,
+        @ViewBuilder content: @escaping (Data.Index, Data.Element) -> Content
+    ) {
+        self.data = data
+        self.identity = { index, _ in index[keyPath: indexID] }
+        self.content = content
     }
 }
 

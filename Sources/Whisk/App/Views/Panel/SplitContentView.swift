@@ -208,12 +208,8 @@ struct SplitGroupPreview: View {
                 RichTextPreviewPane(item: source).frame(minHeight: 100, maxHeight: 180)
                 ForEach(source.splitGroup?.parts ?? []) { part in
                     Divider()
-                    RichTextPreviewPane(
-                        item: ClipboardItem(
-                            id: part.id, payload: part.payload, source: source.source,
-                            copiedAt: source.copiedAt, isPinned: false, rtf: part.rtf)
-                    )
-                    .frame(minHeight: 80, maxHeight: 180)
+                    RichTextPreviewPane(content: part.richText, fallback: part.payload.searchableText ?? "")
+                        .frame(minHeight: 80, maxHeight: 180)
                 }
             }
         }

@@ -8,11 +8,13 @@ import Foundation
 /// Stable identities for the row-wide reset and pinned filters.
 let pinnedChipID = "pinned"
 let allFiltersChipID = "all-filters"
+let handoffChipID = SourceApp.handoffFilterKey
 
 /// The groups of the chip row, in display order.
 enum ChipGroup: Equatable {
     case all
     case pinned
+    case origins
     case apps
     case kinds
     case tags
@@ -25,6 +27,7 @@ enum ChipGroup: Equatable {
 enum ChipEntry: Equatable {
     case all
     case pinned
+    case handoff
     case app(SourceApp)
     case category(ContentCategory)
     case tag(PinTagColor)
@@ -33,6 +36,7 @@ enum ChipEntry: Equatable {
         switch self {
         case .all: allFiltersChipID
         case .pinned: pinnedChipID
+        case .handoff: handoffChipID
         case .app(let source): source.filterKey
         case .category(let category): category.rawValue
         case .tag(let tag): tag.filterKey
@@ -43,20 +47,27 @@ enum ChipEntry: Equatable {
         switch self {
         case .all: .all
         case .pinned: .pinned
+        case .handoff: .origins
         case .app: .apps
         case .category: .kinds
         case .tag: .tags
         }
     }
 
-    /// All first, then pinned and one chip per source application,
-    /// then one per content category.
-    static func row(hasPinned: Bool, sources: [SourceApp], categories: [ContentCategory], tags: [PinTagColor] = [])
+    /// All, pinned, Handoff, observed applications, content types, then tags.
+    static func row(
+        hasPinned: Bool, sources: [SourceApp], categories: [ContentCategory], tags: [PinTagColor] = [],
+        hasHandoff: Bool = false
+    )
         -> [ChipEntry]
     {
-        let entries =
-            (hasPinned ? [ChipEntry.pinned] : []) + sources.map(ChipEntry.app) + categories.map(ChipEntry.category)
-            + tags.map(ChipEntry.tag)
+        let origins: [ChipEntry] =
+            hasHandoff || sources.contains(where: { $0.origin == .handoffMarker }) ? [.handoff] : []
+        let apps = sources.filter { $0.origin == .observedApplication }.map(ChipEntry.app)
+        let groups: [[ChipEntry]] = [
+            hasPinned ? [.pinned] : [], origins, apps, categories.map(ChipEntry.category), tags.map(ChipEntry.tag),
+        ]
+        let entries = groups.flatMap { $0 }
         return entries.isEmpty ? [] : [.all] + entries
     }
 }
@@ -71,6 +82,7 @@ struct FilterContext: Equatable {
     let pinnedOnly: Bool
     let focusedChipID: String?
     var activeTags: Set<PinTagColor> = []
+    var handoffOnly: Bool
 
     init(
         chips: [ChipEntry] = [],
@@ -78,7 +90,8 @@ struct FilterContext: Equatable {
         activeCategories: Set<ContentCategory> = [],
         pinnedOnly: Bool = false,
         focusedChipID: String? = nil,
-        activeTags: Set<PinTagColor> = []
+        activeTags: Set<PinTagColor> = [],
+        handoffOnly: Bool = false
     ) {
         self.chips = chips
         self.activeSourceKeys = activeSourceKeys
@@ -86,6 +99,7 @@ struct FilterContext: Equatable {
         self.pinnedOnly = pinnedOnly
         self.focusedChipID = focusedChipID
         self.activeTags = activeTags
+        self.handoffOnly = handoffOnly
     }
 
     static let empty = FilterContext()
@@ -108,7 +122,30 @@ final class HistoryPresenter {
         let characterCount: Int?
     }
 
+    /// A single presentation often formats the same category and footer hundreds of times.
+    /// Sharing these strings within the batch also keeps a language change self-contained.
+    private struct CardLabels {
+        private var kinds: [ContentCategory: String] = [:]
+        private var counts: [Int: String] = [:]
+
+        mutating func kind(_ category: ContentCategory) -> String {
+            if let label = kinds[category] { return label }
+            let label = HistoryPresenter.kindLabel(category)
+            kinds[category] = label
+            return label
+        }
+
+        mutating func characterCount(_ count: Int?) -> String? {
+            guard let count else { return nil }
+            if let label = counts[count] { return label }
+            let label = localized("\(count) characters")
+            counts[count] = label
+            return label
+        }
+    }
+
     private var previewCache: [UUID: CachedPreview] = [:]
+    private lazy var relativeFormatter = Self.makeRelativeFormatter()
     private var timeCache: [UUID: (bucket: Int, label: String)] = [:]
     private var presentedIDs: Set<UUID> = []
     private var previewPruned = false
@@ -118,7 +155,10 @@ final class HistoryPresenter {
 
     init() {}
 
-    func invalidateLocalizedLabels() { timeCache = [:] }
+    func invalidateLocalizedLabels() {
+        timeCache = [:]
+        relativeFormatter.locale = AppLocalization.interfaceLocale
+    }
 
     /// Drops cached previews and time labels for ids that no longer exist
     /// in the history — a deleted image must not keep its bytes resident.
@@ -140,7 +180,11 @@ final class HistoryPresenter {
         stack: [UUID] = [],
         filters: FilterContext = .empty,
         clipboardAccess: PasteboardAccess = .granted,
-        canClearHistory: Bool? = nil
+        canClearHistory: Bool? = nil,
+        isHistoryHidden: Bool = false,
+        canHideHistory: Bool? = nil,
+        historyHidingCutoff: Date? = nil,
+        typeHidingRule: HistoryHidingRule? = nil, groups preparedGroups: [[ClipboardItem]]? = nil
     ) -> HistoryViewState {
         // Prune lazily on a miss, at most once per cache for this entire
         // presentation. Cache hits under a search need no eviction, and a
@@ -150,13 +194,15 @@ final class HistoryPresenter {
         timePruned = false
         let accessPrompt = Self.accessPrompt(for: clipboardAccess)
         let words = ParsedQuery(query).words
-        let groups = RichTextGroups.groups(items)
+        let groups = preparedGroups ?? RichTextGroups.groups(items)
+        var labels = CardLabels()
+        let stackPositions = Dictionary(zip(stack, 1...), uniquingKeysWith: { first, _ in first })
         return HistoryViewState(
             cards: groups.map { group in
                 let item = group[0]
                 var result = card(
                     for: item, now: now, isSelected: group.contains { $0.id == selectedID },
-                    stackPosition: stack.firstIndex(of: item.id).map { $0 + 1 }, words: words)
+                    stackPosition: stackPositions[item.id], words: words, labels: &labels)
                 result.variantIDs = group.map(\.id)
                 return result
             },
@@ -166,9 +212,12 @@ final class HistoryPresenter {
             stackCount: stack.count,
             filters: filterBar(from: filters),
             emptyMessage: items.isEmpty && accessPrompt == nil
-                ? Self.emptyMessage(query: query, filters: filters) : nil,
+                ? Self.emptyMessage(
+                    query: query, filters: filters, isHistoryHidden: isHistoryHidden || typeHidingRule != nil) : nil,
             accessPrompt: accessPrompt,
-            canClearHistory: canClearHistory ?? items.contains { !$0.isPinned }
+            canClearHistory: canClearHistory ?? items.contains { !$0.isPinned },
+            isHistoryHidden: isHistoryHidden, canHideHistory: canHideHistory ?? !items.isEmpty,
+            historyHidingCutoff: historyHidingCutoff, typeHidingRule: typeHidingRule
         )
     }
 
@@ -192,29 +241,35 @@ final class HistoryPresenter {
 
     /// An empty rail either invites the first copy or reports that the
     /// query and chips matched nothing.
-    private static func emptyMessage(query: String, filters: FilterContext) -> String {
+    private static func emptyMessage(query: String, filters: FilterContext, isHistoryHidden: Bool) -> String {
         let narrowed =
             !query.isEmpty || !filters.activeSourceKeys.isEmpty || !filters.activeCategories.isEmpty
             || filters.pinnedOnly
+        if !narrowed, isHistoryHidden {
+            return localized("Older cards are temporarily hidden. New copies will appear here.")
+        }
         return narrowed ? localized("No matches") : localized("Copy something to get started")
     }
 
     static func sourceLabel(_ source: SourceApp?) -> String? {
         guard let source else { return nil }
-        if source.origin == .handoffMarker { return localized("Handoff (system marker)") }
+        if source.origin == .handoffMarker { return localized("Handoff") }
         return source.name ?? source.bundleID
     }
 
     private func card(
-        for item: ClipboardItem, now: Date, isSelected: Bool, stackPosition: Int?, words: [String]
+        for item: ClipboardItem, now: Date, isSelected: Bool, stackPosition: Int?, words: [FuzzyMatch.Pattern],
+        labels: inout CardLabels
     ) -> CardViewState {
-        let kind = Self.kindLabel(item.category)
+        let kind = labels.kind(item.category)
         let source = Self.sourceLabel(item.source) ?? kind.capitalized
-        let time = timeLabel(for: item, now: now)
+        let time = timeLabel(id: item.id, copiedAt: item.copiedAt, now: now)
         let hidden = item.pinnedMetadata.hidesContent
         if hidden { previewCache[item.id] = nil }
         let cached = hidden ? nil : preview(for: item)
         let cardPreview = cached?.preview ?? .text(Self.hiddenSummary(item.payload))
+        let spoken = Self.accessibilityLabel(source: source, kind: kind, preview: cardPreview)
+        let note = item.pinnedMetadata.note
         return CardViewState(
             id: item.id,
             sourceLabel: source,
@@ -222,14 +277,13 @@ final class HistoryPresenter {
             kindLabel: kind,
             kindSymbol: item.category.symbolName,
             timeLabel: time,
-            detailLabel: cached?.characterCount.map { localized("\($0) characters") },
+            detailLabel: labels.characterCount(cached?.characterCount),
             isPinned: item.isPinned,
             isSelected: isSelected,
             stackPosition: stackPosition,
-            accessibilityLabel: ([
-                item.pinnedMetadata.note, Self.accessibilityLabel(source: source, kind: kind, preview: cardPreview),
-            ]).filter { !$0.isEmpty }.joined(separator: ", "),
-            accessibilityValue: Self.accessibilityValue(of: item, stackPosition: stackPosition, time: time),
+            accessibilityLabel: note.isEmpty ? spoken : note + ", " + spoken,
+            accessibilityValue: Self.accessibilityValue(
+                pinned: item.isPinned, tags: item.pinnedMetadata.tags, stackPosition: stackPosition, time: time),
             dragPayload: hidden ? .text("") : Self.dragPayload(of: item),
             transformable: !hidden && item.splitGroup == nil && item.payload.transformableText != nil,
             saveable: {
@@ -257,38 +311,31 @@ final class HistoryPresenter {
     /// Card layout and highlights share an excerpt; explicit actions keep the full payload.
     private static let textPreviewLimit = 1024
 
-    private static func matchSpans(of words: [String], in item: ClipboardItem) -> [MatchSpan] {
+    private static func matchSpans(of words: [FuzzyMatch.Pattern], in item: ClipboardItem) -> [MatchSpan] {
         guard !words.isEmpty, case .text(let value) = item.payload else { return [] }
         let scanned = value.prefix(textPreviewLimit)
         var hits: Set<Int> = []
         for word in words {
-            if let positions = FuzzyMatch.match(pattern: word, in: scanned)?.positions {
+            if let positions = word.match(in: scanned)?.positions {
                 hits.formUnion(positions)
             }
         }
-        guard !hits.isEmpty else { return [] }
-        // Character offsets to UTF-16 ones: one running offset per character.
-        var utf16Offsets = [0]
-        utf16Offsets.reserveCapacity(scanned.count + 1)
-        for character in scanned {
-            utf16Offsets.append(utf16Offsets[utf16Offsets.count - 1] + character.utf16.count)
-        }
+        guard let lastHit = hits.max() else { return [] }
         var spans: [MatchSpan] = []
+        var utf16Offset = 0
         var runStart: Int?
-        var previous = -2
-        for offset in hits.sorted() where offset + 1 < utf16Offsets.count {
-            if offset != previous + 1 {
-                if let start = runStart {
-                    spans.append(
-                        MatchSpan(start: utf16Offsets[start], length: utf16Offsets[previous + 1] - utf16Offsets[start]))
-                }
-                runStart = offset
+        for (offset, character) in scanned.enumerated() {
+            if hits.contains(offset) {
+                if runStart == nil { runStart = utf16Offset }
+            } else if let start = runStart {
+                spans.append(MatchSpan(start: start, length: utf16Offset - start))
+                runStart = nil
             }
-            previous = offset
+            utf16Offset += character.utf16.count
+            if offset == lastHit { break }
         }
         if let start = runStart {
-            spans.append(
-                MatchSpan(start: utf16Offsets[start], length: utf16Offsets[previous + 1] - utf16Offsets[start]))
+            spans.append(MatchSpan(start: start, length: utf16Offset - start))
         }
         return spans
     }
@@ -337,12 +384,15 @@ final class HistoryPresenter {
         }
     }
 
-    private static func accessibilityValue(of item: ClipboardItem, stackPosition: Int?, time: String) -> String {
+    private static func accessibilityValue(
+        pinned: Bool, tags: Set<PinTagColor>, stackPosition: Int?, time: String
+    ) -> String {
+        guard pinned || !tags.isEmpty || stackPosition != nil else { return time }
         var parts: [String] = []
-        if item.isPinned {
+        if pinned {
             parts.append(localized("Pinned card"))
         }
-        parts.append(contentsOf: PinTagColor.allCases.filter(item.pinnedMetadata.tags.contains).map(tagLabel))
+        parts.append(contentsOf: PinTagColor.allCases.filter(tags.contains).map(tagLabel))
         if let stackPosition {
             parts.append(localized("Paste stack position \(stackPosition)"))
         }
@@ -365,6 +415,7 @@ final class HistoryPresenter {
         case .code: localized("code")
         case .color: localized("color")
         case .link: localized("link")
+        case .path: localized("path")
         case .image: localized("image")
         case .files: localized("files")
         }
@@ -373,10 +424,10 @@ final class HistoryPresenter {
     private static func chipIcon(_ category: ContentCategory) -> ChipIcon {
         switch category {
         case .text: .symbol("text.alignleft")
-        // The code chip wears the Neovim mark when the bundle ships it.
-        case .code: .resource("nvim", fallback: "chevron.left.forwardslash.chevron.right")
+        case .code: .symbol("chevron.left.forwardslash.chevron.right")
         case .color: .symbol("paintpalette")
         case .link: .symbol("link")
+        case .path: .symbol(ContentCategory.path.symbolName)
         case .image: .symbol("photo")
         case .files: .symbol("folder")
         }
@@ -424,10 +475,10 @@ final class HistoryPresenter {
         case .storedImage(let reference):
             return .storedImage(reference)
         case .fileReferences(let paths):
-            let names = paths.map { ($0 as NSString).lastPathComponent }
+            let names = paths.prefix(4).map { ($0 as NSString).lastPathComponent }
             return .files(
-                names: Array(names.prefix(4)),
-                overflow: max(0, names.count - 4),
+                names: names,
+                overflow: paths.count - names.count,
                 thumbnailPath: paths.first
             )
         }
@@ -442,9 +493,10 @@ final class HistoryPresenter {
     }
 
     // The row arrives already ordered; each entry lands in its group.
-    private func filterBar(from context: FilterContext) -> FilterBarViewState {
+    func filterBar(from context: FilterContext) -> FilterBarViewState {
         var all: [FilterChip] = []
         var pinned: [FilterChip] = []
+        var origins: [FilterChip] = []
         var apps: [FilterChip] = []
         var kinds: [FilterChip] = []
         var tags: [FilterChip] = []
@@ -457,7 +509,7 @@ final class HistoryPresenter {
                         id: entry.id, label: localized("All"), sourceBundleID: nil,
                         icon: .symbol("square.grid.2x2"), accessibilityLabel: localized("All items, clear filters"),
                         isActive: context.activeSourceKeys.isEmpty && context.activeCategories.isEmpty
-                            && !context.pinnedOnly && context.activeTags.isEmpty,
+                            && !context.pinnedOnly && !context.handoffOnly && context.activeTags.isEmpty,
                         isFocused: isFocused))
             case .pinned:
                 pinned.append(
@@ -471,7 +523,15 @@ final class HistoryPresenter {
                         isFocused: isFocused
                     )
                 )
+            case .handoff:
+                origins.append(
+                    FilterChip(
+                        id: entry.id, label: localized("Handoff"), sourceBundleID: nil,
+                        icon: .symbol("macbook.and.iphone"),
+                        accessibilityLabel: localized("Handoff, source filter"),
+                        isActive: context.handoffOnly, isFocused: isFocused))
             case .app(let source):
+                guard source.origin == .observedApplication else { continue }
                 let label = Self.sourceLabel(source) ?? localized("Unknown")
                 apps.append(
                     FilterChip(
@@ -504,7 +564,7 @@ final class HistoryPresenter {
                 )
             }
         }
-        return FilterBarViewState(all: all, pinned: pinned, apps: apps, kinds: kinds, tags: tags)
+        return FilterBarViewState(all: all, pinned: pinned, apps: apps, kinds: kinds, tags: tags, origins: origins)
     }
 
     static func tagLabel(_ color: PinTagColor) -> String {
@@ -522,20 +582,45 @@ final class HistoryPresenter {
     /// Sub-minute labels would churn every second and force every card to
     /// re-render on each refresh, so the first minute reads as "now";
     /// beyond it the formatter only runs when the minute bucket moves.
-    private func timeLabel(for item: ClipboardItem, now: Date) -> String {
-        let age = now.timeIntervalSince(item.copiedAt)
+    static func nextTimeChange(copiedAt: Date, now: Date) -> Date {
+        let bucket = floor(max(0, now.timeIntervalSince(copiedAt)) / 60)
+        return copiedAt.addingTimeInterval((bucket + 1) * 60)
+    }
+
+    /// Dates follow the same representative order as the displayed cards. Only
+    /// cards that crossed a minute boundary need formatting or a VoiceOver update.
+    func refreshTimes(in state: inout HistoryViewState, dates: [Date], from previous: Date, now: Date) -> Date {
+        var expires = Date.distantFuture
+        for (index, date) in dates.enumerated() {
+            let next = Self.nextTimeChange(copiedAt: date, now: now)
+            expires = min(expires, next)
+            guard next != Self.nextTimeChange(copiedAt: date, now: previous) else { continue }
+            let card = state.cards[index]
+            let time = timeLabel(id: card.id, copiedAt: date, now: now)
+            guard time != card.timeLabel else { continue }
+            state.updateTime(
+                at: index, label: time,
+                accessibilityValue: Self.accessibilityValue(
+                    pinned: card.isPinned, tags: card.pinnedMetadata.tags, stackPosition: card.stackPosition, time: time
+                ))
+        }
+        return expires
+    }
+
+    private func timeLabel(id: UUID, copiedAt: Date, now: Date) -> String {
+        let age = now.timeIntervalSince(copiedAt)
         guard age >= 60 else { return localized("now") }
         let bucket = Int(age / 60)
-        if let cached = timeCache[item.id], cached.bucket == bucket {
+        if let cached = timeCache[id], cached.bucket == bucket {
             return cached.label
         }
-        let label = Self.relativeFormatter.localizedString(for: item.copiedAt, relativeTo: now)
+        let label = relativeFormatter.localizedString(for: copiedAt, relativeTo: now)
         if !timePruned, timeCache.count >= cacheLimit {
             timeCache = timeCache.filter { presentedIDs.contains($0.key) }
             timePruned = true
             cachePrunePasses += 1
         }
-        timeCache[item.id] = (bucket, label)
+        timeCache[id] = (bucket, label)
         return label
     }
 
@@ -543,9 +628,10 @@ final class HistoryPresenter {
         localized("\(count) items")
     }
 
-    private static let relativeFormatter: RelativeDateTimeFormatter = {
+    private static func makeRelativeFormatter() -> RelativeDateTimeFormatter {
         let formatter = RelativeDateTimeFormatter()
+        formatter.locale = AppLocalization.interfaceLocale
         formatter.unitsStyle = .abbreviated
         return formatter
-    }()
+    }
 }

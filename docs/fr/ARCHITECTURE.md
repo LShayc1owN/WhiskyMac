@@ -1,6 +1,6 @@
 # Architecture
 
-Whisk est une application Swift simple qui suit la Clean Architecture :
+WhiskyMac est une application Swift qui suit la Clean Architecture :
 les entités et les use cases seuls au centre de l'oignon, un ring
 d'interface adapters complet autour d'eux (controllers, presenters,
 gateways), et les frameworks tout au bord. Les rings vivent comme des
@@ -8,24 +8,26 @@ dossiers dans un module unique ; la Dependency Rule est appliquée par
 `scripts/check-dependency-rule.sh`, exécuté par la CI à chaque push — les
 rings intérieurs ne peuvent importer que ce que leur ring autorise, les
 flèches pointent uniquement vers l'intérieur.
+Le périmètre actuel et les priorités de maintenance figurent dans [PROJECT.md](../PROJECT.md).
 
 ## La carte
 
 ```
 Sources/Whisk/
-├── Entities/               History · ClipboardItem · Payload · SourceApp · HistoryCapacity
+├── Entities/               History · ClipboardItem · Payload · BinaryContent · SplitContent · PinnedMetadata
 ├── UseCases/               CaptureClipboardChange · SelectItem · FilterHistory ·
 │   └── Ports/              TogglePin · DeleteItem · ClearHistory · LoadHistory · EnforceRetention
-│                           Pasteboard · HistoryStore · Clock · Logger  (Foundation seulement)
+│                           Pasteboard · HistoryStore · SharingDetector · Clock · Logger  (Foundation seulement)
 ├── Adapters/
 │   ├── Controllers/        ClipboardController                     (Foundation seulement)
 │   ├── Presenters/         HistoryPresenter · HistoryViewState     (Foundation seulement)
 │   └── Gateways/           SQLiteHistoryStore · LegacyJSONHistory · VolatileHistoryStore ·
-│                           AppKitPasteboard · ConsoleLogger        (Foundation + AppKit + SQLite3)
+│                           AppKitPasteboard · ConsoleLogger        (Foundation + AppKit + SQLite3 + CryptoKit)
 ├── Components/             vues et modificateurs SwiftUI réutilisables dans l'application
 └── App/                    frameworks & drivers + racine de composition (tout est permis)
     ├── Composition/        AppIdentity · Distribution · PanelWiring
-    ├── Panel/              PanelController · PanelLayout · PanelKeyRouter · HotKey · SplitSession
+    ├── Panel/              PanelController · PanelLayout · PanelKeyRouter · PanelActions ·
+    │                       HistoryViewStateStore · HotKey · SplitSession
     ├── Settings/           AppearanceSettings · GeneralSettings · SettingsPage ·
     │                       KeyBindings · VimBindings · LegalDocuments
     ├── Privacy/            PrivacyController · SensitiveSessionStore · SharingMonitor
@@ -50,6 +52,10 @@ Sources/Whisk/
      use cases, possède l'`History` courant, la requête de recherche et la
      sélection clavier, et signale les échecs de stockage au `Logger` sans
      tuer la session.
+     `pollTick` ne soumet qu'une lecture du presse-papiers à la fois, avec
+     retour par callback. Une session en pause consomme les changements sans
+     les enregistrer. Les tests utilisent ce même chemin avec des ports
+     scriptés ou différés.
    - *Presenters* : transformation pure entités → view state.
      `HistoryPresenter` décide chaque chaîne et symbole d'affichage (labels
      de type, temps relatifs, phrase de l'état vide, icônes des puces,
@@ -65,6 +71,9 @@ Sources/Whisk/
      `AppKitPasteboard` possède la frontière NSPasteboard ;
      `ConsoleLogger` écrit dans le journal unifié. C'est le seul dossier
      du ring autorisé à importer AppKit.
+     SQLite utilise CryptoKit pour identifier les révisions immuables des
+     images et du RTF. Les listes portent des références `BinaryContent` ;
+     les chargements complets et les opérations explicites lisent les octets.
 3. **Frameworks & drivers (`Components/` et `App/`).** `Components/` contient
    les petits éléments SwiftUI réutilisables réellement employés par
    l'application. Les packages privés PetaToolKit et PetaKitUIX ne sont pas
@@ -73,14 +82,20 @@ Sources/Whisk/
    `HistoryViewState`), le `NSPanel` flottant, l'icône de barre de menus,
    le `Timer` de polling, le raccourci Carbon, la simulation de collage.
    `HistoryStorage` ouvre la base, la lit une fois avant de lui faire
-   confiance, met de côté une base illisible, se replie sur la mémoire et
-   importe l'historique legacy. Deux morceaux de ce ring portent des
-   règles plutôt que du câblage et sont tenus à part pour être testés :
+   confiance, met de côté une base illisible, se replie sur la mémoire,
+   importe l'historique legacy et transmet la liste validée au controller
+   sans la relire. `PanelActions` définit les actions des vues et leur garde
+   de confidentialité dans son propre fichier ; `HistoryViewStateStore`
+   possède l'état observable et les brouillons. Deux autres morceaux portent
+   des règles et restent testables séparément :
    `PanelWiring` construit la table d'actions du panneau (quelles actions
    vident le debounce de recherche, lesquelles ferment et collent), et
    `PanelKeyRouter` transforme les touches en actions — mode normal de
-   vim, raccourcis de l'utilisateur, ⌘chiffres. `AppDelegate` ne fait
-   qu'assembler. L'asynchrone vit ici et seulement ici.
+   vim, raccourcis de l'utilisateur, ⌘chiffres. `AppDelegate` assemble les
+   dépendances et les cycles de vie. Les files de travail et tâches des
+   frameworks vivent dans les gateways et le ring externe. Le controller
+   coordonne les callbacks via son port Foundation ; les mutations du noyau
+   restent synchrones.
 
 ## Invariants
 
@@ -93,11 +108,17 @@ Sources/Whisk/
   fonctionner ; une entrée persistée corrompue est ignorée, jamais
   fatale ; une base qui ne s'ouvre pas est mise de côté et la session
   tourne en mémoire plutôt que de refuser de démarrer.
-- **Des octets opaques traversent les coutures.** Le noyau et le view
-  state transportent les images comme `Data`. Le gateway presse-papiers
-  possède la normalisation PNG ; le gateway SQLite possède le schéma et
-  fixe les dates à la milliseconde entière pour qu'un historique
-  sauvegardé se recharge à l'identique.
+- **Le contenu opaque est différé.** La capture transporte d'abord des `Data` ;
+  l'historique persisté, l'annulation et le view state portent des références
+  immuables `BinaryContent` / `StoredBytes`. Les filtres, regroupements et listes
+  ne chargent pas les originaux. Les aperçus montés et exports explicites les
+  lisent à la demande. Le gateway presse-papiers normalise le PNG ; SQLite
+  possède le schéma, vérifie les octets et fixe les dates à la milliseconde.
+- **Les durées de rétention sont bornées.** La fermeture du panneau et les
+  changements de confidentialité invalident les requêtes et libèrent les caches.
+  Les sessions sensibles restent séparées de l'historique, de SQLite, de
+  l'annulation et des aperçus. Les points d'observation des caches et de la
+  libération des hôtes utilisés par les tests sont intentionnels.
 
 ## Tests
 

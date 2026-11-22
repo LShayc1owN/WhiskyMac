@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Whisk are recorded here. The format follows
+All notable changes to WhiskyMac and its upstream Whisk are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the versions
 [Semantic Versioning](https://semver.org/). Entries describe what a user
 of the app notices; the landing page, the docs and the build pipeline
@@ -9,6 +9,14 @@ live in the commit history.
 ## [Unreleased]
 
 ### Added
+- Handoff has an independent source filter before app chips, with the
+  `macbook.and.iphone` symbol. It supports temporary cutoff-based hiding and an
+  independent permission in Privacy Mode, while preserving stored attribution.
+- File-path text has its own content filter and supports `type:path` searches.
+  Recognizes single-line absolute, home-relative and explicit relative paths
+  without checking filesystem existence or changing copied text.
+- A Debug settings page can replay the first-launch guide from the beginning,
+  resetting its practice session while preserving first-run completion status.
 - App filters in Privacy Mode have an independent setting, enabled by default.
   Card source labels remain separately controlled and clipboard content stays masked.
 - Category shortcut resets show a five-second Undo toast at the bottom of Settings,
@@ -40,8 +48,8 @@ live in the commit history.
 - Separate normal/privacy card interaction profiles, including independent
   hover timing. Explicit privacy clicks may copy/paste; grouped records require
   a format choice. Full preview/edit stay blocked; auto protection stays masked.
-- Optional filters in Privacy Mode keep results masked. App filters additionally
-  require source-app visibility; search and filtering remain independent.
+- Optional filters in Privacy Mode keep results masked; search, app filters,
+  card source labels and other filters have independent permissions.
 - History cards display bounded rich-text excerpts with original formatting.
   Oversized or invalid RTF falls back to plain text; full previews remain available.
 - Privacy hover reveal has adjustable diameter and edge blur, live updates,
@@ -493,7 +501,7 @@ live in the commit history.
 - Rich previews and syntax highlighting.
 - The hot key and the synthetic paste follow the keyboard layout.
 
-[Unreleased]: https://github.com/nathan-poncet/whisk/compare/v1.0.3...HEAD
+[Unreleased]: https://github.com/lshayc1own/WhiskyMac/compare/v1.0.3...HEAD
 [1.0.3]: https://github.com/nathan-poncet/whisk/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/nathan-poncet/whisk/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/nathan-poncet/whisk/compare/v1.0.0...v1.0.1

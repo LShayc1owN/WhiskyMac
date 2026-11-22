@@ -28,10 +28,11 @@ import Testing
             id: UUID(), payload: .text("synthetic"), source: source, copiedAt: Date(), isPinned: false)
         let view = HistoryPresenter().present(
             items: [item], query: "", now: item.copiedAt,
-            filters: FilterContext(chips: [.app(source)], activeSourceKeys: [source.filterKey]))
-        #expect(view.cards.first?.sourceLabel == localized("Handoff (system marker)"))
+            filters: FilterContext(chips: [.handoff], handoffOnly: true))
+        #expect(view.cards.first?.sourceLabel == localized("Handoff"))
         #expect(view.cards.first?.sourceBundleID == nil)
-        #expect(view.filters.apps.first?.label == localized("Handoff (system marker)"))
+        #expect(view.filters.apps.isEmpty)
+        #expect(view.filters.origins.first?.label == localized("Handoff"))
         #expect(FilterHistory()(History(items: [item]), filter: HistoryFilter(sources: [source])) == [item])
     }
 

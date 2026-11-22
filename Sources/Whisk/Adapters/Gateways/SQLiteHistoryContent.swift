@@ -128,14 +128,16 @@ extension SQLiteHistoryStore {
         return true
     }
 
-    func encodeGroup(_ group: SplitGroup) throws -> Data {
+    func encodeGroup(_ group: SplitGroup) throws -> (data: Data, keys: Set<String>) {
         let parts = try group.parts.map { part in
             StoredGroup.Part(
                 id: part.id, text: part.text, link: part.link,
                 rtfKey: try part.richText.map(insertBinary), rtfSize: part.richText?.byteCount)
         }
         let encoder = JSONEncoder(); encoder.outputFormatting = .sortedKeys
-        return try encoder.encode(StoredGroup(parts: parts, plainText: group.plainText))
+        return (
+            try encoder.encode(StoredGroup(parts: parts, plainText: group.plainText)), Set(parts.compactMap(\.rtfKey))
+        )
     }
 
     private func migrateSplitGroups() throws {
@@ -162,11 +164,11 @@ extension SQLiteHistoryStore {
                     throw HistoryStoreError.unwritable("cannot migrate split group")
                 }
                 defer { sqlite3_finalize(update) }
-                bindBlob(update, 1, encoded); bindText(update, 2, id)
+                bindBlob(update, 1, encoded.data); bindText(update, 2, id)
                 guard sqlite3_step(update) == SQLITE_DONE else {
                     throw HistoryStoreError.unwritable("cannot migrate split formatting")
                 }
-                try saveGroupLinks(id: id, group: group)
+                try saveGroupLinks(id: id, keys: encoded.keys)
             }
             status = sqlite3_step(statement)
         }
@@ -196,7 +198,7 @@ extension SQLiteHistoryStore {
         return group
     }
 
-    func saveGroupLinks(id: String, group: SplitGroup) throws {
+    func saveGroupLinks(id: String, keys: Set<String>) throws {
         var deletion: OpaquePointer?
         guard sqlite3_prepare_v2(db, "DELETE FROM split_blob_links WHERE id = ?", -1, &deletion, nil) == SQLITE_OK
         else {
@@ -215,9 +217,7 @@ extension SQLiteHistoryStore {
             throw HistoryStoreError.unwritable("cannot save split references")
         }
         defer { sqlite3_finalize(insert) }
-        for part in group.parts {
-            guard let content = part.richText else { continue }
-            let key = try insertBinary(content)
+        for key in keys {
             sqlite3_reset(insert); sqlite3_clear_bindings(insert)
             bindText(insert, 1, id); bindText(insert, 2, key)
             guard sqlite3_step(insert) == SQLITE_DONE else {
@@ -258,13 +258,14 @@ extension SQLiteHistoryStore {
     }
 
     func compact(_ items: [ClipboardItem]) throws -> [ClipboardItem] {
-        try items.map { item in
+        var compacted = items
+        for (index, item) in items.enumerated() {
             let inlineImage: Bool
             if case .image = item.payload { inlineImage = true } else { inlineImage = false }
             let inlineRTF = item.richText != nil && item.richText?.reference == nil
             let inlineParts =
                 item.splitGroup?.parts.contains { $0.richText != nil && $0.richText?.reference == nil } ?? false
-            guard inlineImage || inlineRTF || inlineParts else { return item }
+            guard inlineImage || inlineRTF || inlineParts else { continue }
             var statement: OpaquePointer?
             guard
                 sqlite3_prepare_v2(
@@ -294,8 +295,9 @@ extension SQLiteHistoryStore {
                     contentStorage.reference(key: key, byteCount: Int(sqlite3_column_int64(statement, 3))))
             }
             let group = try columnBlob(statement, 4).map(decodeGroup)
-            return item.withStoredContent(payload: payload, richText: richText, splitGroup: group)
+            compacted[index] = item.withStoredContent(payload: payload, richText: richText, splitGroup: group)
         }
+        return compacted
     }
 
     func setContentCacheEnabled(_ enabled: Bool) { contentStorage.setEnabled(enabled) }

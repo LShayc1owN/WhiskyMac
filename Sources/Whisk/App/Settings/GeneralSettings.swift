@@ -36,32 +36,6 @@ enum RetentionPeriodOption: String, CaseIterable, Identifiable {
     }
 }
 
-/// Former size presets, retained to load settings saved by earlier versions.
-enum CardSize: String, CaseIterable, Identifiable {
-    case small
-    case medium
-    case large
-
-    var id: String { rawValue }
-
-    var label: String {
-        switch self {
-        case .small: localized("Small")
-        case .medium: localized("Medium")
-        case .large: localized("Large")
-        }
-    }
-
-    /// The card's side in points, before the selection zoom.
-    var side: CGFloat {
-        switch self {
-        case .small: 160
-        case .medium: 200
-        case .large: 250
-        }
-    }
-}
-
 /// An application whose copies are never recorded.
 struct ExcludedApp: Codable, Equatable, Identifiable {
     let bundleID: String
@@ -77,6 +51,13 @@ final class GeneralSettingsStore: ObservableObject {
     static let capacityChoices = [100, 250, 500, 1000, 0]
     static let cardSideRange: ClosedRange<Double> = 160...500
     static let defaultCardSide: Double = 200
+    static let filterTagScaleRange: ClosedRange<Double> = 0.75...2
+    static let defaultFilterTagScale: Double = 1
+
+    static func boundedFilterTagScale(_ scale: Double) -> Double {
+        guard scale.isFinite else { return defaultFilterTagScale }
+        return min(max(scale, filterTagScaleRange.lowerBound), filterTagScaleRange.upperBound)
+    }
 
     static func boundedCardSide(_ side: Double) -> Double {
         guard side.isFinite else { return defaultCardSide }
@@ -139,6 +120,10 @@ final class GeneralSettingsStore: ObservableObject {
         didSet { defaults.set(checkForUpdates, forKey: "checkForUpdates") }
     }
 
+    @Published var lightweightMode: Bool {
+        didSet { defaults.set(lightweightMode, forKey: "lightweightMode") }
+    }
+
     @Published var vimNavigation: Bool {
         didSet { defaults.set(vimNavigation, forKey: "vimNavigation") }
     }
@@ -153,26 +138,16 @@ final class GeneralSettingsStore: ObservableObject {
         didSet { defaults.set(cardSide, forKey: "cardSide") }
     }
 
-    @Published private(set) var previewCardSide: Double?
-
-    var effectiveCardSide: Double { previewCardSide ?? cardSide }
-
     func setCardSide(_ side: Double) {
         cardSide = Self.boundedCardSide(side)
     }
 
-    func beginCardSizePreview(_ side: Double) {
-        previewCardSide = Self.boundedCardSide(side)
+    @Published private(set) var filterTagScale: Double {
+        didSet { defaults.set(filterTagScale, forKey: "filterTagScale") }
     }
 
-    func saveCardSizePreview() {
-        guard let previewCardSide else { return }
-        setCardSide(previewCardSide)
-        self.previewCardSide = nil
-    }
-
-    func cancelCardSizePreview() {
-        if previewCardSide != nil { previewCardSide = nil }
+    func setFilterTagScale(_ scale: Double) {
+        filterTagScale = Self.boundedFilterTagScale(scale)
     }
 
     @Published var excludedApps: [ExcludedApp] {
@@ -180,7 +155,7 @@ final class GeneralSettingsStore: ObservableObject {
             do {
                 defaults.set(try JSONEncoder().encode(excludedApps), forKey: "excludedApps")
             } catch {
-                logger.log("excluded apps not saved — \(error)")
+                logger.log(.excludedAppsWriteFailed)
             }
         }
     }
@@ -242,13 +217,16 @@ final class GeneralSettingsStore: ObservableObject {
             defaults.object(forKey: "historyCapacity") == nil ? 500 : defaults.integer(forKey: "historyCapacity")
         checkForUpdates =
             defaults.object(forKey: "checkForUpdates") == nil ? false : defaults.bool(forKey: "checkForUpdates")
+        lightweightMode = defaults.bool(forKey: "lightweightMode")
         vimNavigation = defaults.bool(forKey: "vimNavigation")
         linkPreviews = defaults.object(forKey: "linkPreviews") == nil ? false : defaults.bool(forKey: "linkPreviews")
+        filterTagScale = Self.boundedFilterTagScale(
+            (defaults.object(forKey: "filterTagScale") as? NSNumber)?.doubleValue ?? Self.defaultFilterTagScale)
         if let savedSide = defaults.object(forKey: "cardSide") as? NSNumber {
             cardSide = Self.boundedCardSide(savedSide.doubleValue)
         } else {
-            let legacySize = CardSize(rawValue: defaults.string(forKey: "cardSize") ?? "")
-            cardSide = legacySize.map { Double($0.side) } ?? Self.defaultCardSide
+            let presetSides: [String: Double] = ["small": 160, "medium": 200, "large": 250]
+            cardSide = defaults.string(forKey: "cardSize").flatMap { presetSides[$0] } ?? Self.defaultCardSide
         }
         sensitiveApps =
             defaults.data(forKey: "sensitiveApps").flatMap {
@@ -263,7 +241,7 @@ final class GeneralSettingsStore: ObservableObject {
             do {
                 excludedApps = try JSONDecoder().decode([ExcludedApp].self, from: data)
             } catch {
-                logger.log("stored excluded apps unreadable — \(error); none apply")
+                logger.log(.excludedAppsReadFailed)
             }
         }
     }

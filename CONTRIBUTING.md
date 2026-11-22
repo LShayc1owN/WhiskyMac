@@ -20,7 +20,7 @@ Useful entry points while developing:
 ```sh
 swift run Whisk --show-panel      # open the history panel immediately
 swift run Whisk --show-settings   # open the Settings window immediately
-./scripts/build-app.sh 0.0.0 native   # package a real Whisk.app into dist/
+./scripts/build-app.sh 0.0.0 native   # package a real WhiskyMac.app into dist/
 ```
 
 ## Before you push
@@ -30,9 +30,9 @@ CI runs exactly these, in this order — run them locally first:
 ```sh
 ./scripts/check-dependency-rule.sh
 swift format lint --strict --recursive Sources Tests Package.swift
-./scripts/localizations.sh check
 swift build
-swift test        # needs Xcode; otherwise let CI run it
+./scripts/localizations.sh check
+COVERAGE_MIN=90 ./scripts/coverage.sh  # needs Xcode; includes swift test
 ```
 
 `swift format format --in-place --recursive Sources Tests` fixes most lint
@@ -48,7 +48,7 @@ enforced by `scripts/check-dependency-rule.sh`:
 |---|---|---|
 | Entities | `Sources/Whisk/Entities/` | Foundation |
 | Use cases | `Sources/Whisk/UseCases/` (+ `Ports/`) | Foundation |
-| Interface adapters | `Sources/Whisk/Adapters/{Controllers,Presenters,Gateways}/` | Foundation (Gateways may also use AppKit + SQLite3) |
+| Interface adapters | `Sources/Whisk/Adapters/{Controllers,Presenters,Gateways}/` | Foundation (Gateways may also use AppKit + SQLite3 + CryptoKit) |
 | Frameworks & drivers | `Sources/Whisk/App/` | anything |
 
 Ground rules:
@@ -90,9 +90,9 @@ Every user-visible string goes through the `localized()` helper. Open
 `Package.swift` in Xcode, then open
 `Sources/Whisk/Resources/Localizable.xcstrings` in its String Catalog editor.
 This catalog is the only translation source, with English keys and complete
-English, French, German and Simplified Chinese translations. Entries are managed
+English, French, German, Italian and Simplified Chinese translations. Entries are managed
 manually because Xcode does not extract literals passed to our custom helper.
-For counts, use the editor's **Vary by Plural** action: English, French and German
+For counts, use the editor's **Vary by Plural** action: English, French, German and Italian
 need One and Other; Chinese only needs Other. Keep format placeholders intact.
 
 After changing the catalog, run:
@@ -109,15 +109,13 @@ Generation and checking require full Xcode and its `xcstringstool`; regular
 `swift build` uses the committed resources and needs no catalog compiler.
 CI and app packaging reject stale generated resources. `LocalizationTests`
 checks source coverage, translation states, placeholders, plural rules and
-the compiled resources in all four languages. The interface follows macOS
+the compiled resources in all five languages. The interface follows macOS
 language preferences unless overridden in Settings; unsupported languages fall back to English.
 
 ## Commits & PRs
 
 - Code, comments and commit messages are in **English**; French docs mirror
   under `docs/fr/`.
-- Prefix commit subjects with a [Gitmoji](https://gitmoji.dev): ✨ feature,
-  🐛 fix, ♻️ refactor, ✅ tests, 📝 docs, 👷 CI, 🌐 i18n, 🔒 security…
 - Keep PRs focused: one feature or fix per PR, with tests for behaviour
   changes.
 - Anything a user would notice gets a line under `[Unreleased]` in

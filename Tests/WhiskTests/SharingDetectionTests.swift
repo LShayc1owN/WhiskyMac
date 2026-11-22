@@ -158,7 +158,6 @@ import Testing
             })
         #expect(noCandidates.sample() == clear)
         #expect(reads == 0)
-        #expect(noCandidates.kind == .publicAPI)
     }
 
     @Test func denied_permission_and_failed_reads_are_unknown_but_an_active_source_still_wins() {
@@ -175,7 +174,7 @@ import Testing
         let partial = PublicSharingDetector(
             applications: { candidates }, trusted: { true },
             readWindows: { pid in
-                pid == 1 ? .unavailable : .titles(["Sharing control bar"])
+                pid == 1 ? .unavailable : .titles(["螢幕共用工具列"])
             })
         #expect(partial.sample() == active)
         let failed = PublicSharingDetector(
@@ -188,5 +187,19 @@ import Testing
             applications: { Array(repeating: candidates[0], count: 9) }, trusted: { true },
             readWindows: { _ in .titles([]) })
         #expect(tooMany.sample() == unknown)
+    }
+
+    @Test(arguments: [
+        "  SCREEN SHARING\u{00A0}TOOLBAR\n",
+        "螢幕共用工具列", "簡報者工具列", "屏幕共享工具栏",
+        "Barre d'outils du présentateur", "Symbolleiste für die Bildschirmfreigabe",
+        "Barra degli strumenti del relatore",
+    ])
+    func teams_matches_full_localized_titles_for_both_bundle_ids(title: String) {
+        #expect(PublicSharingDetector.matches(bundleID: "com.microsoft.teams", title: title))
+        #expect(PublicSharingDetector.matches(bundleID: "com.microsoft.teams2", title: title))
+        #expect(!PublicSharingDetector.matches(bundleID: "us.zoom.xos", title: title))
+        #expect(!PublicSharingDetector.matches(bundleID: "com.example.other", title: title))
+        #expect(!PublicSharingDetector.matches(bundleID: "com.microsoft.teams2", title: "Teams: \(title)"))
     }
 }

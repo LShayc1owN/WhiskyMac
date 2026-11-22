@@ -13,6 +13,22 @@ import Vision
 @MainActor
 @Suite(.serialized)
 struct SettingsSearchTests {
+    @Test func an_open_search_index_follows_language_and_protection_changes() {
+        let previous = AppLocalization.language
+        defer { AppLocalization.language = previous }
+        let model = SettingsSearchModel()
+        AppLocalization.language = "zh-Hans"
+        model.query = "缩略图"
+        #expect(model.results.contains { $0.id == "lightweightMode" })
+        AppLocalization.language = "en"
+        model.query = "缩略"
+        #expect(model.results.isEmpty)
+        model.query = "Sensitive apps"
+        #expect(model.results.contains { $0.id == "sensitiveApps" })
+        model.refresh(context: SettingsSearchContext(isProtected: true))
+        #expect(!model.results.contains { $0.section == .sensitiveAccess })
+    }
+
     @Test func query_highlights_preserve_localized_text_and_pointer_selection() {
         let title = "Réglages · REGLAGES · 设置"
         let ranges = SettingsSearchIndex.matchingRanges(in: title, query: "reglages 设置")
@@ -36,7 +52,12 @@ struct SettingsSearchTests {
         for (language, query, expected) in [
             ("zh-Hans", "清空历史", "clearHistory"), ("zh-Hans", "音量", "volume"),
             ("zh-Hans", "CARD SIZE", "cardSize"), ("fr", "DISPOSITION DES REGLAGES", "navigation"),
+            ("zh-Hans", "设置窗口外观", "settingsAppearance"),
+            ("zh-Hant", "剪貼簿外觀", "clipboardAppearance"),
             ("zh-Hans", "隐私模式 App 筛选", "privacyAppFilters"),
+            ("zh-Hans", "轻量模式", "lightweightMode"), ("zh-Hans", "缩略图", "lightweightMode"),
+            ("zh-Hant", "輕量模式", "lightweightMode"),
+            ("zh-Hant", "設定頁面配置", "navigation"), ("zh-Hant", "音量", "volume"),
             ("de", "GROSSE", "cardSize"), ("it", "volume", "volume"),
         ] {
             AppLocalization.language = language
@@ -54,6 +75,10 @@ struct SettingsSearchTests {
         #expect(SettingsSearchIndex.matches("Sound volume", context: context).first?.id == "volume")
         #expect(SettingsSearchIndex.matches("Sounds and effects", context: context).map(\.id).contains("volume"))
         #expect(SettingsSearchIndex.matches("privacy", context: context).first?.id == "privacyIcon")
+        for query in ["dark", "light", "theme", "system appearance"] {
+            let appearances = SettingsSearchIndex.matches(query, context: context).map(\.id)
+            #expect(appearances.contains("settingsAppearance") && appearances.contains("clipboardAppearance"))
+        }
         let entries = SettingsSearchIndex.entries(context: context)
         #expect(Set(entries.map(\.id)).count == entries.count)
     }
@@ -63,8 +88,15 @@ struct SettingsSearchTests {
         context.checksForUpdates = false
         context.isProtected = true
         let hidden = SettingsSearchIndex.entries(context: context)
+        let loading = hidden.first { $0.id == "lightweightMode" }
+        #expect(loading?.destination == SettingsDestination(section: .startup, anchor: "lightweightMode"))
+        #expect(loading?.section.page == .general)
         #expect(!hidden.contains { $0.section == .sensitiveAccess })
-        #expect(!hidden.contains { $0.id == "checkUpdates" || $0.id == "startupUpdates" })
+        #expect(!hidden.contains { ["checkUpdates", "startupUpdates", "updateChannel"].contains($0.id) })
+        context.checksForUpdates = true
+        #expect(
+            SettingsSearchIndex.matches("Update channel", context: context).first?.destination
+                == SettingsDestination(section: .aboutApp, anchor: "updateChannel"))
         #expect(hidden.first { $0.id == "normal.delay" }?.destination.anchor == "normal.hover")
         #expect(hidden.first { $0.id == "vim.undo" }?.destination.anchor == "vim")
         context.normalHover = true
@@ -127,7 +159,7 @@ struct SettingsSearchTests {
         window.orderFront(nil)
         defer { window.close(); withExtendedLifetime(toolbar) {} }
 
-        for language in ["zh-Hans", "en", "fr", "de", "it"] {
+        for language in ["zh-Hans", "zh-Hant", "en", "fr", "de", "it"] {
             AppLocalization.language = language
             search.refresh(context: SettingsSearchContext())
             search.query = "shortcuts"
@@ -215,10 +247,28 @@ struct SettingsSearchTests {
             func images(in view: NSView) -> [NSImageView] {
                 ((view as? NSImageView).map { [$0] } ?? []) + view.subviews.flatMap { images(in: $0) }
             }
-            let brand = try #require(images(in: hosting.view).first)
-            let brandFrame = brand.convert(brand.bounds, to: nil)
-            #expect(brandFrame.minX < 100)
-            #expect(brandFrame.minY >= 0 && brandFrame.maxY < 100)
+            if navigation == .top {
+                let brandHost = try #require(
+                    window.toolbar?.items.first { $0.itemIdentifier == SettingsSearchToolbar.brandID }?.view)
+                let brand = try #require(images(in: brandHost).first)
+                let brandFrame = brand.convert(brand.bounds, to: nil)
+                #expect(brandFrame.maxX > window.frame.width - 70)
+                #expect(abs(brandFrame.midY - field.midY) < 4)
+                #expect(field.maxX < brandHost.convert(brandHost.bounds, to: nil).minX)
+                #expect(images(in: hosting.view).isEmpty, "The top layout must not retain a footer brand")
+            } else {
+                let brand = try #require(images(in: hosting.view).first)
+                let brandFrame = brand.convert(brand.bounds, to: nil)
+                #expect(brandFrame.minX < 100)
+                #expect(brandFrame.minY >= 0 && brandFrame.maxY < 100)
+            }
+            appearance.navigation = navigation == .top ? .sidebar : .top
+            await pump(hosting.view)
+            #expect(
+                window.toolbar?.items.contains { $0.itemIdentifier == SettingsSearchToolbar.brandID }
+                    == (appearance.navigation == .top))
+            appearance.navigation = navigation
+            await pump(hosting.view)
 
             search.activate("diameter")
             await pump(hosting.view)
@@ -230,7 +280,7 @@ struct SettingsSearchTests {
             await pump(hosting.view)
             #expect(search.destination?.section == .globalShortcuts)
             #expect(search.highlightedAnchor == "shortcut.togglePinned")
-            #expect(try visibleText(hosting.view).contains("showhidepinneditems"))
+            #expect(try visibleText(hosting.view).contains("showorhidepinneditems"))
             if let output = ProcessInfo.processInfo.environment["WHISK_UI_ARTIFACTS"] {
                 let directory = URL(fileURLWithPath: output)
                 try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -270,7 +320,7 @@ struct SettingsSearchTests {
             privacy.setProtected(true)
             await pump(hosting.view)
             #expect(search.destination?.resolvedSection(isProtected: true) == .network)
-            #expect(try visibleText(hosting.view).contains("fetchlinkpreviews"))
+            #expect(try visibleText(hosting.view).contains("loadlinkpreviews"))
             #expect(!search.results.contains { $0.section == .sensitiveAccess })
             search.activate("sensitiveApps")
             #expect(search.destination?.section == .network)

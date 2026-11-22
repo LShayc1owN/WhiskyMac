@@ -24,6 +24,7 @@ final class FileThumbnailStore: ObservableObject {
         var ticket: FileThumbnailWorker.Ticket?
     }
     private var requests: [String: Pending] = [:]
+    private var versions: [String: FileThumbnailWorker.Version] = [:]
     private var waiting: [String] = []
     private let worker: FileThumbnailWorker
     private let concurrency: Int
@@ -65,6 +66,7 @@ final class FileThumbnailStore: ObservableObject {
         waiting.removeAll()
         if !thumbnails.isEmpty || !icons.isEmpty { objectWillChange.send() }
         thumbnails.removeAll()
+        versions.removeAll()
         icons.removeAll()
         costs.removeAll()
         accessOrder.removeAll()
@@ -88,8 +90,8 @@ final class FileThumbnailStore: ObservableObject {
     }
 
     @discardableResult
-    func load(_ path: String) -> UUID? {
-        guard !isPrivate, thumbnails[path] == nil else { return nil }
+    func load(_ path: String, checkingCachedFile: Bool = false) -> UUID? {
+        guard !isPrivate, costs[path] == nil || checkingCachedFile || requests[path] != nil else { return nil }
         let consumer = UUID()
         if requests[path] == nil {
             requests[path] = Pending()
@@ -109,21 +111,42 @@ final class FileThumbnailStore: ObservableObject {
         startWaiting()
     }
 
+    func keepOpeningFiles(_ paths: Set<String>) {
+        let removed = costs.keys.filter { !paths.contains($0) }
+        if !removed.isEmpty { objectWillChange.send() }
+        removed.forEach(remove)
+        waiting.removeAll { !paths.contains($0) }
+        for path in requests.keys where !paths.contains(path) {
+            requests.removeValue(forKey: path)?.ticket?.cancel()
+        }
+        startWaiting()
+    }
+
     private func startWaiting() {
         while !isPrivate, activeCount < concurrency, !waiting.isEmpty {
             let path = waiting.removeFirst()
             guard let pending = requests[path] else { continue }
             let id = pending.id
-            requests[path]?.ticket = worker.start(path) { [weak self] bitmap, finished in
+            requests[path]?.ticket = worker.start(path, cachedVersion: versions[path]) { [weak self] result in
                 DispatchQueue.main.async {
                     guard let self, !self.isPrivate, self.requests[path]?.id == id else { return }
-                    if let bitmap {
-                        self.cache(NSImage(cgImage: bitmap, size: .zero), for: path, isIcon: !finished)
+                    switch result {
+                    case .icon(let bitmap):
+                        if let bitmap {
+                            self.cache(NSImage(cgImage: bitmap, size: .zero), for: path, isIcon: true)
+                        } else {
+                            self.discardCached(path)
+                        }
+                        return
+                    case .thumbnail(let bitmap, let version):
+                        if let bitmap {
+                            self.cache(
+                                NSImage(cgImage: bitmap, size: .zero), for: path, isIcon: false, version: version)
+                        }
+                    case .unchanged: break
                     }
-                    if finished {
-                        self.requests[path] = nil
-                        self.startWaiting()
-                    }
+                    self.requests[path] = nil
+                    self.startWaiting()
                 }
             }
         }
@@ -138,15 +161,24 @@ final class FileThumbnailStore: ObservableObject {
         startWaiting()
     }
 
-    private func cache(_ image: NSImage, for path: String, isIcon: Bool) {
+    private func cache(_ image: NSImage, for path: String, isIcon: Bool, version: FileThumbnailWorker.Version? = nil) {
         guard !isPrivate else { return }
         let cost = Self.pixelBytes(image)
-        guard cost <= byteLimit else { return }
+        guard cost <= byteLimit else {
+            // An oversized replacement may keep its new fallback icon, never the previous file's thumbnail.
+            if isIcon || thumbnails[path] != nil { discardCached(path) }
+            return
+        }
         // One notification for the entire icon/thumbnail replacement and
         // any budget eviction, rather than publishing each dictionary edit.
         objectWillChange.send()
         remove(path)
-        if isIcon { icons[path] = image } else { thumbnails[path] = image }
+        if isIcon {
+            icons[path] = image
+        } else {
+            thumbnails[path] = image
+            versions[path] = version
+        }
         costs[path] = cost
         cachedBytes += cost
         accessCounter &+= 1
@@ -163,9 +195,16 @@ final class FileThumbnailStore: ObservableObject {
 
     private func remove(_ path: String) {
         thumbnails[path] = nil
+        versions[path] = nil
         icons[path] = nil
         if let cost = costs.removeValue(forKey: path) { cachedBytes -= cost }
         accessOrder[path] = nil
+    }
+
+    private func discardCached(_ path: String) {
+        guard costs[path] != nil else { return }
+        objectWillChange.send()
+        remove(path)
     }
 
     static func pixelBytes(_ image: NSImage) -> Int {

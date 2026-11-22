@@ -45,12 +45,13 @@ final class PanelKeyRouter {
     /// Routes panel keys through the user's bindings, intercepted ahead of
     /// the search field's caret. True when the key was consumed.
     func handle(_ event: NSEvent) -> Bool {
+        if stateStore.historyHidingOptionsOpen { return false }
         // A metadata popover owns its text input; card shortcuts must not
         // paste/delete a record while someone types a note.
         if stateStore.splitSession != nil || stateStore.splitGroupSession != nil || !stateStore.splitVersions.isEmpty {
             return false
         }
-        if (stateStore.pinMetadataEditing || stateStore.cardMenuOpen), !stateStore.isProtected { return false }
+        if stateStore.pinMetadataEditing || stateStore.cardMenuOpen { return false }
         if stateStore.isPinnedList, !stateStore.isProtected,
             event.modifierFlags.intersection([.command, .option, .control, .shift]).isEmpty
         {
@@ -58,8 +59,10 @@ final class PanelKeyRouter {
             if event.keyCode == UInt16(kVK_DownArrow) { actions.navigate(.right); return true }
         }
         if stateStore.isProtected {
+            if handleHistoryVisibility(event) { return true }
             // Native filter buttons may navigate/activate; never run card commands.
-            if stateStore.privacyAllowsFiltering || stateStore.privacyAllowsAppFiltering,
+            if stateStore.privacyAllowsFiltering || stateStore.privacyAllowsAppFiltering
+                || stateStore.privacyAllowsHandoffFiltering,
                 event.modifierFlags.intersection([.command, .option, .control]).isEmpty,
                 [kVK_Tab, kVK_Space, kVK_Return, kVK_ANSI_KeypadEnter].contains(Int(event.keyCode))
             {
@@ -118,6 +121,7 @@ final class PanelKeyRouter {
             perform()
             return true
         }
+        if handleHistoryVisibility(event) { return true }
         if let index = commandDigitIndex(of: event) {
             actions.activateCard(index)
             return true
@@ -134,6 +138,19 @@ final class PanelKeyRouter {
         // Keypad Enter always pastes, whatever Return is bound to.
         if event.specialKey == .enter {
             actions.activate()
+            return true
+        }
+        return false
+    }
+
+    private func handleHistoryVisibility(_ event: NSEvent) -> Bool {
+        guard stateStore.canToggleHistoryVisibility else { return false }
+        if keyBindings.binding(for: .toggleHistoryVisibility).matches(event) {
+            if !event.isARepeat { stateStore.toggleHistoryVisibility(actions: actions) }
+            return true
+        }
+        if keyBindings.binding(for: .toggleTypeHistoryVisibility).matches(event) {
+            if !event.isARepeat { stateStore.toggleTypeHistoryVisibility(actions: actions) }
             return true
         }
         return false

@@ -12,6 +12,36 @@ import Testing
 
 @MainActor
 @Suite struct PrivacyDisplayOptions {
+    @Test func protected_row_lookup_reuses_ids_and_tracks_same_count_reorders_without_loading_content() throws {
+        let state = HistoryViewStateStore()
+        let items = [anItem(.text("first"), from: "Alpha"), anItem(.text("second"), from: "Beta")]
+        let presenter = HistoryPresenter()
+        var reads = 0
+        state.detailSource = { _ in
+            reads += 1; return nil
+        }
+        state.setPrivacy(true)
+        state.setPanelVisible(true)
+        state.setPrivacyPermissions(allowSearch: false, showSourceApps: true)
+        state.update(presenter.present(items: items, query: "", now: Date()))
+        let old = state.protectedCardIDs
+        let again = state.protectedCardIDs
+        #expect(old.withUnsafeBufferPointer { a in again.withUnsafeBufferPointer { a.baseAddress == $0.baseAddress } })
+        state.panelDidClose()
+        let closed = state.protectedCardIDs
+        #expect(closed == old)
+        #expect(old.withUnsafeBufferPointer { a in closed.withUnsafeBufferPointer { a.baseAddress != $0.baseAddress } })
+        #expect(state.protectedSourceLabel(for: old[0]) == "Alpha")
+        state.setPanelVisible(true)
+        state.update(presenter.present(items: Array(items.reversed()), query: "", now: Date()))
+        #expect(state.protectedCardIDs == Array(old.reversed()))
+        #expect(state.protectedSourceLabel(for: old[0]) == "Alpha")
+        state.update(presenter.present(items: [items[1]], query: "", now: Date()))
+        #expect(!state.containsProtectedCard(old[0]) && state.protectedSourceLabel(for: old[0]) == nil)
+        state.setPrivacyPermissions(allowSearch: false, showSourceApps: false)
+        #expect(state.protectedSourceLabel(for: old[1]) == nil && reads == 0)
+    }
+
     @Test func display_options_are_independent_opt_in_and_persist() throws {
         let sandbox = try IsolatedDefaults()
         let privacy = PrivacyController(defaults: sandbox.defaults)

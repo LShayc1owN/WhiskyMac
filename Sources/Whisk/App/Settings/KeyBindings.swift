@@ -21,6 +21,8 @@ enum KeyAction: String, CaseIterable, Identifiable {
     case rowUp
     case rowDown
     case switchChipGroup
+    case toggleHistoryVisibility
+    case toggleTypeHistoryVisibility
     case previewSelection
     case pinSelection
     case deleteSelection
@@ -51,6 +53,8 @@ enum KeyAction: String, CaseIterable, Identifiable {
         case .rowUp: settingsSearchText("Focus the row above")
         case .rowDown: settingsSearchText("Focus the row below")
         case .switchChipGroup: settingsSearchText("Switch filter group")
+        case .toggleHistoryVisibility: settingsSearchText("Hide or show clipboard history")
+        case .toggleTypeHistoryVisibility: settingsSearchText("Hide or show by type or source")
         case .previewSelection: settingsSearchText("Preview the selection")
         case .pinSelection: settingsSearchText("Pin / unpin the selection")
         case .deleteSelection: settingsSearchText("Delete the selection")
@@ -145,7 +149,7 @@ final class KeyBindingsStore: ObservableObject {
             do {
                 overrides = try JSONDecoder().decode([String: KeyBinding].self, from: data)
             } catch {
-                logger.log("stored key bindings unreadable — \(error); the defaults apply")
+                logger.log(.keyBindingsReadFailed)
             }
         }
     }
@@ -278,7 +282,7 @@ final class KeyBindingsStore: ObservableObject {
         do {
             defaults.set(try JSONEncoder().encode(overrides), forKey: Self.storageKey)
         } catch {
-            logger.log("key bindings not saved — \(error)")
+            logger.log(.keyBindingsWriteFailed)
         }
     }
 
@@ -312,6 +316,12 @@ final class KeyBindingsStore: ObservableObject {
             return KeyBinding(keyCode: UInt16(kVK_DownArrow), modifiers: [])
         case .switchChipGroup:
             return KeyBinding(keyCode: UInt16(kVK_Tab), modifiers: [.control])
+        case .toggleHistoryVisibility:
+            return KeyBinding(
+                keyCode: KeyboardLayout.keyCode(for: "h", orANSI: kVK_ANSI_H), modifiers: [.control, .command])
+        case .toggleTypeHistoryVisibility:
+            return KeyBinding(
+                keyCode: KeyboardLayout.keyCode(for: "t", orANSI: kVK_ANSI_T), modifiers: [.control, .command])
         case .previewSelection:
             // Finder's Quick Look shortcut — the bare space bar would fight
             // with typing in the search field.

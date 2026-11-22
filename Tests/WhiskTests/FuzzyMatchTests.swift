@@ -63,4 +63,21 @@ import Testing
         let rest = text.dropFirst("prefix ".count)
         #expect(FuzzyMatch.match(pattern: "ab", in: rest)?.positions == [1, 4])
     }
+
+    @Test func prepared_queries_keep_exact_case_priority_and_grapheme_offsets() throws {
+        for (word, candidate, offsets) in [
+            ("ab", "AB ab", [3, 4]), ("ab", "a\tB", [0, 2]), ("ab", "a\r\nB", [0, 2]),
+            ("é", "👩‍💻e\u{301}", [1]), ("K", "xK", [1]), ("汉", "🇨🇳汉字", [1]),
+        ] {
+            let pattern = FuzzyMatch.Pattern(word)
+            let slice = ("prefix" + candidate).dropFirst(6)
+            let hit = try #require(pattern.match(in: slice))
+            #expect(hit.positions == offsets)
+            #expect(pattern.score(in: slice) == hit.score)
+            #expect(pattern.score(in: "") == nil)
+        }
+        #expect(FuzzyMatch.score(pattern: "ab", in: "a\tB") == 45)
+        #expect(FuzzyMatch.score(pattern: "ab", in: "a\tb") == 37)
+        #expect(FuzzyMatch.score(pattern: "汉", in: "just ASCII") == nil)
+    }
 }

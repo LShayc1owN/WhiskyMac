@@ -25,19 +25,56 @@ import Testing
         func record(_ state: HistoryViewState) { states.append(state) }
     }
 
+    @Test func unchanged_retention_only_publishes_at_startup_or_expiry_when_cards_are_removed() {
+        let clock = FakeClock()
+        let store = InMemoryHistoryStore()
+        let stale = anItem(.text("stale"), at: clock.now().addingTimeInterval(-120))
+        let fresh = anItem(.text("fresh"), at: clock.now())
+        store.stored = [fresh, stale]
+        let spy = StateSpy()
+        let policy = RetentionPolicy(maxAge: 60)
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: clock, retention: policy, present: spy.record)
+        let startup = spy.states.count
+        controller.applyRetention(policy)
+        #expect(spy.states.count == startup + 1 && spy.last.cards.map(\.id) == [fresh.id])
+        for _ in 0..<20 { controller.applyRetention(policy) }
+        #expect(spy.states.count == startup + 1 && store.saveCount == 1)
+        clock.advance(by: 61)
+        controller.applyRetention(policy)
+        #expect(spy.states.count == startup + 2 && spy.last.cards.isEmpty)
+    }
+
+    @Test func source_chips_preserve_first_seen_identity_across_legacy_names_and_bundle_renames() {
+        let store = InMemoryHistoryStore()
+        let sources: [(String?, String?)] = [
+            ("Alpha", nil), ("Beta", "id.b"), ("Alpha", "id.a"), ("Alpha", "id.c"),
+            ("Alias", "id.a"), ("Alias", nil), ("Beta", nil), (nil, "id.d"), ("Delta", "id.d"),
+        ]
+        store.stored = sources.enumerated().map { index, source in
+            anItem(.text("Item \(index)"), from: source.0, bundle: source.1)
+        }
+        let spy = StateSpy()
+        let controller = ClipboardController(
+            pasteboard: ScriptedPasteboard(), store: store, clock: FakeClock(), present: spy.record)
+        #expect(spy.last.filters.apps.map(\.id) == ["id.a", "id.b", "id.c", "Alias", "id.d"])
+        controller.toggleSourceFilter("id.c")
+        #expect(spy.last.cards.map(\.id) == [store.stored[0].id, store.stored[3].id])
+    }
+
     @Test func asynchronous_poll_coalesces_ticks_and_records_after_read_finishes() {
         let board = DelayedPasteboard()
         let spy = StateSpy()
         let controller = ClipboardController(
             pasteboard: board, store: InMemoryHistoryStore(), clock: FakeClock(), present: spy.record)
-        controller.pollTickAsync()
-        controller.pollTickAsync()
+        controller.pollTick()
+        controller.pollTick()
         #expect(board.completions.count == 1)
         #expect(spy.last.cards.isEmpty)
 
         board.completions.removeFirst()(PasteboardSnapshot(payload: .text("remote"), source: nil))
         #expect(spy.last.cards.first?.preview == .text("remote"))
-        controller.pollTickAsync()
+        controller.pollTick()
         #expect(board.completions.count == 1)
     }
 
@@ -114,6 +151,40 @@ import Testing
         controller.pollTick()
 
         #expect(spy.states.count == presentedAfterInit)
+    }
+
+    @Test func cursor_reuses_filtered_rows_until_time_or_permission_changes() throws {
+        let disk = InMemoryHistoryStore()
+        let clock = FakeClock()
+        disk.stored = ["alpha 1", "alpha 2", "beta"].map { anItem(.text($0), at: clock.now()) }
+        let board = ScriptedPasteboard()
+        let spy = StateSpy()
+        let controller = ClipboardController(pasteboard: board, store: disk, clock: clock, present: spy.record)
+        var fullRefreshes = 0
+        controller.hiddenLinksChanged = { _ in fullRefreshes += 1 }
+        controller.search("alpha")
+        let baseline = spy.last
+        controller.navigate(.right)
+        #expect(spy.last.selectedID == baseline.cards[1].id)
+        controller.navigate(.up)
+        #expect(spy.last.selectedID == nil)
+        #expect(spy.last.filters.focusedChipID != nil)
+        controller.navigate(.down)
+        #expect(spy.last.filters.focusedChipID == nil)
+        let count = spy.states.count
+        controller.moveSelection(.next)
+        #expect(spy.states.count == count)
+        clock.advance(by: 120)
+        controller.moveSelection(.previous)
+        #expect(spy.last.cards.first?.timeLabel != baseline.cards.first?.timeLabel)
+        #expect(spy.last.cards.first?.accessibilityValue.contains(spy.last.cards[0].timeLabel) == true)
+        #expect(fullRefreshes == 1)
+        board.access = .denied
+        controller.moveSelection(.next)
+        #expect(spy.last.accessPrompt != nil)
+        #expect(spy.last.cards.map(\.id) == baseline.cards.map(\.id))
+        #expect(spy.last.query == "alpha")
+        #expect(fullRefreshes == 2)
     }
 
     @Test func searching_presents_only_matching_cards() {
@@ -314,8 +385,7 @@ import Testing
         controller.search("")
 
         #expect(spy.last.cards.isEmpty)
-        #expect(logger.messages.count == 2)
-        #expect(logger.messages.allSatisfy { $0.contains("failing store") })
+        #expect(logger.messages == [.historyLoadFailed, .historyMutationFailed])
     }
 
     @Test func highlighting_moves_the_selection_without_writing_back() {
@@ -447,7 +517,9 @@ import Testing
 
         controller.toggleSourceFilter("com.slack")
         #expect(spy.last.cards.count == 2)
-        #expect(spy.last.filters.hasActiveChip == false)
+        #expect(
+            (spy.last.filters.pinned + spy.last.filters.apps + spy.last.filters.kinds + spy.last.filters.tags)
+                .allSatisfy { !$0.isActive })
     }
 
     @Test func several_apps_and_categories_can_be_selected_at_once() {
@@ -641,7 +713,7 @@ import Testing
         controller.applyRetention(RetentionPolicy(maxAge: 3_600))
 
         #expect(spy.last.cards.map(\.preview) == [.text("stale")])
-        #expect(logger.messages == ["storage failure — unwritable(\"disk full\")"])
+        #expect(logger.messages == [.historyRetentionFailed])
     }
 
     @Test func jumping_to_an_edge_moves_along_the_chip_row_when_it_holds_the_cursor() {

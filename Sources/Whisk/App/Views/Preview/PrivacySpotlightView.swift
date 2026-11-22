@@ -9,52 +9,77 @@ import SwiftUI
 /// Protected cards publish only identities. A single hovered item is fetched
 /// after the dwell; Canvas emits no content accessibility descendants.
 struct PrivacySpotlightView: View {
-    private final class Viewport { var geometry: ScrollGeometry? }
+    private final class Viewport {
+        var geometry: ScrollGeometry?
+        var sourceRange: Range<Int>?
+    }
     @ObservedObject var store: HistoryViewStateStore
+    var actions: PanelActions? = nil
     @State private var appScope = FilterAppScope(visibleSourceKeys: [])
     @State private var viewport = Viewport()
+    @StateObject private var imageThumbnails = ImageThumbnailStore(byteLimit: 0)
     @Environment(\.layoutDirection) private var layoutDirection
     var body: some View {
-        VStack(spacing: 12) {
+        let ids = store.protectedCardIDs
+        let filters = store.protectedFilters
+        VStack(spacing: PanelLayout.contentSpacing) {
             Label(
                 store.allowsSpotlight && store.privacyInteractions.hover == .preview
                     ? localized("Manual privacy: hover to reveal a small area")
                     : localized("Content hidden by Privacy Mode"), systemImage: "eye.slash"
             )
             .font(.caption).foregroundStyle(.secondary)
-            if store.privacyAllowsSearch {
-                TextField(
-                    localized("Search clipboard history"),
-                    text: Binding(
-                        get: { store.protectedQuery }, set: { store.searchWhileProtected($0) })
-                )
-                .textFieldStyle(.roundedBorder)
-                .frame(maxWidth: 480)
-                .padding(.horizontal, 16)
+            HStack(spacing: 10) {
+                if store.privacyAllowsSearch {
+                    HStack(spacing: 10) {
+                        Image(systemName: "magnifyingglass").foregroundStyle(.secondary).accessibilityHidden(true)
+                        TextField(
+                            localized("Search clipboard history"),
+                            text: Binding(
+                                get: { store.protectedQuery }, set: { store.searchWhileProtected($0) })
+                        )
+                        .textFieldStyle(.plain)
+                        .font(.system(size: 14))
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .frame(height: 36)
+                    .background(ClipboardSearchBackground())
+                    .frame(maxWidth: 480)
+                } else {
+                    Spacer(minLength: 0)
+                }
+                HistoryToolbarActions(store: store, actions: actions)
             }
-            if !store.protectedFilters.isEmpty {
+            .frame(maxWidth: 660)
+            .padding(.horizontal, 16)
+            if !filters.isEmpty {
                 FilterBarView(
-                    filters: store.protectedFilters, appScope: appScope, cursorSuppressed: true,
-                    appTrigger: store.appFilterTrigger, hoverEnabled: store.panelVisible,
+                    filters: filters, tagScale: store.filterTagScale,
+                    appScope: appScope, cursorSuppressed: true,
+                    appTrigger: store.appFilterTrigger, hoverEnabled: store.panelVisible && !store.cardMenuOpen,
                     isPanelVisible: store.panelVisible,
-                    onSelectApp: { store.filterWhileProtected(.selectApp($0)) },
+                    onSelectApp: { if !store.cardMenuOpen { store.filterWhileProtected(.selectApp($0)) } },
+                    onSelectKind: { if !store.cardMenuOpen { store.filterWhileProtected(.selectKind($0)) } },
                     onToggleApp: { store.filterWhileProtected(.toggleApp($0)) },
                     onToggleKind: { store.filterWhileProtected(.toggleKind($0)) },
                     onFocusApp: { _ in }, onFocusKind: { _ in })
             }
             ScrollView([.horizontal, .vertical], showsIndicators: false) {
                 LazyHStack(spacing: HistoryViewStateStore.cardGap) {
-                    ForEach(store.protectedCardIDs, id: \.self) { id in
+                    ForEach(ids, id: \.self) { id in
                         VStack(spacing: 6) {
                             if let source = store.protectedSourceLabel(for: id) {
                                 Text(source).font(.caption).lineLimit(1)
                                     .frame(width: store.cardSide, alignment: .leading)
                             }
-                            SpotlightCard(store: store, id: id)
+                            SpotlightCard(store: store, id: id, imageThumbnails: imageThumbnails)
                         }
+                        .frame(height: store.cardSide + (store.privacyShowsSourceApps ? 26 : 0), alignment: .bottom)
                     }
                 }
-                .padding(.horizontal, 16)
+                .padding(.horizontal, PanelLayout.contentMargin)
+                .padding(.bottom, PanelLayout.railVerticalPadding)
             }
             .onScrollGeometryChange(for: ScrollGeometry.self) {
                 $0
@@ -62,32 +87,33 @@ struct PrivacySpotlightView: View {
                 viewport.geometry = geometry
                 updateAppScope()
             }
-            .onChange(of: store.protectedCardIDs) { _, _ in updateAppScope() }
-            .onChange(of: store.privacyShowsSourceApps) { _, _ in updateAppScope() }
-            .onChange(of: store.privacyAllowsAppFiltering) { _, _ in updateAppScope() }
+            .onReceive(store.$state) { _ in updateAppScope(refresh: true) }
+            .onChange(of: store.privacyAllowsAppFiltering) { _, _ in updateAppScope(refresh: true) }
             .onChange(of: store.cardSide) { _, _ in updateAppScope() }
             .frame(
-                minHeight: 0, idealHeight: store.cardSide + (store.privacyShowsSourceApps ? 42 : 16),
-                maxHeight: store.cardSide + (store.privacyShowsSourceApps ? 42 : 16))
-            if store.privacyAllowsSearch, store.protectedCardIDs.isEmpty {
+                minHeight: 0, idealHeight: store.cardSide + (store.privacyShowsSourceApps ? 34 : 8),
+                maxHeight: store.cardSide + (store.privacyShowsSourceApps ? 34 : 8))
+            if store.privacyAllowsSearch, ids.isEmpty {
                 Text(localized("No matches")).font(.caption).foregroundStyle(.secondary)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-        .padding(.bottom, 18)
+        .padding(.bottom, PanelLayout.bottomPadding)
         .accessibilityElement(children: .contain)
         .accessibilityLabel(localized("Content hidden by Privacy Mode"))
     }
 
-    private func updateAppScope() {
-        guard let viewport = viewport.geometry else { return }
+    private func updateAppScope(refresh: Bool = false) {
+        guard let geometry = viewport.geometry else { return }
         let start =
-            viewport.contentOffset.x - 16
-            - (layoutDirection == .rightToLeft ? viewport.contentInsets.leading + viewport.contentInsets.trailing : 0)
+            geometry.contentOffset.x - PanelLayout.contentMargin
+            - (layoutDirection == .rightToLeft ? geometry.contentInsets.leading + geometry.contentInsets.trailing : 0)
         let range = FilterAppScope.visibleRange(
             count: store.protectedCardCount, side: store.cardSide,
             stride: store.cardSide + HistoryViewStateStore.cardGap,
-            start: start, width: viewport.containerSize.width)
+            start: start, width: geometry.containerSize.width)
+        guard refresh || viewport.sourceRange != range else { return }
+        viewport.sourceRange = range
         appScope.update(store.protectedSourceKeys(in: range))
     }
 }
@@ -98,7 +124,7 @@ private struct SpotlightCard: View {
     @State private var point: CGPoint?
     @State private var payload: Payload?
     @StateObject private var imageLoader = ImageThumbnailLoader()
-    @StateObject private var imageThumbnails = ImageThumbnailStore(byteLimit: 0)
+    let imageThumbnails: ImageThumbnailStore
     @State private var task: Task<Void, Never>?
     @State private var showingMenu = false
     @State private var pendingExport: CardAction?
@@ -134,10 +160,12 @@ private struct SpotlightCard: View {
             switch phase {
             case .active(let location):
                 point = location
-                guard store.privacyInteractions.hover == .preview, task == nil, !showingMenu else { return }
+                guard store.privacyInteractions.hover == .preview, task == nil, !showingMenu,
+                    !store.cardMenuOpen
+                else { return }
                 task = Task { @MainActor in
                     try? await Task.sleep(for: .seconds(store.privacyInteractions.hoverDelay))
-                    guard !Task.isCancelled, point != nil else { return }
+                    guard !Task.isCancelled, point != nil, !store.cardMenuOpen else { return }
                     let value = store.spotlightPayload(for: id)
                     prepareImage(value)
                     withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) { payload = value }
@@ -160,7 +188,7 @@ private struct SpotlightCard: View {
                 .beButton { perform(.menu) }
                 .buttonStyle(.plain).accessibilityLabel(localized("Actions"))
         }
-        .popover(isPresented: $showingMenu) {
+        .cardActionPopover(isPresented: $showingMenu) {
             VStack(alignment: .leading, spacing: 10) {
                 if let action = pendingExport {
                     Text(localized("Choose a format to continue"))
@@ -175,13 +203,16 @@ private struct SpotlightCard: View {
                     Button(CardAction.paste.label) { perform(.paste) }
                     Button(localized("Reveal a small area")) { perform(.preview) }.disabled(!store.allowsSpotlight)
                 }
-            }.padding().background(CardActionPopoverLayer())
+            }.padding()
         }
         .onDisappear {
             clear(); showingMenu = false; pendingExport = nil
         }
         .onChange(of: store.privacyInteractions) { _, _ in
             clear(); showingMenu = false; pendingExport = nil
+        }
+        .onChange(of: store.cardMenuOpen) { _, open in
+            if open { task?.cancel(); task = nil }
         }
         .onChange(of: store.allowsSpotlight) { _, _ in clear() }
         .onChange(of: store.panelVisible) { _, visible in
@@ -196,7 +227,7 @@ private struct SpotlightCard: View {
     private func formatLabel(_ number: Int) -> String { localized("Format \(number)") }
 
     private func perform(_ action: CardAction) {
-        guard store.isProtected, store.panelVisible, store.protectedCardIDs.contains(id) else { return }
+        guard store.isProtected, store.panelVisible, store.containsProtectedCard(id) else { return }
         task?.cancel(); task = nil
         switch action {
         case .copy, .paste:
@@ -238,11 +269,20 @@ struct SpotlightCardSurface: View {
     var point: CGPoint?
     var thumbnail: NSImage?
     var spotlight = SpotlightPreferences()
+    @Environment(\.colorScheme) private var scheme
 
     var body: some View {
         RoundedRectangle(cornerRadius: 18)
             .fill(.regularMaterial)
+            .overlay {
+                if scheme == .light {
+                    let shape = RoundedRectangle(cornerRadius: 18)
+                    shape.fill(.white.opacity(0.72))
+                    shape.strokeBorder(.primary.opacity(0.11), lineWidth: 0.5)
+                }
+            }
             .frame(width: side, height: side)
+            .clipboardShadow(in: RoundedRectangle(cornerRadius: 18))
             .overlay {
                 ZStack {
                     Image(systemName: "lock.fill").foregroundStyle(.secondary)

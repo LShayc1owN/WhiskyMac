@@ -17,32 +17,48 @@ struct SettingsView: View {
     @ObservedObject var privacy = PrivacyController()
     var distribution: Distribution = .current
     var clearHistory: () -> Void = {}
+    var showWelcomeGuide: () -> Void = {}
+    var exportDiagnostics: () async throws -> Void = {}
+    var previewClipboard: (Double, Double) -> Void = { _, _ in }
+    var cancelClipboardPreview: () -> Void = {}
+    var buildInfo = AppBuildInfo.current
 
     @ObservedObject var appearance = AppearanceSettingsStore()
     @ObservedObject var updateChecker = UpdateChecker()
     @ObservedObject var search = SettingsSearchModel()
+    @ObservedObject var developerMode = DeveloperModeStore()
+    @State private var exportingDiagnostics = false
+    @State private var showingDiagnosticsFailure = false
     @State private var copySoundPlayer = CopySoundPlayer()
     @State private var confirmingReset = false
     @State private var resetCategories = Set(ShortcutResetCategory.allCases)
     @StateObject private var resetUndo = ShortcutResetUndo()
     @State private var confirmingClearHistory = false
-    @State private var draftCardSide: Double?
-    @State private var previewedCardSide = GeneralSettingsStore.defaultCardSide
-    @State private var showingCardSizePreview = false
-    @State private var cardSizePreviewDeadline = Date.distantPast
-    @State private var cardSizePreviewTask: Task<Void, Never>?
+    @State private var cardSizeDraft = SizeSettingDraft()
+    @State private var tagSizeDraft = SizeSettingDraft()
+    @State private var systemColorScheme = AppearanceMode.systemColorScheme
     @State private var selectedSection: SettingsSectionID?
+    @State private var minimumSidebarWidth = AppearanceSettingsStore.sidebarWidthRange.lowerBound
     @State private var sidebarDragStart: CGFloat?
     @State private var detectionCoverageExpanded = false
     @State private var temporarySessionsExpanded = false
     @State var selectedPage = SettingsPage.general
     @SettingsAccessibility private var accessibility
+    @Environment(\.colorScheme) private var scheme
     @FocusState private var focusedNavigation: SettingsPage?
     @Namespace private var navigationNamespace
     @Namespace private var sidebarIndicatorNamespace
     @Namespace private var topSectionIndicatorNamespace
 
-    private var sectionIDs: [SettingsSectionID] { selectedPage.sections(isProtected: privacy.isProtected) }
+    private var accent: Color { .readableAccent(in: scheme, color: appearance.nsAccent) }
+
+    private var visiblePages: [SettingsPage] {
+        SettingsPage.visiblePages(showsDeveloperTools: developerMode.showsTools)
+    }
+    private var displayedPage: SettingsPage { visiblePages.contains(selectedPage) ? selectedPage : .about }
+    private var sectionIDs: [SettingsSectionID] {
+        displayedPage.sections(isProtected: privacy.isProtected, showsDeveloperTools: developerMode.showsTools)
+    }
     private var selectedSectionID: SettingsSectionID {
         if let selectedSection, sectionIDs.contains(selectedSection) { return selectedSection }
         return sectionIDs[0]
@@ -56,7 +72,8 @@ struct SettingsView: View {
             customAccent: appearance.accentMode == .custom,
             normalHover: general.interactions.hover == .preview,
             privacyHover: general.privacyInteractions.hover == .preview,
-            automaticProtection: privacy.automaticEnabled, vimEnabled: general.vimNavigation)
+            automaticProtection: privacy.automaticEnabled, vimEnabled: general.vimNavigation,
+            showsDeveloperTools: developerMode.showsTools)
     }
 
     var body: some View {
@@ -75,11 +92,22 @@ struct SettingsView: View {
                 }
                 HStack(spacing: 0) {
                     if appearance.navigation == .sidebar {
-                        VStack(alignment: .leading, spacing: 0) {
+                        SettingsSidebarLayout(preferredWidth: appearance.sidebarWidth) {
                             sidebarNavigation
                             brandFooter
+                            Color.clear
+                                .allowsHitTesting(false)
+                                .accessibilityHidden(true)
+                                .onGeometryChange(for: CGFloat.self) {
+                                    $0.size.width
+                                } action: { width in
+                                    minimumSidebarWidth = width
+                                }
                         }
-                        .frame(width: appearance.sidebarWidth)
+                        .background(
+                            scheme == .light ? Color.primary.opacity(0.045) : .clear,
+                            ignoresSafeAreaEdges: .bottom
+                        )
                         .transition(.opacity.combined(with: .move(edge: .leading)))
                         sidebarResizeHandle
                     }
@@ -87,11 +115,13 @@ struct SettingsView: View {
                     pageContent
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                if appearance.navigation == .top { brandFooter }
             }
         }
         .environment(\.settingsSearchHighlight, search.highlightedAnchor)
-        .tint(appearance.accent)
+        .tint(accent)
+        .onReceive(NotificationCenter.default.publisher(for: NSColor.systemColorsDidChangeNotification)) { _ in
+            systemColorScheme = AppearanceMode.systemColorScheme
+        }
         .frame(width: SettingsWindowSize.width)
         .frame(
             minHeight: SettingsWindowSize.minimumHeight, idealHeight: SettingsWindowSize.height,
@@ -101,7 +131,7 @@ struct SettingsView: View {
         .animation(contentAnimation, value: selectedPage)
         .overlay(alignment: .bottom) {
             if resetUndo.isPresented {
-                ShortcutResetToast(undo: resetUndo, accent: appearance.accent) {
+                ShortcutResetToast(undo: resetUndo, accent: accent) {
                     resetUndo.undo(keys: store, vim: vimBindings)
                 }
                 .padding(16)
@@ -117,10 +147,20 @@ struct SettingsView: View {
         .onDisappear { resetUndo.dismiss() }
         .onAppear { search.refresh(context: searchContext) }
         .onChange(of: searchContext) { _, context in
+            if selectedPage != displayedPage {
+                selectedPage = displayedPage
+                selectedSection = .aboutApp
+                focusedNavigation = nil
+            }
             if let selectedSection, !sectionIDs.contains(selectedSection) { self.selectedSection = sectionIDs.first }
             search.refresh(context: context)
         }
         .onChange(of: appearance.language) { _, _ in search.refresh(context: searchContext) }
+        .alert(localized("Could not export logs"), isPresented: $showingDiagnosticsFailure) {
+            Button(localized("OK"), role: .cancel) {}
+        } message: {
+            Text(localized("Choose a writable location and try exporting again."))
+        }
         .onChange(of: search.navigationRevision) { _, _ in
             if let destination = search.destination { navigate(to: destination) }
         }
@@ -131,35 +171,42 @@ struct SettingsView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .settingsWindowClosed)) { _ in
             resetUndo.dismiss()
-            discardCardSizePreview()
+            cardSizeDraft.revert()
+            tagSizeDraft.revert()
+            cancelClipboardPreview()
             search.reset()
-        }
-        .sheet(isPresented: $showingCardSizePreview, onDismiss: discardCardSizePreview) {
-            cardSizePreviewSheet
         }
     }
 
     private var topPageNavigation: some View {
-        HStack(spacing: 4) {
-            ForEach(SettingsPage.allCases) { page in
-                Text(page.label)
-                    .font(.system(size: 12, weight: selectedPage == page ? .semibold : .medium))
-                    .foregroundStyle(selectedPage == page ? Color.primary : Color.secondary)
-                    .lineLimit(1)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 9)
-                    .background {
-                        if selectedPage == page { navigationSelection() }
+        GeometryReader { geometry in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 4) {
+                    ForEach(visiblePages) { page in
+                        Text(page.label)
+                            .font(.system(size: 12, weight: selectedPage == page ? .semibold : .medium))
+                            .foregroundStyle(selectedPage == page ? Color.primary : Color.secondary)
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 9)
+                            .background {
+                                if selectedPage == page { navigationSelection() }
+                            }
+                            .beButton { select(page) }
+                            .buttonStyle(SettingsHoverButtonStyle(isSelected: selectedPage == page))
+                            .focused($focusedNavigation, equals: page)
+                            .onMoveCommand { moveNavigation($0, from: page) }
+                            .accessibilityValue(selectedPage == page ? localized("Selected") : "")
+                            .accessibilityAddTraits(selectedPage == page ? .isSelected : [])
                     }
-                    .beButton { select(page) }
-                    .buttonStyle(SettingsHoverButtonStyle(isSelected: selectedPage == page))
-                    .focused($focusedNavigation, equals: page)
-                    .onMoveCommand { moveNavigation($0, from: page) }
-                    .accessibilityValue(selectedPage == page ? localized("Selected") : "")
-                    .accessibilityAddTraits(selectedPage == page ? .isSelected : [])
+                    Spacer(minLength: 0)
+                }
+                .frame(minWidth: geometry.size.width, alignment: .leading)
             }
+            .defaultScrollAnchor(.leading)
         }
-        .frame(maxWidth: .infinity)
+        .frame(height: 34)
     }
 
     private var topNavigation: some View {
@@ -176,7 +223,7 @@ struct SettingsView: View {
                         .overlay(alignment: .bottom) {
                             if selectedSectionID == section {
                                 Capsule()
-                                    .fill(appearance.accent)
+                                    .fill(accent)
                                     .frame(height: 2)
                                     .padding(.horizontal, 8)
                                     .matchedGeometryEffect(id: selectedPage, in: topSectionIndicatorNamespace)
@@ -196,7 +243,7 @@ struct SettingsView: View {
     }
 
     private var brandFooter: some View {
-        SettingsBrandView(appearance: appearance)
+        SettingsBrandView(appearance: appearance, buildInfo: buildInfo)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 8)
             .padding(.bottom, 8)
@@ -206,7 +253,7 @@ struct SettingsView: View {
     private var sidebarNavigation: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 6) {
-                ForEach(SettingsPage.allCases) { page in
+                ForEach(visiblePages) { page in
                     HStack(alignment: .top, spacing: 8) {
                         Image(systemName: page.symbol)
                             .frame(width: 18)
@@ -215,7 +262,7 @@ struct SettingsView: View {
                         Spacer(minLength: 0)
                     }
                     .font(.system(size: 14, weight: selectedPage == page ? .semibold : .regular))
-                    .foregroundStyle(selectedPage == page ? appearance.accent : Color.secondary)
+                    .foregroundStyle(selectedPage == page ? accent : .secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 9)
@@ -239,11 +286,11 @@ struct SettingsView: View {
             }
             .padding(12)
         }
-        .frame(width: appearance.sidebarWidth)
     }
 
     private var sidebarResizeHandle: some View {
-        Rectangle()
+        let visibleWidth = max(appearance.sidebarWidth, minimumSidebarWidth)
+        return Rectangle()
             .fill(Color(nsColor: .separatorColor).opacity(0.55))
             .frame(width: 1)
             .overlay {
@@ -256,22 +303,25 @@ struct SettingsView: View {
                     .gesture(
                         DragGesture(minimumDistance: 1, coordinateSpace: .global)
                             .onChanged { value in
-                                if sidebarDragStart == nil { sidebarDragStart = appearance.sidebarWidth }
-                                let width = (sidebarDragStart ?? appearance.sidebarWidth) + value.translation.width
-                                appearance.sidebarWidth = min(
-                                    AppearanceSettingsStore.sidebarWidthRange.upperBound,
-                                    max(AppearanceSettingsStore.sidebarWidthRange.lowerBound, width))
+                                let start = sidebarDragStart ?? visibleWidth
+                                sidebarDragStart = start
+                                resizeSidebar(to: start + value.translation.width)
                             }
                             .onEnded { _ in sidebarDragStart = nil }
                     )
-                    .accessibilityLabel(localized("Sidebar width"))
-                    .accessibilityAdjustableAction { direction in
-                        let delta: CGFloat = direction == .increment ? 12 : -12
-                        appearance.sidebarWidth = min(
-                            AppearanceSettingsStore.sidebarWidthRange.upperBound,
-                            max(AppearanceSettingsStore.sidebarWidthRange.lowerBound, appearance.sidebarWidth + delta))
-                    }
             }
+            .accessibilityElement()
+            .accessibilityLabel(localized("Sidebar width"))
+            .accessibilityAdjustableAction { direction in
+                let delta: CGFloat = direction == .increment ? 12 : -12
+                resizeSidebar(to: visibleWidth + delta)
+            }
+    }
+
+    private func resizeSidebar(to width: CGFloat) {
+        let boundedWidth = min(
+            AppearanceSettingsStore.sidebarWidthRange.upperBound, max(minimumSidebarWidth, width))
+        if boundedWidth != appearance.sidebarWidth { appearance.sidebarWidth = boundedWidth }
     }
 
     private var sidebarSections: some View {
@@ -297,7 +347,7 @@ struct SettingsView: View {
                 .overlay(alignment: .leading) {
                     if selectedSectionID == section {
                         Rectangle()
-                            .fill(appearance.accent)
+                            .fill(accent)
                             .frame(width: 2)
                             .matchedGeometryEffect(id: selectedPage, in: sidebarIndicatorNamespace)
                             .offset(x: -12)
@@ -337,9 +387,7 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 6) {
                 Text(contentTitle).font(.system(size: 24, weight: .semibold))
-                if selectedSectionID == .aboutApp {
-                    aboutAppSummary
-                } else {
+                if selectedSectionID != .aboutApp {
                     Text(contentSummary).font(.callout).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -347,13 +395,14 @@ struct SettingsView: View {
             .padding(.horizontal, 24)
             .padding(.top, 22)
             .padding(.bottom, 14)
-            if selectedPage == .about {
+            if displayedPage == .about {
                 if selectedSectionID == .licenses {
                     LegalSettingsView().settingsSearchAnchor("licenses")
                 } else {
                     AboutSettingsView(
-                        section: selectedSectionID, updateChecker: updateChecker, general: general,
-                        search: search)
+                        section: selectedSectionID, distribution: distribution, updateChecker: updateChecker,
+                        general: general,
+                        search: search, developerMode: developerMode)
                 }
             } else {
                 settingsForm
@@ -365,32 +414,8 @@ struct SettingsView: View {
         .clipped()
     }
 
-    private var aboutAppSummary: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 3) {
-            aboutRepositoryLink("WhiskyMac", url: "https://github.com/LShayc1owN/WhiskyMac")
-            Text(localized(" is a clipboard app based on "))
-            aboutRepositoryLink("Whisk", url: "https://github.com/nathan-poncet/whisk")
-            Text(localized(" that aims to do as much as possible, making input on your Mac easier and simpler."))
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .font(.callout)
-        .foregroundStyle(.secondary)
-    }
-
-    private func aboutRepositoryLink(_ name: String, url: String) -> some View {
-        Link(destination: URL(string: url)!) {
-            HStack(spacing: 2) {
-                Text(name)
-                Image(systemName: "arrow.up.right")
-                    .font(.caption2.weight(.semibold))
-            }
-        }
-        .buttonStyle(.plain)
-        .foregroundStyle(appearance.accent)
-    }
-
     private var contentTitle: String {
-        guard selectedPage == .about else { return selectedPage.title }
+        guard displayedPage == .about else { return displayedPage.title }
         switch selectedSectionID {
         case .aboutApp: return localized("About this App")
         case .aboutDeveloper: return localized("About the developer")
@@ -419,7 +444,7 @@ struct SettingsView: View {
     }
 
     private func moveNavigation(_ direction: MoveCommandDirection, from page: SettingsPage) {
-        let pages = SettingsPage.allCases
+        let pages = visiblePages
         guard let index = pages.firstIndex(of: page) else { return }
         let delta: Int
         switch (appearance.navigation, direction) {
@@ -433,13 +458,16 @@ struct SettingsView: View {
     }
 
     private func select(_ page: SettingsPage) {
-        guard selectedPage != page else { return }
+        guard visiblePages.contains(page), selectedPage != page else { return }
         selectedSection = nil
         selectedPage = page
     }
 
     private func navigate(to destination: SettingsDestination) {
-        guard let section = destination.resolvedSection(isProtected: privacy.isProtected) else { return }
+        guard
+            let section = destination.resolvedSection(
+                isProtected: privacy.isProtected, showsDeveloperTools: developerMode.showsTools)
+        else { return }
         selectedPage = destination.page
         selectedSection = section
     }
@@ -490,9 +518,36 @@ struct SettingsView: View {
         .animation(contentAnimation, value: isExpanded.wrappedValue)
     }
 
+    private func requestDiagnosticsExport() {
+        guard developerMode.showsTools, !exportingDiagnostics else { return }
+        exportingDiagnostics = true
+        Task { @MainActor in
+            defer { exportingDiagnostics = false }
+            do {
+                try await exportDiagnostics()
+            } catch {
+                if developerMode.showsTools { showingDiagnosticsFailure = true }
+            }
+        }
+    }
+
     @ViewBuilder
     private var sections: some View {
-        switch selectedPage {
+        switch displayedPage {
+        case .debug:
+            Section {
+                Button(localized("Show first-launch guide")) {
+                    if developerMode.showsTools { showWelcomeGuide() }
+                }
+                .settingsSearchAnchor("showWelcomeGuide")
+                Button(localized("Export logs…"), action: requestDiagnosticsExport)
+                    .disabled(exportingDiagnostics)
+                    .settingsSearchAnchor("exportDiagnostics")
+            } header: {
+                Text(localized("Debug tools"))
+            } footer: {
+                Text(localized("Reopens the welcome guide from the beginning without resetting its completion status."))
+            }
         case .general:
             generalSection
             copySoundSection
@@ -557,6 +612,14 @@ struct SettingsView: View {
             Text(localized("Settings navigation"))
         }
         Section {
+            SettingsPicker(localized("Settings window appearance"), selection: $appearance.settingsAppearance) {
+                ForEach(AppearanceMode.allCases) { option in Text(option.label).tag(option) }
+            }
+            .settingsSearchAnchor("settingsAppearance")
+            SettingsPicker(localized("Clipboard appearance"), selection: $appearance.clipboardAppearance) {
+                ForEach(AppearanceMode.allCases) { option in Text(option.label).tag(option) }
+            }
+            .settingsSearchAnchor("clipboardAppearance")
             SettingsPicker(localized("Accent color"), selection: $appearance.accentMode) {
                 ForEach(AccentMode.allCases) { option in Text(option.label).tag(option) }
             }
@@ -581,93 +644,42 @@ struct SettingsView: View {
             Text(localized("The accent color also highlights the selected clipboard card."))
         }
         Section {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(spacing: 12) {
-                    SettingsRowLabel(localized("Card size"), symbol: "rectangle.3.group", tint: .indigo)
-                    Spacer(minLength: 12)
-                    Slider(
-                        value: Binding(
-                            get: { draftCardSide ?? general.cardSide },
-                            set: { draftCardSide = GeneralSettingsStore.boundedCardSide($0) }),
-                        in: GeneralSettingsStore.cardSideRange
-                    )
-                    .frame(minWidth: 130, maxWidth: 220)
-                    .accessibilityLabel(localized("Card size"))
-                    Text("\(Int((draftCardSide ?? general.cardSide).rounded())) \(localized("pt"))")
-                        .monospacedDigit()
-                        .frame(width: 64, alignment: .trailing)
-                }
-                HStack(spacing: 12) {
-                    Button(localized("Preview size…")) {
-                        beginCardSizePreview(draftCardSide ?? general.cardSide)
-                    }
-                    if general.cardSide != GeneralSettingsStore.defaultCardSide {
-                        Button(localized("Restore default size")) {
-                            draftCardSide = GeneralSettingsStore.defaultCardSide
-                            beginCardSizePreview(GeneralSettingsStore.defaultCardSide)
-                        }
-                    }
-                }
+            SizeSettingEditor(
+                title: localized("Card size"), symbol: "rectangle.3.group", savedValue: general.cardSide,
+                defaultValue: GeneralSettingsStore.defaultCardSide, range: GeneralSettingsStore.cardSideRange,
+                draft: $cardSizeDraft, save: general.setCardSide, previewOnScreen: previewSizingOnScreen
+            ) {
+                CardSizePreviewViewport(side: CGFloat(cardSizeDraft.value(saved: general.cardSide)))
+                    .environment(\.colorScheme, appearance.clipboardAppearance.colorScheme ?? systemColorScheme)
             }
             .settingsSearchAnchor("cardSize")
         } header: {
             Text(localized("Clipboard cards"))
         } footer: {
-            Text(localized("Preview a size, then save it to keep the change."))
+            Text(localized("Changes are saved only when you choose Save current setting."))
         }
-    }
-
-    private var cardSizePreviewSheet: some View {
-        VStack(spacing: 18) {
-            Text(localized("Card size"))
-                .font(.title3.weight(.semibold))
-            CardSizePreviewViewport(side: CGFloat(previewedCardSide))
-            TimelineView(.periodic(from: .now, by: 1)) { timeline in
-                let seconds = max(0, Int(ceil(cardSizePreviewDeadline.timeIntervalSince(timeline.date))))
-                Text(String(format: localized("Reverting in %d seconds"), seconds))
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .monospacedDigit()
+        Section {
+            SizeSettingEditor(
+                title: localized("Tag size"), symbol: "tag", savedValue: general.filterTagScale,
+                defaultValue: GeneralSettingsStore.defaultFilterTagScale,
+                range: GeneralSettingsStore.filterTagScaleRange,
+                usesPercentage: true, draft: $tagSizeDraft, save: general.setFilterTagScale,
+                previewOnScreen: previewSizingOnScreen
+            ) {
+                FilterTagSizePreview(scale: tagSizeDraft.value(saved: general.filterTagScale))
+                    .environment(\.colorScheme, appearance.clipboardAppearance.colorScheme ?? systemColorScheme)
             }
-            HStack {
-                Spacer()
-                Button(localized("Cancel")) { discardCardSizePreview() }
-                    .keyboardShortcut(.cancelAction)
-                Button(localized("Save")) { saveCardSizePreview() }
-                    .keyboardShortcut(.defaultAction)
-            }
-        }
-        .padding(24)
-        .frame(width: 380)
-    }
-
-    private func beginCardSizePreview(_ side: Double) {
-        cardSizePreviewTask?.cancel()
-        previewedCardSide = GeneralSettingsStore.boundedCardSide(side)
-        cardSizePreviewDeadline = Date().addingTimeInterval(15)
-        general.beginCardSizePreview(previewedCardSide)
-        showingCardSizePreview = true
-        cardSizePreviewTask = Task { @MainActor in
-            try? await Task.sleep(for: .seconds(15))
-            guard !Task.isCancelled else { return }
-            discardCardSizePreview()
+            .settingsSearchAnchor("filterTagSize")
+        } header: {
+            Text(localized("Filter tags"))
+        } footer: {
+            Text(localized("Changes are saved only when you choose Save current setting."))
         }
     }
 
-    private func saveCardSizePreview() {
-        cardSizePreviewTask?.cancel()
-        cardSizePreviewTask = nil
-        general.saveCardSizePreview()
-        draftCardSide = nil
-        showingCardSizePreview = false
-    }
-
-    private func discardCardSizePreview() {
-        cardSizePreviewTask?.cancel()
-        cardSizePreviewTask = nil
-        general.cancelCardSizePreview()
-        draftCardSide = nil
-        showingCardSizePreview = false
+    private func previewSizingOnScreen() {
+        previewClipboard(
+            cardSizeDraft.value(saved: general.cardSide), tagSizeDraft.value(saved: general.filterTagScale))
     }
 
     private var copySoundSection: some View {
@@ -721,8 +733,18 @@ struct SettingsView: View {
                 .toggleStyle(SettingsToggleStyle())
                 .settingsSearchAnchor("startupUpdates")
             }
+            Toggle(isOn: $general.lightweightMode) {
+                SettingsRowLabel(localized("Lightweight mode"), symbol: "leaf", tint: .green)
+            }
+            .toggleStyle(SettingsToggleStyle())
+            .settingsSearchAnchor("lightweightMode")
         } header: {
-            Text(localized("Startup"))
+            Text(localized("Startup and loading"))
+        } footer: {
+            Text(
+                localized(
+                    "Lightweight mode loads thumbnails only as needed when you open the clipboard panel. Closing the panel clears the thumbnail cache to reduce memory use."
+                ))
         }
         Section {
             SettingsPicker(localized("Menu bar icon click"), selection: $appearance.statusClick) {
@@ -753,17 +775,20 @@ struct SettingsView: View {
 
     @ViewBuilder private var interactionSection: some View {
         Section {
-            SettingsPicker(localized("Application filter trigger"), selection: $general.appFilterTrigger) {
+            SettingsPicker(localized("Filter trigger"), selection: $general.appFilterTrigger) {
                 ForEach(AppFilterTrigger.allCases) { trigger in Text(trigger.label).tag(trigger) }
             }
             .settingsSearchAnchor("filterTrigger")
         } header: {
             Text(localized("Filters"))
         } footer: {
-            Text(
-                localized(
-                    "Hover switches to one app after a brief pause. Click still toggles filters; All clears app, type and pinned filters without clearing search."
-                ))
+            VStack(alignment: .leading, spacing: 4) {
+                Text(localized("Use the tags above the clipboard cards to filter after opening the clipboard."))
+                Text(
+                    localized(
+                        "· With hover filtering, pause the pointer over a tag to show the matching cards. You can still click tags to combine multiple filters."
+                    ))
+            }
         }
         interactionModeSection(title: localized("Normal mode"), bindings: $general.interactions, privacyMode: false)
         interactionModeSection(
@@ -883,6 +908,10 @@ struct SettingsView: View {
             .settingsSearchAnchor("privacyFilters")
             Toggle(localized("Allow app filtering in Privacy Mode"), isOn: $privacy.allowAppFilteringWhileProtected)
                 .settingsSearchAnchor("privacyAppFilters")
+            Toggle(
+                localized("Allow Handoff filtering in Privacy Mode"), isOn: $privacy.allowHandoffFilteringWhileProtected
+            )
+            .settingsSearchAnchor("privacyHandoffFilters")
             Text(
                 localized(
                     "App filters show application names in the filter bar, independently of source labels on cards. Clipboard content stays hidden."
@@ -1295,6 +1324,40 @@ struct SettingsView: View {
     }
 }
 
+/// Keep the user's preferred width while giving the footer its natural size when it needs more room.
+private struct SettingsSidebarLayout: Layout {
+    let preferredWidth: CGFloat
+
+    private func minimumWidth(_ footer: LayoutSubview) -> CGFloat {
+        let limits = AppearanceSettingsStore.sidebarWidthRange
+        return min(limits.upperBound, max(limits.lowerBound, footer.sizeThatFits(.unspecified).width.rounded(.up)))
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        guard subviews.count == 3 else { return .zero }
+        let minimum = minimumWidth(subviews[1])
+        let width = min(AppearanceSettingsStore.sidebarWidthRange.upperBound, max(preferredWidth, minimum))
+        let footerHeight = subviews[1].sizeThatFits(ProposedViewSize(width: width, height: nil)).height
+        let navProposal = ProposedViewSize(width: width, height: proposal.height.map { max(0, $0 - footerHeight) })
+        return CGSize(width: width, height: subviews[0].sizeThatFits(navProposal).height + footerHeight)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        guard subviews.count == 3 else { return }
+        let footerProposal = ProposedViewSize(width: bounds.width, height: nil)
+        let footerHeight = subviews[1].sizeThatFits(footerProposal).height
+        let navHeight = max(0, bounds.height - footerHeight)
+        subviews[0].place(
+            at: bounds.origin, anchor: .topLeading, proposal: ProposedViewSize(width: bounds.width, height: navHeight))
+        subviews[1].place(
+            at: CGPoint(x: bounds.minX, y: bounds.minY + navHeight), anchor: .topLeading, proposal: footerProposal)
+        // Report the intrinsic minimum to the resize handle even when the sidebar is wider.
+        subviews[2].place(
+            at: bounds.origin, anchor: .topLeading,
+            proposal: ProposedViewSize(width: minimumWidth(subviews[1]), height: 1))
+    }
+}
+
 private struct SettingsDivider: View {
     var body: some View {
         Rectangle()
@@ -1438,7 +1501,7 @@ private struct ShortcutRecorder: View {
     }
 }
 
-private struct SettingsToggleStyle: ToggleStyle {
+struct SettingsToggleStyle: ToggleStyle {
     func makeBody(configuration: Configuration) -> some View {
         HStack(spacing: 16) {
             configuration.label

@@ -90,7 +90,9 @@ import Testing
         let presenter = HistoryPresenter()
         store.update(presenter.present(items: items, query: "", now: Date(), selectedID: items[0].id))
         store.setPanelVisible(true)
-        let actions = PanelActionSpy().actions
+        var actions = PanelActionSpy().actions
+        var editorEvents: [Bool] = []
+        actions.metadataEditorChanged = { editorEvents.append($0) }
         func root(_ revision: Int) -> AnyView {
             AnyView(
                 HistoryCardRail(
@@ -154,6 +156,7 @@ import Testing
         scroll.reflectScrolledClipView(scroll.contentView)
         settle()
         let currentGlass = Set(descendants(scroll).filter { $0 is BackdropView }.map(ObjectIdentifier.init))
+        #expect(editorEvents.isEmpty, "Unmounting ordinary cards must not dismiss another card's editor")
         #expect(previousGlass.intersection(currentGlass).count >= 10)
         for index in [150, 3, 180] {
             store.update(presenter.present(items: items, query: "", now: Date(), selectedID: items[index].id))

@@ -193,7 +193,7 @@ private final class GeneratedStartupStore: HistoryStore {
         let store = SaveFailingHistoryStore()
         store.stored = [current]
         let counted = StartupCountingStore(store)
-        var messages: [String] = []
+        var messages: [DiagnosticEvent] = []
         let opened = HistoryStorage.openAndLoad(
             in: directory, makeStore: { _ in AnyHistoryStore(counted) }, log: { messages.append($0) })
 
@@ -211,7 +211,7 @@ private final class GeneratedStartupStore: HistoryStore {
         try LegacyHistoryFixture.write([legacy], in: directory)
         try Data().write(to: directory.appendingPathComponent("history.json.migrated"))
         let counted = StartupCountingStore(InMemoryHistoryStore())
-        var messages: [String] = []
+        var messages: [DiagnosticEvent] = []
         let opened = HistoryStorage.openAndLoad(
             in: directory, makeStore: { _ in AnyHistoryStore(counted) }, log: { messages.append($0) })
 

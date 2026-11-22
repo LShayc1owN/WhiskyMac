@@ -11,7 +11,6 @@ import Testing
 /// A controlled IPC substitute. Counts are protected because sampling is on
 /// the monitor's utility worker; the actual desktop is never inspected.
 private final class ControlledSharingDetector: SharingDetector {
-    let kind = SharingDetectorKind.publicAPI
     let gate = DispatchSemaphore(value: 0)
     private let lock = NSLock()
     private var count = 0

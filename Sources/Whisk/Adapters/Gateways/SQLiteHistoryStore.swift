@@ -127,9 +127,6 @@ final class SQLiteHistoryStore: HistoryStore {
             try execute("DELETE FROM ordering")
             try insertOrdering(items)
             try execute("DELETE FROM content WHERE id NOT IN (SELECT id FROM ordering)")
-            try execute("DELETE FROM pin_details WHERE id NOT IN (SELECT id FROM ordering)")
-            try execute("DELETE FROM split_groups WHERE id NOT IN (SELECT id FROM ordering)")
-            try execute("DELETE FROM split_origins WHERE id NOT IN (SELECT id FROM ordering)")
             try collectUnusedContent()
             try execute("COMMIT")
         } catch {
@@ -144,6 +141,7 @@ final class SQLiteHistoryStore: HistoryStore {
     // RTF removal without rewriting unchanged blobs on reorder/pin saves.
     private func saveContent(_ items: [ClipboardItem], changedContentIDs: Set<UUID>?) throws {
         lastContentWriteIDs = []
+        guard changedContentIDs?.isEmpty != true else { return }
         let sql = """
             INSERT INTO content
             (id, kind, text, link, image_ref, rtf_ref, files, source_app, source_bundle, source_origin)
@@ -211,8 +209,10 @@ final class SQLiteHistoryStore: HistoryStore {
     }
 
     private func saveSplitOrigins(_ items: [ClipboardItem]) throws {
+        guard items.contains(where: { $0.splitSourceID != nil }) else {
+            return try execute("DELETE FROM split_origins")
+        }
         var upsert: OpaquePointer?
-        var deletion: OpaquePointer?
         guard
             sqlite3_prepare_v2(
                 db,
@@ -222,22 +222,24 @@ final class SQLiteHistoryStore: HistoryStore {
             throw HistoryStoreError.unwritable(lastMessage())
         }
         defer { sqlite3_finalize(upsert) }
-        guard sqlite3_prepare_v2(db, "DELETE FROM split_origins WHERE id = ?", -1, &deletion, nil) == SQLITE_OK else {
-            throw HistoryStoreError.unwritable(lastMessage())
-        }
-        defer { sqlite3_finalize(deletion) }
+        var ids: [String] = []
         for item in items {
-            let statement = item.splitSourceID == nil ? deletion : upsert
-            sqlite3_reset(statement); sqlite3_clear_bindings(statement)
-            bindText(statement, 1, item.id.uuidString)
-            if let origin = item.splitSourceID { bindText(statement, 2, origin.uuidString) }
-            guard sqlite3_step(statement) == SQLITE_DONE else { throw HistoryStoreError.unwritable(lastMessage()) }
+            guard let origin = item.splitSourceID else { continue }
+            let id = item.id.uuidString
+            ids.append(id)
+            sqlite3_reset(upsert)
+            bindText(upsert, 1, id)
+            bindText(upsert, 2, origin.uuidString)
+            guard sqlite3_step(upsert) == SQLITE_DONE else { throw HistoryStoreError.unwritable(lastMessage()) }
         }
+        try pruneDetails(in: "split_origins", keeping: ids)
     }
 
     private func saveSplitGroups(_ items: [ClipboardItem]) throws {
+        guard items.contains(where: { $0.splitGroup != nil }) else {
+            return try execute("DELETE FROM split_groups")
+        }
         var upsert: OpaquePointer?
-        var deletion: OpaquePointer?
         guard
             sqlite3_prepare_v2(
                 db,
@@ -247,25 +249,26 @@ final class SQLiteHistoryStore: HistoryStore {
             throw HistoryStoreError.unwritable(lastMessage())
         }
         defer { sqlite3_finalize(upsert) }
-        guard sqlite3_prepare_v2(db, "DELETE FROM split_groups WHERE id = ?", -1, &deletion, nil) == SQLITE_OK else {
-            throw HistoryStoreError.unwritable(lastMessage())
-        }
-        defer { sqlite3_finalize(deletion) }
+        var ids: [String] = []
         for item in items {
-            let statement = item.splitGroup == nil ? deletion : upsert
-            sqlite3_reset(statement)
-            sqlite3_clear_bindings(statement)
-            bindText(statement, 1, item.id.uuidString)
-            if let group = item.splitGroup {
-                guard group.isValid else { throw HistoryStoreError.unwritable("invalid split group") }
-                bindBlob(statement, 2, try encodeGroup(group))
-                try saveGroupLinks(id: item.id.uuidString, group: group)
-            }
-            guard sqlite3_step(statement) == SQLITE_DONE else { throw HistoryStoreError.unwritable(lastMessage()) }
+            guard let group = item.splitGroup else { continue }
+            guard group.isValid else { throw HistoryStoreError.unwritable("invalid split group") }
+            let id = item.id.uuidString
+            ids.append(id)
+            sqlite3_reset(upsert)
+            bindText(upsert, 1, id)
+            let encoded = try encodeGroup(group)
+            bindBlob(upsert, 2, encoded.data)
+            guard sqlite3_step(upsert) == SQLITE_DONE else { throw HistoryStoreError.unwritable(lastMessage()) }
+            if sqlite3_changes(db) > 0 { try saveGroupLinks(id: id, keys: encoded.keys) }
         }
+        try pruneDetails(in: "split_groups", keeping: ids)
     }
 
     private func savePinnedMetadata(_ items: [ClipboardItem]) throws {
+        guard items.contains(where: { $0.pinnedMetadata != PinnedMetadata() }) else {
+            return try execute("DELETE FROM pin_details")
+        }
         let sql = """
             INSERT INTO pin_details (id, metadata) VALUES (?, ?)
             ON CONFLICT(id) DO UPDATE SET metadata = excluded.metadata
@@ -276,23 +279,14 @@ final class SQLiteHistoryStore: HistoryStore {
             throw HistoryStoreError.unwritable(lastMessage())
         }
         defer { sqlite3_finalize(statement) }
-        var deletion: OpaquePointer?
-        guard sqlite3_prepare_v2(db, "DELETE FROM pin_details WHERE id = ?", -1, &deletion, nil) == SQLITE_OK else {
-            throw HistoryStoreError.unwritable(lastMessage())
-        }
-        defer { sqlite3_finalize(deletion) }
+        var ids: [String] = []
         let encoder = JSONEncoder()
         encoder.outputFormatting = .sortedKeys
-        for item in items {
-            if item.pinnedMetadata == PinnedMetadata() {
-                sqlite3_reset(deletion)
-                bindText(deletion, 1, item.id.uuidString)
-                guard sqlite3_step(deletion) == SQLITE_DONE else { throw HistoryStoreError.unwritable(lastMessage()) }
-                continue
-            }
+        for item in items where item.pinnedMetadata != PinnedMetadata() {
+            let id = item.id.uuidString
+            ids.append(id)
             sqlite3_reset(statement)
-            sqlite3_clear_bindings(statement)
-            bindText(statement, 1, item.id.uuidString)
+            bindText(statement, 1, id)
             // Set ordering is not stable; use an explicit representation for conditional updates.
             let record = StoredPinDetails(
                 note: item.pinnedMetadata.note, hidden: item.pinnedMetadata.hidesContent,
@@ -300,6 +294,21 @@ final class SQLiteHistoryStore: HistoryStore {
             bindText(statement, 2, String(decoding: try encoder.encode(record), as: UTF8.self))
             guard sqlite3_step(statement) == SQLITE_DONE else { throw HistoryStoreError.unwritable(lastMessage()) }
         }
+        try pruneDetails(in: "pin_details", keeping: ids)
+    }
+
+    // The snapshot is authoritative inside BEGIN IMMEDIATE, including details
+    // cleared by this save or written by another connection. Bind one JSON
+    // array of the sparse metadata IDs rather than a variable per history row.
+    private func pruneDetails(in table: String, keeping ids: [String]) throws {
+        var deletion: OpaquePointer?
+        let sql = "DELETE FROM \(table) WHERE id NOT IN (SELECT value FROM json_each(?))"
+        guard sqlite3_prepare_v2(db, sql, -1, &deletion, nil) == SQLITE_OK else {
+            throw HistoryStoreError.unwritable(lastMessage())
+        }
+        defer { sqlite3_finalize(deletion) }
+        bindText(deletion, 1, String(decoding: try JSONEncoder().encode(ids), as: UTF8.self))
+        guard sqlite3_step(deletion) == SQLITE_DONE else { throw HistoryStoreError.unwritable(lastMessage()) }
     }
 
     private struct StoredPinDetails: Codable {

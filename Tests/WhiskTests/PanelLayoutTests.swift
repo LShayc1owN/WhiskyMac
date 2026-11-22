@@ -56,7 +56,7 @@ private let displays: [Display] = [
 private let roomy = displays.filter {
     $0.screen.frame.height >= 1080 && !$0.name.contains("text")
 }
-private let sides = CardSize.allCases.map(\.side) + [183.5]
+private let sides: [CGFloat] = [160, 200, 250, 183.5]
 
 private func within(_ tolerance: CGFloat, _ a: CGFloat, _ b: CGFloat) -> Bool {
     abs(a - b) <= tolerance
@@ -112,20 +112,20 @@ private func within(_ tolerance: CGFloat, _ a: CGFloat, _ b: CGFloat) -> Bool {
 
     @Test func a_short_screen_shrinks_the_preview_to_the_room_it_has() throws {
         let air = try #require(displays.first { $0.name == "MacBook Air 13-inch (2020)" })
-        let layout = PanelLayout(screen: air.screen, cardSide: CardSize.medium.side)
+        let layout = PanelLayout(screen: air.screen, cardSide: 200)
         let floor = layout.panel.maxY + PanelLayout.previewGap
         let ceiling = air.ceiling - PanelLayout.previewMargin
 
         #expect(layout.preview.height == ceiling - floor)
-        #expect(layout.preview.height == 384)
-        #expect(layout.preview.width == 560)
+        #expect(layout.preview.height == 376)
+        #expect(layout.preview.width == 548)
         #expect(layout.preview.minY == floor)
         #expect(layout.preview.maxY == ceiling)
     }
 
     @Test func a_cramped_screen_keeps_the_preview_legible_and_lets_it_lean_on_the_panels_empty_band() throws {
         let cramped = try #require(displays.first { $0.name == "MacBook Pro 16-inch, largest text" })
-        let layout = PanelLayout(screen: cramped.screen, cardSide: CardSize.large.side)
+        let layout = PanelLayout(screen: cramped.screen, cardSide: 250)
         let floor = layout.panel.maxY + PanelLayout.previewGap
 
         #expect(layout.preview.height == PanelLayout.previewMinimumHeight)
@@ -137,7 +137,7 @@ private func within(_ tolerance: CGFloat, _ a: CGFloat, _ b: CGFloat) -> Bool {
 
     @Test func a_hidden_menu_bar_still_keeps_the_preview_out_of_the_notch() throws {
         let hidden = try #require(displays.first { $0.name == "Notched laptop, menu bar hidden" })
-        let layout = PanelLayout(screen: hidden.screen, cardSide: CardSize.medium.side)
+        let layout = PanelLayout(screen: hidden.screen, cardSide: 200)
 
         #expect(hidden.screen.visibleFrame.maxY == hidden.screen.frame.maxY)
         #expect(layout.preview.maxY <= hidden.screen.frame.maxY - 37 - PanelLayout.previewMargin)
@@ -150,29 +150,29 @@ private func within(_ tolerance: CGFloat, _ a: CGFloat, _ b: CGFloat) -> Bool {
     @Test func the_built_in_display_and_the_ultra_wide_balance_the_preview_alike() throws {
         let builtIn = try #require(displays.first { $0.name == "MacBook Pro 16-inch" })
         let ultraWide = try #require(displays.first { $0.name.hasPrefix("Ultra-wide") })
-        let side = CardSize.medium.side
+        let side: CGFloat = 200
 
         let onBuiltIn = PanelLayout(screen: builtIn.screen, cardSide: side)
         let onUltraWide = PanelLayout(screen: ultraWide.screen, cardSide: side)
 
-        #expect(onBuiltIn.preview == CGRect(x: 514, y: 532, width: 700, height: 480))
-        #expect(onUltraWide.preview == CGRect(x: -2070, y: 439, width: 700, height: 480))
+        #expect(onBuiltIn.preview == CGRect(x: 514, y: 536, width: 700, height: 480))
+        #expect(onUltraWide.preview == CGRect(x: -2070, y: 443, width: 700, height: 480))
         #expect(ultraWide.screen.frame.contains(onUltraWide.panel))
         #expect(ultraWide.screen.frame.contains(onUltraWide.preview))
     }
 
     @Test func the_panel_height_follows_the_card_side() {
-        #expect(PanelLayout.panelHeight(forCardSide: 160) == 390)
-        #expect(PanelLayout.panelHeight(forCardSide: 200) == 430)
-        #expect(PanelLayout.panelHeight(forCardSide: 250) == 480)
-        #expect(PanelLayout.panelHeight(forCardSide: 1000) == 1230)
+        #expect(PanelLayout.panelHeight(forCardSide: 160) == 398)
+        #expect(PanelLayout.panelHeight(forCardSide: 200) == 438)
+        #expect(PanelLayout.panelHeight(forCardSide: 250) == 488)
+        #expect(PanelLayout.panelHeight(forCardSide: 1000) == 1238)
     }
 
     @Test(arguments: displays)
     func oversized_cards_keep_the_panel_controls_below_the_menu_bar(_ display: Display) {
         let layout = PanelLayout(screen: display.screen, cardSide: 1000)
         #expect(layout.panel.minY == display.screen.frame.minY)
-        #expect(layout.panel.height == min(1230, display.ceiling - PanelLayout.previewMargin - layout.panel.minY))
+        #expect(layout.panel.height == min(1238, display.ceiling - PanelLayout.previewMargin - layout.panel.minY))
         #expect(layout.panel.maxY <= display.ceiling - PanelLayout.previewMargin)
         #expect(display.screen.frame.contains(layout.panel))
     }
@@ -181,7 +181,7 @@ private func within(_ tolerance: CGFloat, _ a: CGFloat, _ b: CGFloat) -> Bool {
         let tiny = PanelLayout.Screen(
             frame: CGRect(x: 0, y: 0, width: 400, height: 300),
             visibleFrame: CGRect(x: 0, y: 0, width: 400, height: 276), notchHeight: 0)
-        let layout = PanelLayout(screen: tiny, cardSide: CardSize.large.side)
+        let layout = PanelLayout(screen: tiny, cardSide: 250)
 
         #expect(layout.preview.width > 0)
         #expect(layout.preview.height > 0)

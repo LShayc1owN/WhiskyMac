@@ -10,7 +10,7 @@ import Testing
 @testable import Whisk
 
 @Suite @MainActor struct StatusMenuMessageTests {
-    @Test(arguments: ["en", "fr", "de", "it", "zh-Hans"])
+    @Test(arguments: ["en", "fr", "de", "it", "zh-Hans", "zh-Hant"])
     func localized_detection_status_wraps_in_a_fixed_width_menu_view(language: String) throws {
         let bundle = AppLocalization.selectedBundle(in: AppResources.bundle, language: language)
         let text = localized(

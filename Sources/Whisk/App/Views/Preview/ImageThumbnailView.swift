@@ -10,7 +10,7 @@ struct ImageThumbnailView: View {
     let content: BinaryContent
     var fills = false
     var isActive = true
-    @ObservedObject var thumbnails = ImageThumbnailStore.shared
+    @ObservedObject private var thumbnails: ImageThumbnailStore
     @StateObject private var loader = ImageThumbnailLoader()
     @Environment(\.displayScale) private var displayScale
 
@@ -18,18 +18,27 @@ struct ImageThumbnailView: View {
         self.init(id: id, content: .inline(data), fills: fills, isActive: isActive)
     }
 
-    init(id: UUID, content: BinaryContent, fills: Bool = false, isActive: Bool = true) {
+    init(
+        id: UUID, content: BinaryContent, fills: Bool = false, isActive: Bool = true,
+        thumbnails: ImageThumbnailStore? = nil
+    ) {
         self.id = id; self.content = content; self.fills = fills; self.isActive = isActive
+        self.thumbnails = thumbnails ?? .shared
     }
 
     var body: some View {
         GeometryReader { geometry in
             let pixels = Self.pixelSize(for: geometry.size, scale: displayScale, fills: fills)
-            let request = ImageThumbnailRequest(id: id, content: content, maxPixelSize: pixels)
+            let preparedCard = fills && !thumbnails.lightweightMode
+            let request = ImageThumbnailRequest(
+                id: id, content: content,
+                maxPixelSize: preparedCard && pixels > 0 ? ImageThumbnailRequest.cardPixelLimit : pixels)
             Color.clear.overlay {
-                if isActive, !thumbnails.isProtected, let image = loader.image(for: request) {
+                if isActive, !thumbnails.isProtected,
+                    let image = loader.image(for: request) ?? thumbnails.cachedImage(for: request)
+                {
                     Image(nsImage: image).resizable().aspectRatio(contentMode: fills ? .fill : .fit)
-                } else if isActive, !thumbnails.isProtected, loader.isLoading {
+                } else if isActive, !thumbnails.isProtected, !preparedCard, loader.isLoading {
                     ProgressView().controlSize(.small)
                 } else {
                     Image(systemName: "photo").foregroundStyle(.secondary)
@@ -56,7 +65,7 @@ struct ImageThumbnailView: View {
     static func pixelSize(for size: CGSize, scale: CGFloat, fills: Bool) -> Int {
         let dimension = max(size.width, size.height) * max(1, scale) * (fills ? 1.05 : 1)
         guard dimension.isFinite, dimension > 0 else { return 0 }
-        let limit = fills ? 512 : ImageThumbnailDecoder.maximumPixelSize
+        let limit = fills ? ImageThumbnailRequest.cardPixelLimit : ImageThumbnailDecoder.maximumPixelSize
         let pixels = Int(min(CGFloat(limit), ceil(dimension)))
         return min(limit, max(64, (pixels + 63) / 64 * 64))
     }

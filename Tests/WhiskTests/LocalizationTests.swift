@@ -9,7 +9,7 @@ import Testing
 @testable import Whisk
 
 @Suite struct LocalizationCatalogs {
-    private static let languages = ["en", "fr", "de", "it", "zh-Hans"]
+    private static let languages = ["en", "fr", "de", "it", "zh-Hans", "zh-Hant"]
 
     private struct StringCatalog: Decodable {
         struct Unit: Decodable {
@@ -76,7 +76,9 @@ import Testing
             let text = try String(contentsOf: file, encoding: .utf8)
             for match in call.matches(in: text, range: NSRange(text.startIndex..., in: text)) {
                 guard let range = Range(match.range(at: 1), in: text) else { continue }
-                let literal = String(text[range]).replacingOccurrences(of: "\\\"", with: "\"")
+                let literal = String(text[range])
+                    .replacingOccurrences(of: "\\\"", with: "\"")
+                    .replacingOccurrences(of: "\\n", with: "\n")
                 let whole = NSRange(literal.startIndex..., in: literal)
                 used.append([
                     interpolation.stringByReplacingMatches(in: literal, range: whole, withTemplate: "%lld"),
@@ -111,7 +113,7 @@ import Testing
                     #expect(bundle.localizedString(forKey: key, value: nil, table: nil) == unit.value)
                 } else {
                     let categories = Set(translation.variations?.plural.keys.map { $0 } ?? [])
-                    #expect(categories == (language == "zh-Hans" ? ["other"] : ["one", "other"]))
+                    #expect(categories == (language.hasPrefix("zh-") ? ["other"] : ["one", "other"]))
                 }
             }
         }
@@ -149,14 +151,14 @@ import Testing
 
     @Test func plural_forms_follow_the_count() {
         #expect(
-            ["1 item", "1 élément", "1 Eintrag", "1 elemento", "1 项"].contains(localized("\(1) items")))
+            ["1 item", "1 élément", "1 Eintrag", "1 elemento", "1 项", "1 項"].contains(localized("\(1) items")))
         #expect(
-            ["2 items", "2 éléments", "2 Einträge", "2 elementi", "2 项"].contains(localized("\(2) items")))
+            ["2 items", "2 éléments", "2 Einträge", "2 elementi", "2 项", "2 項"].contains(localized("\(2) items")))
         #expect(
-            ["1 character", "1 caractère", "1 Zeichen", "1 carattere", "1 个字符"]
+            ["1 character", "1 caractère", "1 Zeichen", "1 carattere", "1 个字符", "1 個字元"]
                 .contains(localized("\(1) characters")))
         #expect(
-            ["40 characters", "40 caractères", "40 Zeichen", "40 caratteri", "40 个字符"]
+            ["40 characters", "40 caractères", "40 Zeichen", "40 caratteri", "40 个字符", "40 個字元"]
                 .contains(localized("\(40) characters")))
     }
 
@@ -170,6 +172,7 @@ import Testing
             let expected: [String]
             switch language {
             case "zh-Hans": expected = ["\(count) 项", "\(count) 个字符", "粘贴队列中有 \(count) 张卡片"]
+            case "zh-Hant": expected = ["\(count) 項", "\(count) 個字元", "待貼上清單中有 \(count) 張卡片"]
             case "de":
                 expected = [
                     "\(count) Eintr\(count == 1 ? "ag" : "äge")", "\(count) Zeichen",
@@ -179,7 +182,7 @@ import Testing
                 expected = [
                     "\(count) element\(count == 1 ? "o" : "i")",
                     "\(count) caratter\(count == 1 ? "e" : "i")",
-                    "\(count) sched\(count == 1 ? "a" : "e") nella pila di incolla",
+                    "\(count) sched\(count == 1 ? "a" : "e") nella sequenza di incolla",
                 ]
             case "fr":
                 let plural = count > 1 ? "s" : ""
@@ -205,6 +208,11 @@ import Testing
         #expect(
             Bundle.preferredLocalizations(from: languages, forPreferences: ["zh-Hans-CN", "en"])
                 .map { $0.lowercased() } == ["zh-hans"])
+        for preference in ["zh-Hant", "zh-TW", "zh-HK", "zh-MO"] {
+            #expect(
+                Bundle.preferredLocalizations(from: languages, forPreferences: [preference, "en"])
+                    .map { $0.lowercased() } == ["zh-hant"])
+        }
         #expect(Bundle.preferredLocalizations(from: languages, forPreferences: ["fr", "en"]) == ["fr"])
         #expect(Bundle.preferredLocalizations(from: languages, forPreferences: ["de-DE", "en"]) == ["de"])
         #expect(Bundle.preferredLocalizations(from: languages, forPreferences: ["it-IT", "en"]) == ["it"])

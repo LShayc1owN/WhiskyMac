@@ -9,7 +9,7 @@ import SwiftUI
 
 enum AppLanguage: String, CaseIterable, Identifiable {
     case system, english = "en", french = "fr", german = "de", italian = "it",
-        simplifiedChinese = "zh-Hans"
+        simplifiedChinese = "zh-Hans", traditionalChinese = "zh-Hant"
     var id: String { rawValue }
     var code: String? { self == .system ? nil : rawValue }
     var label: String {
@@ -20,6 +20,7 @@ enum AppLanguage: String, CaseIterable, Identifiable {
         case .german: "Deutsch"
         case .italian: "Italiano"
         case .simplifiedChinese: "简体中文"
+        case .traditionalChinese: "繁體中文"
         }
     }
 }
@@ -56,6 +57,35 @@ enum AccentMode: String, CaseIterable, Identifiable {
     case system, custom
     var id: String { rawValue }
     var label: String { self == .system ? localized("Follow System") : localized("Custom color") }
+}
+
+enum AppearanceMode: String, CaseIterable, Identifiable {
+    case system, light, dark
+    var id: String { rawValue }
+    var label: String {
+        switch self {
+        case .system: localized("Follow System")
+        case .light: localized("Light")
+        case .dark: localized("Dark")
+        }
+    }
+    var nsAppearance: NSAppearance? {
+        switch self {
+        case .system: nil
+        case .light: NSAppearance(named: .aqua)
+        case .dark: NSAppearance(named: .darkAqua)
+        }
+    }
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .system: nil
+        case .light: .light
+        case .dark: .dark
+        }
+    }
+    static var systemColorScheme: ColorScheme {
+        NSApp?.effectiveAppearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? .dark : .light
+    }
 }
 
 struct AccentRGB: Codable, Equatable {
@@ -107,6 +137,12 @@ final class AppearanceSettingsStore: ObservableObject {
     @Published var accentMode: AccentMode {
         didSet { defaults.set(accentMode.rawValue, forKey: "accentMode"); changed?() }
     }
+    @Published var settingsAppearance: AppearanceMode {
+        didSet { defaults.set(settingsAppearance.rawValue, forKey: "settingsAppearance"); changed?() }
+    }
+    @Published var clipboardAppearance: AppearanceMode {
+        didSet { defaults.set(clipboardAppearance.rawValue, forKey: "clipboardAppearance"); changed?() }
+    }
     @Published var customAccent: AccentRGB {
         didSet {
             if let value = try? JSONEncoder().encode(customAccent) { defaults.set(value, forKey: "customAccent") }
@@ -137,6 +173,8 @@ final class AppearanceSettingsStore: ObservableObject {
             defaults.string(forKey: "privacyStatusSymbol"), fallback: AppSymbol.defaultPrivacyName)
         dockIcon = DockIconMode(rawValue: defaults.string(forKey: "dockIcon") ?? "") ?? .followWindows
         accentMode = AccentMode(rawValue: defaults.string(forKey: "accentMode") ?? "") ?? .system
+        settingsAppearance = AppearanceMode(rawValue: defaults.string(forKey: "settingsAppearance") ?? "") ?? .system
+        clipboardAppearance = AppearanceMode(rawValue: defaults.string(forKey: "clipboardAppearance") ?? "") ?? .system
         customAccent =
             defaults.data(forKey: "customAccent").flatMap { try? JSONDecoder().decode(AccentRGB.self, from: $0) }
             ?? .initial

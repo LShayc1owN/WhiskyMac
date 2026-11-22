@@ -21,6 +21,7 @@ struct ItemCardView: View, Equatable {
     var side: CGFloat = 200
     var interactions = InteractionBindings()
     var isPanelVisible = true
+    var hoverEnabled = true
     var canExport: () -> Bool = { true }
     var onInteraction: ((CardAction) -> Void)? = nil
     var onHoverPreview: (() -> Void)? = nil
@@ -28,6 +29,7 @@ struct ItemCardView: View, Equatable {
     @State private var showingMenu = false
     @State private var editingPin = false
     @State private var hoverTask: Task<Void, Never>?
+    @State private var isHovering = false
 
     private func perform(_ action: CardAction) {
         guard canExport() else { return }
@@ -48,6 +50,7 @@ struct ItemCardView: View, Equatable {
         lhs.card == rhs.card && lhs.showsSelection == rhs.showsSelection && lhs.side == rhs.side
             && lhs.interactions == rhs.interactions
             && lhs.isPanelVisible == rhs.isPanelVisible
+            && lhs.hoverEnabled == rhs.hoverEnabled
     }
 
     @Environment(\.colorScheme) private var scheme
@@ -72,15 +75,15 @@ struct ItemCardView: View, Equatable {
     private var backdrop: some View {
         Color.clear
             .frame(width: selectedSide, height: selectedSide)
-            .frostedSurface(
-                in: Self.shape,
-                cornerRadius: 18,
-                tint: SourceAppStyle.resolve(bundleID: card.sourceBundleID)
-                    .surfaceTint(dark: scheme == .dark)
-            )
+            .background {
+                ClipboardMaterialSurface(
+                    shape: Self.shape, cornerRadius: 18,
+                    tint: SourceAppStyle.resolve(bundleID: card.sourceBundleID).surfaceTint(dark: scheme == .dark))
+            }
             .background {
                 if card.isSplitGroup { CardGroupBackdrop() }
             }
+            .clipboardShadow(in: Self.shape)
             .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: card.isSelected)
     }
 
@@ -126,29 +129,22 @@ struct ItemCardView: View, Equatable {
         )
         .background(CardRightClick { perform(interactions.rightClick) })
         .onHover { inside in
+            isHovering = inside
             onHoverChanged?(inside)
-            hoverTask?.cancel()
-            if inside, interactions.hover == .preview {
-                hoverTask = Task { @MainActor in
-                    try? await Task.sleep(for: .seconds(interactions.hoverDelay))
-                    guard !Task.isCancelled else { return }
-                    if let onHoverPreview { onHoverPreview() } else { perform(.preview) }
-                }
-            }
+            scheduleHoverPreview()
         }
-        .onChange(of: editingPin) { _, value in actions.metadataEditorChanged(value) }
         .onChange(of: showingMenu) { _, shown in
-            actions.cardMenuChanged(shown)
-            if !shown { editingPin = false }
+            hoverTask?.cancel()
+            if !shown { setEditingPin(false) }
         }
+        .onChange(of: hoverEnabled) { _, _ in scheduleHoverPreview() }
         .onChange(of: interactions) { _, _ in hoverTask?.cancel() }
         .onDisappear {
-            actions.metadataEditorChanged(false)
-            actions.cardMenuChanged(false)
+            setEditingPin(false)
             hoverTask?.cancel()
             onHoverChanged?(false)
         }
-        .popover(isPresented: $showingMenu) {
+        .cardActionPopover(isPresented: $showingMenu) {
             VStack(alignment: .leading, spacing: 10) {
                 if !canExport() {
                     PrivacyPlaceholder().padding(12)
@@ -160,17 +156,17 @@ struct ItemCardView: View, Equatable {
                 } else {
                     CardActionMenu(
                         card: card, actions: actions, keyBindings: keyBindings,
-                        perform: perform, editPinnedItem: { editingPin = true },
+                        perform: perform, editPinnedItem: { setEditingPin(true) },
                         dismiss: { showingMenu = false }
                     )
                 }
-            }.background(CardActionPopoverLayer())
+            }
         }
         // Continuous, not enter/exit: after a keyboard scroll parks a card
         // under the pointer, the very first real movement inside it must
         // reclaim the selection — without crossing a card edge first.
         .onContinuousHover { phase in
-            if case .active = phase, MouseActivity.movedRecently {
+            if case .active = phase, hoverEnabled, MouseActivity.movedRecently {
                 actions.highlight(card.id)
             }
         }
@@ -191,10 +187,26 @@ struct ItemCardView: View, Equatable {
         .accessibilityAction(named: Text(localized("Delete"))) { actions.delete(card.id) }
     }
 
+    private func setEditingPin(_ editing: Bool) {
+        guard editingPin != editing else { return }
+        editingPin = editing
+        actions.metadataEditorChanged(editing)
+    }
+
+    private func scheduleHoverPreview() {
+        hoverTask?.cancel()
+        guard isHovering, hoverEnabled, !showingMenu, isPanelVisible, interactions.hover == .preview else { return }
+        hoverTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(interactions.hoverDelay))
+            guard !Task.isCancelled else { return }
+            if let onHoverPreview { onHoverPreview() } else { perform(.preview) }
+        }
+    }
+
     @ViewBuilder private var selectionRing: some View {
         if card.isSelected && showsSelection {
             Self.shape
-                .strokeBorder(Color.matcha, lineWidth: 2)
+                .strokeBorder(Color.readableAccent(in: scheme), lineWidth: 2)
         }
     }
 
@@ -231,7 +243,7 @@ struct ItemCardView: View, Equatable {
                     Text("\(position)")
                         .font(.caption2.weight(.bold).monospacedDigit())
                 }
-                .foregroundStyle(Color.matcha)
+                .foregroundStyle(Color.readableAccent(in: scheme))
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
                 .background(Capsule().fill(Color.matcha.opacity(0.18)))
@@ -290,7 +302,7 @@ struct ItemCardView: View, Equatable {
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                     .mask(bottomFade)
             case .link(let address):
-                LinkPreviewView(address: address, size: .card)
+                LinkPreviewView(address: address, size: .card, isActive: isPanelVisible)
                     .padding(.horizontal, 14)
             case .storedImage(let reference):
                 ImageThumbnailView(id: card.id, content: .stored(reference), fills: true, isActive: isPanelVisible)

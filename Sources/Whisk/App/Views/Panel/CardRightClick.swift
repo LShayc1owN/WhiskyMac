@@ -9,8 +9,12 @@ import SwiftUI
 /// Observe only the card's right click; keep native drag and left-click routing.
 struct CardRightClick: NSViewRepresentable {
     var action: () -> Void
-    func makeNSView(context: Context) -> MonitorView { MonitorView() }
-    func updateNSView(_ view: MonitorView, context: Context) { view.action = action }
+    func makeNSView(context: Context) -> MonitorView {
+        MonitorView()
+    }
+    func updateNSView(_ view: MonitorView, context: Context) {
+        view.action = action
+    }
 
     final class MonitorView: NSView {
         var action: (() -> Void)?

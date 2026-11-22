@@ -12,5 +12,6 @@ Use `beButton` for custom view labels, including labels that need a button
 role. Keep the native titled `Button` initializer where it is shorter.
 
 `IndexedForEach` accepts identifiable elements directly or an explicit `id`
-key path for other collections. `SettingsRowLabel` gives settings controls a
+key path for other collections; `indexID` keeps position-based identity for
+unidentified groups. `SettingsRowLabel` gives settings controls a
 consistent icon and title layout.

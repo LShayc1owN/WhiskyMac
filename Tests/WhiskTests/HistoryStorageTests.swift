@@ -55,7 +55,7 @@ import Testing
         try LegacyHistoryFixture.write([old], in: directory)
         // Something already sits where the retired index would go.
         try Data().write(to: directory.appendingPathComponent("history.json.migrated"))
-        var logged: [String] = []
+        var logged: [DiagnosticEvent] = []
 
         let store = HistoryStorage.open(in: directory) { logged.append($0) }
 
@@ -73,7 +73,7 @@ import Testing
         try garbage.write(to: database)
         try Data([0x01]).write(to: URL(fileURLWithPath: database.path + "-wal"))
         try Data([0x01]).write(to: URL(fileURLWithPath: database.path + "-shm"))
-        var logged: [String] = []
+        var logged: [DiagnosticEvent] = []
 
         let store = HistoryStorage.open(in: directory) { logged.append($0) }
 
@@ -111,7 +111,7 @@ import Testing
         try #require(
             sqlite3_exec(raw, "CREATE TABLE content (id TEXT PRIMARY KEY, kind TEXT NOT NULL)", nil, nil, nil)
                 == SQLITE_OK)
-        var logged: [String] = []
+        var logged: [DiagnosticEvent] = []
 
         let store = HistoryStorage.open(in: directory) { logged.append($0) }
 
@@ -127,7 +127,7 @@ import Testing
         defer { try? FileManager.default.removeItem(at: blocker) }
         try Data().write(to: blocker)
         let directory = blocker.appendingPathComponent("Whisk", isDirectory: true)
-        var logged: [String] = []
+        var logged: [DiagnosticEvent] = []
 
         let store = HistoryStorage.open(in: directory) { logged.append($0) }
         let item = anItem(.text("volatile"))
@@ -171,7 +171,7 @@ import Testing
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let index = directory.appendingPathComponent("history.json")
         try Data("{ not json".utf8).write(to: index)
-        var logged: [String] = []
+        var logged: [DiagnosticEvent] = []
 
         let store = HistoryStorage.open(in: directory) { logged.append($0) }
 

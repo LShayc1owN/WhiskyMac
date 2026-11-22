@@ -10,6 +10,13 @@ import SwiftUI
 /// Paste-style panel pinned to the bottom of the main screen. Non-activating,
 /// so the frontmost application keeps focus while the user picks an item.
 final class PanelController {
+    struct Sizing: Equatable {
+        var cardSide: CGFloat
+        var tagScale: Double
+    }
+    private var sizingBeforePreview: Sizing?
+    var isSizePreview: Bool { sizingBeforePreview != nil }
+    var sizePreviewEnded: () -> Void = {}
     private var panel: FloatingPanel
     private let historyPanel: FloatingPanel
     private let pinsPanel: FloatingPanel
@@ -21,29 +28,48 @@ final class PanelController {
     private let keyBindings: KeyBindingsStore
     private var pasteTarget: NSRunningApplication?
     private var previewPanel: NSPanel?
+    private let popoverCoordinator = CardPopoverCoordinator()
     private var splitPanel: SplitDialogPanel?
     /// Where the panel and its preview go on the screen they rose on.
     private var layout: PanelLayout?
 
     private let backgroundVeil = BackgroundVeilController()
 
+    var appearanceMode: AppearanceMode {
+        didSet {
+            guard oldValue != appearanceMode else { return }
+            applyWindowAppearance()
+        }
+    }
+
+    private func applyWindowAppearance() {
+        for window in [historyPanel, pinsPanel, previewPanel, splitPanel].compactMap({ $0 }) {
+            window.appearance = appearanceMode.nsAppearance
+        }
+        backgroundVeil.appearanceMode = appearanceMode
+    }
+
     private let vimMode: () -> Bool
     private let vimBindings: VimBindingsStore
 
     init(
         stateStore: HistoryViewStateStore, actions: PanelActions, keyBindings: KeyBindingsStore,
-        vimBindings: VimBindingsStore, vimMode: @escaping () -> Bool
+        vimBindings: VimBindingsStore, appearanceMode: AppearanceMode = .system, vimMode: @escaping () -> Bool
     ) {
         self.stateStore = stateStore
         self.actions = actions
         self.keyBindings = keyBindings
         self.vimBindings = vimBindings
+        self.appearanceMode = appearanceMode
         self.vimMode = vimMode
+        popoverCoordinator.presentationChanged = { [weak stateStore] in stateStore?.cardMenuOpen = $0 }
         historyPanel = FloatingPanel()
         pinsPanel = FloatingPanel()
         panel = historyPanel
+        applyWindowAppearance()
         panel.keyHandler = { [weak self] event in
-            self?.router.handle(event) ?? false
+            guard let self else { return false }
+            return self.popoverCoordinator.handleKey(event) || self.router.handle(event)
         }
         stateStore.hidePreview = { [weak self] in self?.hidePreview() }
         stateStore.showPreview = { [weak self] in self?.showPreview() }
@@ -52,6 +78,8 @@ final class PanelController {
         // resignKey order it out directly — and the preview must never
         // outlive it.
         panel.onClose = { [weak self] in
+            self?.popoverCoordinator.dismiss()
+            self?.restoreSizingPreview()
             self?.stateStore.endEditing()
             self?.hidePreview()
             self?.backgroundVeil.hide()
@@ -102,10 +130,16 @@ final class PanelController {
         pinsPanel.onClose = panel.onClose
         pinsPanel.onCancel = panel.onCancel
         pinsPanel.acceptsMouseMovedEvents = true
+        historyPanel.keepsOpenOnResignKey = { [weak stateStore] in
+            stateStore?.historyHidingOptionsOpen == true || stateStore?.cardMenuOpen == true
+                || stateStore?.pinMetadataEditing == true
+        }
+        pinsPanel.keepsOpenOnResignKey = historyPanel.keepsOpenOnResignKey
 
     }
 
     deinit {
+        popoverCoordinator.dismiss()
         for window in [historyPanel, pinsPanel] {
             window.onClose = nil
             window.onCancel = nil
@@ -177,10 +211,41 @@ final class PanelController {
 
     func show() { display(pins: false, style: nil) }
 
+    func previewSize(cardSide: Double, tagScale: Double) {
+        display(
+            pins: false, style: nil,
+            sizingPreview: Sizing(
+                cardSide: CGFloat(GeneralSettingsStore.boundedCardSide(cardSide)),
+                tagScale: GeneralSettingsStore.boundedFilterTagScale(tagScale)))
+    }
+
+    func prepareSizingPreview(_ sizing: Sizing, on screen: NSScreen) {
+        preparePresentation(pins: false, style: nil)
+        sizingBeforePreview = Sizing(cardSide: stateStore.cardSide, tagScale: stateStore.filterTagScale)
+        stateStore.configureCards(side: sizing.cardSide)
+        stateStore.configureFilterTags(scale: sizing.tagScale)
+        place(on: screen)
+    }
+
+    func cancelSizePreview() {
+        guard isSizePreview else { return }
+        hide()
+        restoreSizingPreview()
+    }
+
+    private func restoreSizingPreview() {
+        guard let sizingBeforePreview else { return }
+        self.sizingBeforePreview = nil
+        stateStore.configureCards(side: sizingBeforePreview.cardSide)
+        stateStore.configureFilterTags(scale: sizingBeforePreview.tagScale)
+        sizePreviewEnded()
+    }
+
     /// Prepares the surface without activation. Kept separate from show so
     /// routing and window reuse can be validated without stealing focus.
     func preparePresentation(pins: Bool, style: PinnedWindowStyle?, on screen: NSScreen? = nil) {
         hide()
+        restoreSizingPreview()
         showingPinned = pins
         pinnedStyle = style
         panel = pins && style != nil ? pinsPanel : historyPanel
@@ -196,17 +261,23 @@ final class PanelController {
         installContent()
     }
 
-    private func display(pins: Bool, style: PinnedWindowStyle?) {
+    private func display(pins: Bool, style: PinnedWindowStyle?, sizingPreview: Sizing? = nil) {
         let screens = NSScreen.screens
         guard let index = Self.screenIndex(under: NSEvent.mouseLocation, frames: screens.map(\.frame)) else { return }
-        preparePresentation(pins: pins, style: style, on: screens[index])
+        if let sizingPreview {
+            prepareSizingPreview(sizingPreview, on: screens[index])
+        } else {
+            preparePresentation(pins: pins, style: style, on: screens[index])
+        }
         pasteTarget = nil
         if let app = NSWorkspace.shared.frontmostApplication, app.bundleIdentifier != AppIdentity.bundleIdentifier {
             pasteTarget = app
         }
         stateStore.requestSearchFocus()
+        // Ordering the window may draw synchronously. Let that draw use prepared previews.
+        stateStore.setPanelVisible(true)
         panel.makeKeyAndOrderFront(nil)
-        stateStore.setPanelVisible(panel.isVisible)
+        if !panel.isVisible { stateStore.setPanelVisible(false) }
         stateStore.sensitiveSession.setPanelVisible(panel.isVisible)
         if panel.isVisible {
             backgroundVeil.show(frame: panel.frame, belowWindowNumber: panel.windowNumber)
@@ -216,7 +287,8 @@ final class PanelController {
     /// Lays the panel out on the screen, and the preview with it when
     /// one is up.
     private func place(on screen: NSScreen) {
-        let layout = PanelLayout(screen: PanelLayout.Screen(screen), cardSide: stateStore.cardSide)
+        let layout = PanelLayout(
+            screen: PanelLayout.Screen(screen), cardSide: stateStore.cardSide, tagScale: stateStore.filterTagScale)
         self.layout = layout
         let frame =
             pinnedStyle == .mouseList
@@ -314,6 +386,7 @@ final class PanelController {
                 defer: false
             )
             preview.isFloatingPanel = true
+            preview.appearance = appearanceMode.nsAppearance
             preview.level = .statusBar
             preview.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
             preview.backgroundColor = .clear
@@ -329,6 +402,7 @@ final class PanelController {
         guard let preview = previewPanel, let layout else { return }
         preview.setFrame(layout.preview, display: true)
         preview.orderFront(nil)
+        popoverCoordinator.previewWindow = preview
     }
 
     func pasteToPreviousApplication(explicitProtectedExport: Bool = false) {
@@ -351,6 +425,7 @@ final class PanelController {
         }
         guard panel.isVisible, !stateStore.isProtected else { stateStore.closeSplitSessions(); return }
         let dialog = splitPanel ?? SplitDialogPanel()
+        dialog.appearance = appearanceMode.nsAppearance
         splitPanel = dialog
         dialog.cancel = { [weak stateStore] in stateStore?.closeSplitSessions() }
         dialog.lostFocus = { [weak self] in self?.hide() }
@@ -383,22 +458,27 @@ final class PanelController {
         if panel === historyPanel { pinsPanel.contentView = nil } else { historyPanel.contentView = nil }
         if pinnedStyle == .mouseList {
             panel.contentView = NSHostingView(
-                rootView: PinnedListView(store: stateStore, actions: actions, keyBindings: keyBindings))
+                rootView: PinnedListView(store: stateStore, actions: actions, keyBindings: keyBindings)
+                    .environment(\.cardPopoverCoordinator, popoverCoordinator))
         } else {
-            panel.contentView = HistoryPanelHosting.make(store: stateStore, actions: actions, keyBindings: keyBindings)
+            panel.contentView = HistoryPanelHosting.make(
+                store: stateStore, actions: actions, keyBindings: keyBindings, popoverCoordinator: popoverCoordinator)
         }
     }
 
     func appearanceDidChange() {
+        popoverCoordinator.dismiss()
         hidePreview()
         if panel.isVisible { installContent() } else { panel.contentView = nil }
     }
     func privacyDidChange() {
+        popoverCoordinator.dismiss()
         hidePreview()
         if panel.isVisible { installContent() } else { panel.contentView = nil }
     }
 
     private func hidePreview() {
+        popoverCoordinator.previewWindow = nil
         previewPanel?.orderOut(nil)
         previewPanel?.contentView = nil
         previewPanel = nil
@@ -413,6 +493,7 @@ extension PanelLayout.Screen {
 }
 
 final class FloatingPanel: NSPanel {
+    var keepsOpenOnResignKey: () -> Bool = { false }
     var keyHandler: ((NSEvent) -> Bool)?
     var onClose: (() -> Void)?
     /// Gets the first shot at Esc; returning true keeps the panel open.
@@ -466,6 +547,7 @@ final class FloatingPanel: NSPanel {
 
     override func resignKey() {
         super.resignKey()
+        if keepsOpenOnResignKey() { return }
         if childWindows?.contains(where: { $0 is SplitDialogPanel }) == true { return }
         orderOut(nil)
     }

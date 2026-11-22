@@ -6,6 +6,7 @@
 /// Best-effort capture attribution. A Handoff marker carries no verified
 /// source device or application; ordinary entries name the observed Mac app.
 struct SourceApp: Equatable, Hashable {
+    static let handoffFilterKey = "origin:handoff-marker"
     enum Origin: String {
         case observedApplication
         case handoffMarker
@@ -21,9 +22,9 @@ struct SourceApp: Equatable, Hashable {
         self.bundleID = origin == .handoffMarker ? nil : bundleID
     }
 
-    /// Stable identity for filtering; the invariant guarantees one field.
+    /// Stable attribution identity; a marker is distinct from every observed app.
     var filterKey: String {
-        origin == .handoffMarker ? "origin:handoff-marker" : (bundleID ?? name ?? "")
+        origin == .handoffMarker ? Self.handoffFilterKey : (bundleID ?? name ?? "")
     }
 
     /// Lenient identity: items recorded before the bundle id existed carry

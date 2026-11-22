@@ -133,12 +133,17 @@ struct PinnedListView: View {
         .padding(16)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
         .onChange(of: editing) { _, value in actions.metadataEditorChanged(value != nil) }
-        .onChange(of: actionCard) { _, value in actions.cardMenuChanged(value != nil) }
+        .onChange(of: store.cardMenuOpen) { _, _ in scheduleHoverPreview() }
+        .onReceive(store.$state) { state in
+            if let card = actionCard, !state.cards.contains(where: { $0.id == card.id }) { actionCard = nil }
+            if let card = editing, !state.cards.contains(where: { $0.id == card.id }) { editing = nil }
+        }
         .onChange(of: store.interactions) { _, _ in
             hoverTask?.cancel(); hoveredID = nil
         }
         .onDisappear {
-            hoverTask?.cancel(); actions.metadataEditorChanged(false); actions.cardMenuChanged(false)
+            hoverTask?.cancel()
+            actions.metadataEditorChanged(false)
         }
         .onChange(of: store.isProtected) { _, _ in
             editing = nil; actionCard = nil; hoverTask?.cancel(); query = ""
@@ -146,7 +151,7 @@ struct PinnedListView: View {
         .onChange(of: store.closeRevision) { _, _ in
             editing = nil; actionCard = nil; hoverTask?.cancel(); query = ""
         }
-        .popover(item: $actionCard) { card in
+        .cardActionPopover(item: $actionCard) { card in
             CardActionMenu(
                 card: card, actions: actions, keyBindings: keyBindings, pinnedWorkspace: true,
                 perform: { perform(card, $0) },
@@ -155,15 +160,14 @@ struct PinnedListView: View {
                 },
                 dismiss: { actionCard = nil }
             )
-            .background(CardActionPopoverLayer())
         }
-        .popover(item: $editing) { card in
+        .cardActionPopover(item: $editing) { card in
             if store.isProtected {
                 PrivacyPlaceholder()
             } else {
                 PinnedItemEditor(value: card.pinnedMetadata) { value in
                     actions.updatePinnedMetadata(card.id, value); editing = nil
-                }.padding().background(CardActionPopoverLayer())
+                }.padding()
             }
         }
     }
@@ -210,13 +214,7 @@ struct PinnedListView: View {
             }
             hoverTask?.cancel()
             hoveredID = card.id
-            if store.interactions.hover == .preview {
-                hoverTask = Task { @MainActor in
-                    try? await Task.sleep(for: .seconds(store.interactions.hoverDelay))
-                    guard !Task.isCancelled else { return }
-                    store.hoverPreview(card, actions: actions)
-                }
-            }
+            scheduleHoverPreview()
         }
         .gesture(
             TapGesture(count: 2).exclusively(before: TapGesture(count: 1)).onEnded { value in
@@ -225,5 +223,17 @@ struct PinnedListView: View {
                 case .second: perform(card, store.interactions.singleClick)
                 }
             })
+    }
+
+    private func scheduleHoverPreview() {
+        hoverTask?.cancel()
+        guard !store.cardMenuOpen, !store.pinMetadataEditing, store.interactions.hover == .preview,
+            let card = store.state.cards.first(where: { $0.id == hoveredID })
+        else { return }
+        hoverTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(store.interactions.hoverDelay))
+            guard !Task.isCancelled else { return }
+            store.hoverPreview(card, actions: actions)
+        }
     }
 }

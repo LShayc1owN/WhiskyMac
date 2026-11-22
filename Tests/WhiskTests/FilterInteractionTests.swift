@@ -57,7 +57,9 @@ import Testing
         let spy = ClipboardControllerBehaviour.StateSpy()
         let controller = ClipboardController(pasteboard: board, store: disk, clock: FakeClock(), present: spy.record)
         #expect(spy.last.filters.all.first?.isActive == true)
-        #expect(!spy.last.filters.hasActiveChip)
+        #expect(
+            (spy.last.filters.pinned + spy.last.filters.apps + spy.last.filters.kinds + spy.last.filters.tags)
+                .allSatisfy { !$0.isActive })
         controller.search("match")
         controller.toggleSourceFilter("test.one")
         controller.toggleCategoryFilter("text")
@@ -68,7 +70,9 @@ import Testing
         #expect(!controller.activateFocused())
         #expect(spy.last.filters.focusedChipID == allFiltersChipID)
         #expect(spy.last.filters.all.first?.isActive == true)
-        #expect(!spy.last.filters.hasActiveChip)
+        #expect(
+            (spy.last.filters.pinned + spy.last.filters.apps + spy.last.filters.kinds + spy.last.filters.tags)
+                .allSatisfy { !$0.isActive })
         #expect(spy.last.query == "match")
         #expect(spy.last.cards.count == 2)
         #expect(board.written.isEmpty)
@@ -80,6 +84,7 @@ import Testing
         disk.stored = [
             anItem(.text("match one"), from: "One", bundle: "test.one"),
             anItem(.text("match two"), from: "Two", bundle: "test.two"),
+            anItem(.image(Data([0])), from: "Two", bundle: "test.two"),
         ]
         let spy = ClipboardControllerBehaviour.StateSpy()
         let controller = ClipboardController(
@@ -100,6 +105,14 @@ import Testing
         protected = true
         actions.selectSourceFilter("test.one")
         #expect(spy.last.cards.map(\.sourceLabel) == ["Two"])
+        actions.selectCategoryFilter("image")
+        #expect(spy.last.cards.map(\.sourceLabel) == ["Two"])
+        protected = false
+        actions.search("")
+        actions.selectCategoryFilter("image")
+        #expect(spy.last.query.isEmpty)
+        #expect(spy.last.cards.count == 1)
+        #expect(spy.last.cards.first?.id == disk.stored[2].id)
     }
 
     @Test func hover_selects_one_source_and_repeated_hover_never_toggles_it_off() {
@@ -121,5 +134,36 @@ import Testing
         #expect(spy.states.count == count)
         controller.toggleSourceFilter("test.two")
         #expect(spy.last.cards.count == 2)
+    }
+
+    @Test func category_hover_selects_without_toggling_and_click_still_combines_filters() {
+        let disk = InMemoryHistoryStore()
+        disk.stored = [
+            anItem(.text("Text"), from: "App", bundle: "test.app", pinned: true),
+            anItem(.image(Data([0])), from: "App", bundle: "test.app"),
+        ]
+        let board = ScriptedPasteboard()
+        let spy = ClipboardControllerBehaviour.StateSpy()
+        let controller = ClipboardController(
+            pasteboard: board, store: disk, clock: FakeClock(), present: spy.record)
+        controller.selectCategoryFilter("image")
+        #expect(spy.last.cards.count == 1)
+        #expect(spy.last.filters.kinds.filter(\.isActive).map(\.id) == ["image"])
+        let count = spy.states.count
+        controller.selectCategoryFilter("image")
+        controller.selectCategoryFilter("stale.or.hidden")
+        controller.selectCategoryFilter("test.app")
+        #expect(spy.states.count == count)
+        controller.toggleCategoryFilter("text")
+        #expect(spy.last.cards.count == 2)
+        controller.selectCategoryFilter("text")
+        #expect(spy.last.cards.count == 1)
+        #expect(spy.last.filters.kinds.filter(\.isActive).map(\.id) == ["text"])
+        controller.selectCategoryFilter(pinnedChipID)
+        controller.selectCategoryFilter(pinnedChipID)
+        #expect(spy.last.filters.pinned.first?.isActive == true)
+        controller.selectCategoryFilter(allFiltersChipID)
+        #expect(spy.last.cards.count == 2 && spy.last.filters.all.first?.isActive == true)
+        #expect(board.written.isEmpty && disk.saveCount == 0)
     }
 }

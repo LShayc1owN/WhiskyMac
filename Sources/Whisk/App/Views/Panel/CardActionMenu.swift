@@ -88,8 +88,12 @@ struct CardActionMenu: View {
     let dismiss: () -> Void
 
     @State private var showsTransforms = false
-    @FocusState private var focusedID: String?
+    @State private var focusedID: String?
+    @State private var keyboardRegistration = UUID()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.cardPopoverCoordinator) private var popoverCoordinator
+    @Environment(\.cardPopoverKeyboard) private var keyboard
 
     static func sections(for card: CardViewState, pinnedWorkspace: Bool = false) -> [[CardMenuCommand]] {
         var use: [CardMenuCommand] = [.copy, .paste]
@@ -149,10 +153,9 @@ struct CardActionMenu: View {
                                 .fixedSize(horizontal: false, vertical: true)
                                 .padding(.horizontal, 7).padding(.bottom, 4)
                         }
-                        ForEach(
-                            Array(Self.sections(for: card, pinnedWorkspace: pinnedWorkspace).enumerated()), id: \.offset
-                        ) {
-                            index, section in
+                        IndexedForEach(
+                            Self.sections(for: card, pinnedWorkspace: pinnedWorkspace), indexID: \.self
+                        ) { index, section in
                             if index > 0 { Divider().padding(.horizontal, 7).padding(.vertical, 3) }
                             ForEach(section) { command in
                                 menuRow(
@@ -185,7 +188,11 @@ struct CardActionMenu: View {
             .onExitCommand {
                 if showsTransforms { showsTransforms = false } else { dismiss() }
             }
-            .onAppear { focusedID = visibleIDs.first }
+            .onAppear {
+                focusedID = visibleIDs.first
+                keyboard?.install(keyboardRegistration, handler: handleKey)
+            }
+            .onDisappear { keyboard?.remove(keyboardRegistration) }
             .onChange(of: showsTransforms) { _, _ in focusedID = visibleIDs.first }
             .onChange(of: focusedID) { _, id in
                 guard let id else { return }
@@ -202,43 +209,42 @@ struct CardActionMenu: View {
         id: String, title: String, symbol: String, shortcut: String? = nil,
         destructive: Bool = false, accessory: String? = nil, action: @escaping () -> Void
     ) -> some View {
-        Button(action: action) {
-            HStack(alignment: .center, spacing: 8) {
-                Image(systemName: symbol)
-                    .font(.system(size: 14))
-                    .frame(width: 18, alignment: .center)
-                    .foregroundStyle(destructive ? Color.red : Color.secondary)
+        let destructiveColor = scheme == .light ? Color.readableAccent(in: scheme, color: .systemRed) : .red
+        return HStack(alignment: .center, spacing: 8) {
+            Image(systemName: symbol)
+                .font(.system(size: 14))
+                .frame(width: 18, alignment: .center)
+                .foregroundStyle(destructive ? destructiveColor : .secondary)
+                .accessibilityHidden(true)
+            Text(title)
+                .font(.system(size: 13))
+                .lineLimit(2)
+                .multilineTextAlignment(.leading)
+                .foregroundStyle(destructive ? destructiveColor : .primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            if let shortcut {
+                Text(shortcut)
+                    .font(.system(size: 12).monospacedDigit())
+                    .foregroundStyle(.secondary)
+                    .fixedSize()
                     .accessibilityHidden(true)
-                Text(title)
-                    .font(.system(size: 13))
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-                    .foregroundStyle(destructive ? Color.red : Color.primary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                if let shortcut {
-                    Text(shortcut)
-                        .font(.system(size: 12).monospacedDigit())
-                        .foregroundStyle(.secondary)
-                        .fixedSize()
-                        .accessibilityHidden(true)
-                }
-                if let accessory {
-                    Image(systemName: accessory).font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(.secondary).accessibilityHidden(true)
-                }
             }
-            .frame(minHeight: 30)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 1)
-            .frame(maxWidth: .infinity)
-            .background(
-                focusedID == id ? Color.accentColor.opacity(0.16) : Color.clear,
-                in: RoundedRectangle(cornerRadius: 7, style: .continuous)
-            )
-            .contentShape(Rectangle())
+            if let accessory {
+                Image(systemName: accessory).font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.secondary).accessibilityHidden(true)
+            }
         }
+        .frame(minHeight: 30)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 1)
+        .frame(maxWidth: .infinity)
+        .background(
+            focusedID == id ? Color.accentColor.opacity(0.16) : Color.clear,
+            in: RoundedRectangle(cornerRadius: 7, style: .continuous)
+        )
+        .contentShape(Rectangle())
+        .beButton(action)
         .buttonStyle(.plain)
-        .focused($focusedID, equals: id)
         .onHover { inside in if inside { focusedID = id } }
         .id(id)
         .accessibilityLabel(title)
@@ -248,6 +254,7 @@ struct CardActionMenu: View {
     private func run(_ command: CardMenuCommand) {
         if command == .pasteAs { showsTransforms = true; return }
         if command == .pinDetails { editPinnedItem(); return }
+        popoverCoordinator?.dismiss(restoreFocus: true)
         dismiss()
         switch command {
         case .copy: perform(.copy)
@@ -270,5 +277,39 @@ struct CardActionMenu: View {
         case .delete: actions.delete(card.id)
         case .pasteAs, .pinDetails: break
         }
+    }
+
+    private func handleKey(_ code: UInt16) -> Bool {
+        switch code {
+        case 125, 126:
+            guard let index = focusedID.flatMap({ visibleIDs.firstIndex(of: $0) }) else {
+                focusedID = visibleIDs.first
+                return true
+            }
+            focusedID = visibleIDs[min(max(index + (code == 125 ? 1 : -1), 0), visibleIDs.count - 1)]
+        case 36, 76:
+            guard let focusedID else { return false }
+            if showsTransforms {
+                if focusedID == "back" {
+                    showsTransforms = false
+                } else if let transform = TextTransform.allCases.first(where: {
+                    "transform.\($0.rawValue)" == focusedID
+                }) {
+                    popoverCoordinator?.dismiss(restoreFocus: true)
+                    dismiss()
+                    actions.transform(card.id, transform)
+                }
+            } else if let command = CardMenuCommand(rawValue: focusedID) {
+                run(command)
+            }
+        case 53:
+            if showsTransforms {
+                showsTransforms = false
+            } else {
+                popoverCoordinator?.dismiss(restoreFocus: true); dismiss()
+            }
+        default: return false
+        }
+        return true
     }
 }

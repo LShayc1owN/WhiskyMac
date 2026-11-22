@@ -73,6 +73,29 @@ import Testing
         #expect(presentations == 2)
     }
 
+    @Test func staggered_time_updates_match_full_presentations_in_both_clock_directions() {
+        let date = Date(timeIntervalSince1970: 12000)
+        let items = (0..<20).map { index in
+            anItem(.text("note \(index)"), at: date.addingTimeInterval(-Double(index) * 11.3), pinned: index == 3)
+        }
+        let presenter = HistoryPresenter()
+        let dates = items.map(\.copiedAt)
+        let stack = [items[3].id]
+        var previous = date
+        var state = presenter.present(items: items, query: "", now: date, stack: stack)
+        let full = HistoryPresenter()
+        _ = full.present(items: items, query: "", now: date, stack: stack)
+        for offset: Double in [1, 8, 59, 61, 135, -5, 3600] {
+            let now = date.addingTimeInterval(offset)
+            let deadline = presenter.refreshTimes(in: &state, dates: dates, from: previous, now: now)
+            previous = now
+            let reference = full.present(items: items, query: "", now: now, stack: stack)
+            #expect(state.cards.map(\.timeLabel) == reference.cards.map(\.timeLabel))
+            #expect(state.cards.map(\.accessibilityValue) == reference.cards.map(\.accessibilityValue))
+            #expect(deadline > now)
+        }
+    }
+
     @Test func large_presentation_prunes_at_most_once_per_cache_even_when_every_minute_changes() {
         let presenter = HistoryPresenter()
         let copied = Date(timeIntervalSince1970: 1_600_000_000)

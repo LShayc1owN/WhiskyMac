@@ -48,6 +48,14 @@ private final class ImageDecodeRecorder {
         await withCheckedContinuation { continuation in queue.addBarrierBlock { continuation.resume() } }
     }
 
+    @Test func private_preview_keeps_no_entry_even_when_decoding_fails_at_zero_cost() async {
+        let store = ImageThumbnailStore(byteLimit: 0) { _, _ in nil }
+        let request = ImageThumbnailRequest(id: UUID(), data: Data(), maxPixelSize: 512)
+        #expect(await load(request, from: store) == nil)
+        #expect(store.cachedCount == 0)
+        #expect(store.cachedBytes == 0)
+    }
+
     @Test func thumbnails_bound_pixels_preserve_aspect_and_apply_image_orientation() throws {
         let data = try encoded(bitmap(1200, 800))
         let card = try #require(ImageThumbnailDecoder.decode(data, maxPixelSize: 512))

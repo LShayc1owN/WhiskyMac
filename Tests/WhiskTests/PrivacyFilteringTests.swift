@@ -57,6 +57,7 @@ import Testing
             switch action {
             case .toggleApp(let key): controller.toggleSourceFilter(key)
             case .selectApp(let key): controller.selectSourceFilter(key)
+            case .selectKind(let key): controller.selectCategoryFilter(key)
             case .toggleKind(let key): controller.toggleCategoryFilter(key)
             case .reset: controller.toggleCategoryFilter(allFiltersChipID)
             }
@@ -66,11 +67,15 @@ import Testing
         #expect(state.protectedFilters.isEmpty)
         state.filterWhileProtected(.toggleKind("image"))
         #expect(state.protectedCardIDs.count == 2)
+        state.filterWhileProtected(.selectKind("image"))
+        #expect(state.protectedCardIDs.count == 2)
         state.setPrivacyPermissions(allowSearch: false, showSourceApps: false, allowFiltering: true)
         #expect(state.protectedFilters.apps.isEmpty && !state.protectedFilters.kinds.isEmpty)
         state.filterWhileProtected(.selectApp("test.two"))
         #expect(state.protectedCardIDs.count == 2)
-        state.filterWhileProtected(.toggleKind("image"))
+        state.filterWhileProtected(.selectKind("image"))
+        #expect(state.protectedCardIDs == [two.id])
+        state.filterWhileProtected(.selectKind("image"))
         #expect(state.protectedCardIDs == [two.id])
         state.filterWhileProtected(.toggleKind(allFiltersChipID))
         state.filterWhileProtected(.toggleKind(pinnedChipID))
@@ -88,6 +93,7 @@ import Testing
         state.filterWhileProtected(.toggleKind("image"))
         state.setPrivacyPermissions(allowSearch: false, showSourceApps: false)
         state.filterWhileProtected(.toggleKind("image"))
+        state.filterWhileProtected(.selectKind("image"))
         #expect(state.protectedFilters.isEmpty && state.protectedCardIDs.count == 2)
         state.setPrivacyPermissions(
             allowSearch: false, showSourceApps: true, allowFiltering: true, allowAppFiltering: true)
@@ -129,6 +135,7 @@ import Testing
                 switch action {
                 case .toggleApp(let id): controller.toggleSourceFilter(id)
                 case .selectApp(let id): controller.selectSourceFilter(id)
+                case .selectKind(let id): controller.selectCategoryFilter(id)
                 case .toggleKind(let id): controller.toggleCategoryFilter(id)
                 case .reset: controller.toggleCategoryFilter(allFiltersChipID)
                 }
@@ -153,6 +160,7 @@ import Testing
             #expect(router.handle(try #require(aKeyEvent(kVK_ANSI_C, [.command], typing: "c"))))
             #expect(spy.calls.isEmpty)
             state.filterWhileProtected(.toggleKind("image"))
+            state.filterWhileProtected(.selectKind("image"))
             state.filterWhileProtected(.selectApp("unknown.app"))
             #expect(state.protectedCardIDs.count == 2)
             state.filterWhileProtected(.selectApp("test.two"))

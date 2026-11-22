@@ -1,42 +1,25 @@
-# WhiskyMac
+<p align="center"><img src="Assets/icon.png" width="112" alt="WhiskyMac app icon"></p>
+<h1 align="center">WhiskyMac</h1>
+<p align="center">Keep what you copy close at hand.<br>Clipboard history for macOS 15 and later.</p>
+<p align="center"><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.it.md">Italiano</a></p>
 
-[English](README.md) | [简体中文](README.zh-CN.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Italiano](README.it.md)
+> [!NOTE]
+> WhiskyMac is an independent modification of [Whisk](https://github.com/nathan-poncet/whisk). It is in development: this repository is private, and public app downloads are not configured yet. The instructions below are for building from this checkout.
 
-Original project: [Whisk — nathan-poncet/whisk](https://github.com/nathan-poncet/whisk).
+## Highlights
 
-Repository: [lshayc1own/WhiskyMac](https://github.com/lshayc1own/WhiskyMac).
-This is a private development repository; public
-binary distribution has not been configured.
+- **Find your clips.** Keep text, rich text, links, images, files and colors locally. Search content or source apps; filter by app, type, pins, color tags and Handoff attribution. Text containing file paths has its own filter and supports `type:path`.
+- **Reuse content your way.** Copy, paste directly or as plain text, drag into another app, preview, edit and queue clips in the paste stack. Matching rich-text versions stay grouped; keyboard and optional Vim navigation are available.
+- **Split and organize.** Split text by lines, paragraphs or separators, or extract HTTP(S) links. Review the parts, then add cards, replace the original or save a group. Choose the original or individual group parts when copying or pasting.
+- **Keep important items.** Pins can have searchable notes, seven color tags and permanently masked content. View pins in history or a separate window. Set retention and capacity for unpinned history; clearing it supports Undo.
+- **Control what appears.** Manual Privacy Mode masks the panel. Optional Zoom/Teams sharing-toolbar detection has limited coverage. Search, filters and a pointer-area reveal can be enabled separately while content stays masked. Sensitive apps use an expiring memory-only session; excluded apps are not captured.
+- **Make it yours.** Customize card size, frosted appearance, status icon, interactions, shortcuts and optional copy sounds. Settings search and shortcut-reset Undo simplify changes. A first-run practice space leaves your real clipboard and history untouched. The interface supports English, French, German, Italian and Simplified Chinese.
 
-WhiskyMac is a clipboard manager for macOS, developed from
-[Whisk v1.0.3](https://github.com/nathan-poncet/whisk/tree/1ebcee1e0735e957777c599017ee411d8046c7e7)
-by Nathan Poncet and contributors. Upstream base:
-`1ebcee1e0735e957777c599017ee411d8046c7e7`.
+For detailed behavior and limits, see the [project scope](docs/PROJECT.md) and [changelog](CHANGELOG.md).
 
-This is an independent modified version maintained by **LinShay (琳曦)**.
-It is not an official Whisk release and does not imply upstream endorsement.
-Current changes are recorded in [CHANGELOG.md](CHANGELOG.md).
+## Build from source
 
-## Features
-
-- Local clipboard history for text, rich text, links, images, files and colors; search by content or source app and filter by app, category, pins or color tags.
-- Copy, direct paste, plain-text paste, drag and drop, previews, editable text, a paste stack, and optional Vim navigation. Rich-text formats with matching plain text are grouped for selection.
-- Split text by lines, paragraphs or separators, or extract HTTP(S) links. Review parts before saving as new cards, replacements or one persistent group; choose individual group parts when copying or pasting.
-- Pin items with searchable notes, seven color tags and an option to keep content hidden. Open pins within history or in a separate window; set retention and capacity for unpinned history and clear it with Undo.
-- Manual Privacy Mode, a limited optional sharing-toolbar detector, configurable pointer-area reveal, and optional search or filters while content remains masked. Separate card interactions apply in normal and privacy modes.
-- Mark source apps as sensitive for temporary in-memory copies, or exclude apps from capture entirely. Sensitive entries expire after a configurable period.
-- Pause capture, choose login startup, and customize card size, glass appearance, status symbol, language, shortcuts and card actions. Settings search and category-specific shortcut reset with Undo help manage preferences. Optional copy sounds include Kenney UI Audio, SFX Kit and macOS sounds.
-- English, French, German, Italian and Simplified Chinese interface.
-
-See [development notes](docs/DEVELOPMENT.md) and the [changelog](CHANGELOG.md)
-for behavior and limitations. The software is currently a development build.
-
-## Build and verify
-
-Requires macOS 15 or later and the macOS 26 SDK. Tests and resource generation
-require a full Xcode installation.
-
-Run from this checkout:
+You need macOS 15 or later, the macOS 26 SDK and a full Xcode installation. From this checkout:
 
 ```sh
 swift run Whisk
@@ -45,66 +28,32 @@ swift test
 ./scripts/build-app.sh 0.0.0 native
 ```
 
-The packaging script creates `dist/WhiskyMac.app` and `dist/WhiskyMac.zip`.
-The internal Swift target and executable remain `Whisk`; this preserves the
-existing module and resource layout. Without a signing identity the app is
-signed ad hoc; this does not establish notarization or App Store eligibility.
+The packaging script creates `dist/WhiskyMac.app` and `dist/WhiskyMac.zip`. The internal Swift target and executable are still named `Whisk`. Without a signing identity, the package is signed ad hoc; it is not notarized or ready for App Store submission.
 
-## Data and privacy
+## Privacy and data
 
-The bundle identifier is `dev.whisky.maclx`. Existing development history stays
-in `~/Library/Application Support/WhiskMay-Dev`; renaming the app does not migrate
-or delete history. `WHISK_MAY_DATA_DIR` overrides this location for isolated tests.
-WhiskyMac does not import the upstream Whisk history automatically.
+- History stays in `~/Library/Application Support/WhiskMay-Dev` under bundle ID `dev.whisky.maclx`. The rename does not move or delete existing development history, and upstream Whisk history is not imported automatically. Use `WHISK_MAY_DATA_DIR` for isolated tests.
+- Global shortcuts, link previews, sharing detection and launch-time update checks start off. Enabled link previews request metadata from the copied website. Manual and opt-in automatic update checks use WhiskyMac's stable GitHub releases; App Store builds omit external update checks.
+- Direct paste and optional sharing detection can need macOS permissions. Handoff attribution is a best-effort hint, not a verified device or app identity. Privacy Mode cannot recall content already exported to another app.
 
-Global shortcuts and link previews start disabled. Link previews, when enabled,
-request metadata from the copied website. Update checks are disabled for this
-development distribution. Direct paste and optional sharing detection can require
-macOS permissions. Privacy protection does not recall content already exported
-to another application.
+More detail: [development notes](docs/DEVELOPMENT.md).
 
-## License and attribution
+## Origin and license
 
-The software is licensed under **GPL-3.0-or-later**, except separately licensed
-third-party material. Preserve [LICENSE](LICENSE), [NOTICE](NOTICE) and
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+WhiskyMac is an independent modification of [Whisk v1.0.3](https://github.com/nathan-poncet/whisk/tree/1ebcee1e0735e957777c599017ee411d8046c7e7) (base commit `1ebcee1e0735e957777c599017ee411d8046c7e7`). The [original project](https://github.com/nathan-poncet/whisk) is by Nathan Poncet and contributors. WhiskyMac is maintained by **LinShay (琳曦)**; it is not an official Whisk release or an upstream endorsement.
 
-- Original Whisk: copyright 2026 Nathan Poncet and contributors.
-- WhiskyMac modifications: copyright 2026 LinShay (琳曦), to the extent of rights held.
-- Upstream App Store/TestFlight permission:
-  [original grant](LICENSE-EXCEPTION-APP-STORE.md), retained verbatim.
-- LinShay's permission for authorized WhiskyMac additions:
-  [separate grant](LICENSE-EXCEPTION-WHISKYMAC.md).
+The software is **GPL-3.0-or-later**, except for separately licensed third-party material. Keep the [license](LICENSE), [project notice](NOTICE) and [third-party notices](THIRD_PARTY_NOTICES.md). Original Whisk portions are © 2026 Nathan Poncet and contributors; WhiskyMac additions are © 2026 LinShay (琳曦) to the extent of rights held.
 
-The upstream exception expressly includes works based on Whisk. These grants
-address copyright permission for that distribution channel; Apple review,
-signing and rights in third-party material remain separate requirements.
-The Neovim mark is by Jason Long under CC BY 3.0. Bundled Kenney UI Audio and
-Wyzowl SFX Kit sounds are CC0. See the third-party notices for details.
+The [upstream App Store/TestFlight exception](LICENSE-EXCEPTION-APP-STORE.md) is retained verbatim. LinShay's [separate exception](LICENSE-EXCEPTION-WHISKYMAC.md) covers additions LinShay can license. Binary distribution requires the complete corresponding source for that version; distribution under these exceptions requires it to remain publicly available. Apple review, signing and third-party rights have separate requirements. The Neovim mark is CC BY 3.0; bundled Kenney UI Audio and Wyzowl SFX Kit sounds are CC0. See the [licensing review](docs/LICENSING.md) for details.
 
-When distributing binaries, supply the complete source corresponding to that
-version, including modifications, assets in their preferred editable form and
-necessary build scripts, under the applicable terms. Linking only to the
-unmodified upstream source is insufficient. App Store/TestFlight distribution
-under the exceptions requires that source to remain publicly available.
-No copyright assignment, paid license or “GPL certificate” is needed merely to
-maintain this fork.
+## Releases and support
 
-## Release configuration
+Public source, support and privacy-policy URLs are still blank in [release-config.json](release-config.json); release validation rejects them until configured. Installable builds should be published through GitHub Releases with corresponding source, not committed as packages. Packaged apps include legal files in `Contents/Resources/Legal`, accessible through **Licenses and notices…** in the menu bar.
 
-The development repository is private. Public source access,
-support and privacy policy URLs are not yet configured. Set the public
-addresses in [release-config.json](release-config.json)
-before external binary distribution. Blank fields intentionally fail the
-release validation. No upstream account or website is used as this project's
-distribution destination.
+If WhiskyMac helps you, you can support its independent development with a voluntary donation:
 
-Legal files are copied into packaged apps under `Contents/Resources/Legal`.
-The menu bar's **Licenses and notices…** item opens Settings → About → Licenses and notices,
-with controls to open the source file or reveal it in Finder.
-See [licensing review](docs/LICENSING.md) for verified sources and remaining
-publication details. Build outputs and local acceptance records are excluded
-from this repository; distribute application packages through GitHub Releases.
+<a href="https://www.buymeacoffee.com/funclinkrev"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&amp;emoji=&amp;slug=funclinkrev&amp;button_colour=FFDD00&amp;font_colour=000000&amp;font_family=Cookie&amp;outline_colour=000000&amp;coffee_colour=ffffff" alt="Buy me a coffee"></a>
 
-Contributions follow [CONTRIBUTING.md](CONTRIBUTING.md). Architecture:
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+## More information
+
+[Project scope](docs/PROJECT.md) · [Development](docs/DEVELOPMENT.md) · [Architecture](docs/ARCHITECTURE.md) · [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md)

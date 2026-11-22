@@ -301,7 +301,7 @@ import Vision
             let visible = try visibleText()
             #expect(visible.contains("SENSITIVEAPPCANARY"))
             #expect(visible.contains("EXCLUDEDAPPCANARY"))
-            #expect(visible.contains("KEEPSENSITIVECOPIESFOR"))
+            #expect(visible.contains("KEEPSENSITIVEITEMSFOR"))
             let bitmap = try #require(host.bitmapImageRepForCachingDisplay(in: host.bounds))
             host.cacheDisplay(in: host.bounds, to: bitmap)
             if let output = ProcessInfo.processInfo.environment["WHISK_UI_ARTIFACTS"] {

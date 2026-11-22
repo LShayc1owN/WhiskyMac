@@ -12,9 +12,16 @@ struct LinkPreviewView: View {
 
     let address: String
     let size: Size
+    var isActive = true
+    @State private var ticket: UUID?
+    private struct Request: Equatable {
+        let address: String
+        let enabled: Bool
+    }
     @ObservedObject private var store = LinkPreviewStore.shared
 
     var body: some View {
+        let enabled = isActive && store.allowsPreview(for: address)
         Group {
             if let preview = store.preview(for: address), preview.hasContent {
                 loaded(preview)
@@ -22,8 +29,14 @@ struct LinkPreviewView: View {
                 fallback
             }
         }
-        .onAppear {
-            store.load(address)
+        .task(id: Request(address: address, enabled: enabled)) {
+            guard !Task.isCancelled else { return }
+            if let ticket { store.cancel(ticket) }
+            ticket = enabled ? store.load(address) : nil
+        }
+        .onDisappear {
+            if let ticket { store.cancel(ticket) }
+            ticket = nil
         }
     }
 

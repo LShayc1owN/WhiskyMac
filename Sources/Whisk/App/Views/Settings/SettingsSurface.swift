@@ -13,43 +13,37 @@ enum SettingsSurface {
 }
 
 extension View {
-    func settingsSurface(
-        in shape: some Shape
-    ) -> some View {
-        modifier(SettingsSurfaceModifier(shape: AnyShape(shape)))
+    func settingsSurface(in shape: some InsettableShape) -> some View {
+        modifier(SettingsSurfaceModifier(shape: shape))
     }
 
 }
 
-private struct SettingsSurfaceModifier: ViewModifier {
+private struct SettingsSurfaceModifier<Surface: InsettableShape>: ViewModifier {
     @SettingsAccessibility private var accessibility
-    @Environment(\.colorScheme) private var colorScheme
-    let shape: AnyShape
+    @Environment(\.colorScheme) private var scheme
+    let shape: Surface
 
     func body(content: Content) -> some View {
-        if accessibility.reduceTransparency {
-            content
-                .background(Color(nsColor: .controlBackgroundColor), in: shape)
-                .overlay(shape.stroke(borderColor, lineWidth: borderWidth))
-        } else {
-            content
-                .background(.regularMaterial, in: shape)
-                .background(
-                    Color(nsColor: .controlBackgroundColor)
-                        .opacity(colorScheme == .dark ? 0.24 : 0.18),
-                    in: shape
-                )
-                .overlay(shape.stroke(borderColor, lineWidth: borderWidth))
-        }
+        content
+            .background {
+                if accessibility.reduceTransparency {
+                    shape.fill(Color(nsColor: .controlBackgroundColor))
+                } else {
+                    shape.fill(.regularMaterial)
+                        .overlay {
+                            if scheme == .light { shape.fill(.white.opacity(0.78)) }
+                        }
+                }
+            }
+            .overlay {
+                if scheme == .light {
+                    shape.strokeBorder(.primary.opacity(accessibility.increasedContrast ? 0.26 : 0.10), lineWidth: 0.5)
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
+                }
+            }
     }
-
-    private var borderColor: Color {
-        accessibility.increasedContrast
-            ? Color(nsColor: .separatorColor)
-            : Color.primary.opacity(colorScheme == .dark ? 0.13 : 0.09)
-    }
-
-    private var borderWidth: CGFloat { accessibility.increasedContrast ? 1 : 0.5 }
 }
 
 struct SettingsWindowBackdrop: View {
@@ -83,28 +77,6 @@ enum SettingsWindowConfiguration {
         window.styleMask.insert(.fullSizeContentView)
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
-    }
-}
-
-struct SettingsSurfaceButtonStyle: ButtonStyle {
-    @SettingsAccessibility private var accessibility
-    @State private var isHovering = false
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
-            .settingsSurface(
-                in: RoundedRectangle(cornerRadius: SettingsSurface.controlCornerRadius, style: .continuous)
-            )
-            .background(
-                Color.primary.opacity(isHovering ? 0.07 : 0),
-                in: RoundedRectangle(cornerRadius: SettingsSurface.controlCornerRadius, style: .continuous)
-            )
-            .scaleEffect(configuration.isPressed && !accessibility.reduceMotion ? 0.98 : 1)
-            .animation(accessibility.reduceMotion ? nil : .easeOut(duration: 0.12), value: isHovering)
-            .animation(accessibility.reduceMotion ? nil : .easeOut(duration: 0.12), value: configuration.isPressed)
-            .onHover { isHovering = $0 }
     }
 }
 

@@ -32,6 +32,10 @@ enum SymbolCatalog {
 
     static func matching(_ names: [String], query: String) -> [String] {
         let terms = query.lowercased().split(whereSeparator: { $0.isWhitespace || $0 == "." })
-        return names.filter { name in terms.allSatisfy { name.lowercased().contains($0) } }
+        guard !terms.isEmpty else { return names }
+        return names.filter { name in
+            let normalized = name.lowercased()
+            return terms.allSatisfy { normalized.contains($0) }
+        }
     }
 }

@@ -28,8 +28,8 @@ import Testing
         let item = ClipboardItem(
             id: UUID(), payload: .text("Rich card"), source: nil, copiedAt: Date(), isPinned: false, rtf: data)
         let state = HistoryPresenter().present(items: [item, anItem(.text("plain"))], query: "", now: Date())
-        #expect(state.cards[0].rtf == data)
-        #expect(state.cards[1].rtf == nil)
+        #expect(try state.cards[0].richText?.read() == data)
+        #expect(state.cards[1].richText == nil)
         let store = HistoryViewStateStore()
         store.update(state)
         store.setPrivacy(true)

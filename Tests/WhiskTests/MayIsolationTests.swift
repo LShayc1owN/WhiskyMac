@@ -38,8 +38,6 @@ import Testing
         #expect(try HistoryStorage.open(in: selected, log: { _ in }).load() == [mayItem])
         #expect(try [originalDatabase, originalJSON, originalWAL].map { try Data(contentsOf: $0) } == before)
         #expect(!FileManager.default.fileExists(atPath: may.appendingPathComponent("history.json").path))
-        #expect(AppIdentity.importedIconsDirectory(in: may).deletingLastPathComponent() == may)
-        #expect(AppIdentity.previewCacheDirectory(in: may).deletingLastPathComponent() == may)
     }
 
     @Test func original_settings_domain_does_not_seed_may_settings() throws {

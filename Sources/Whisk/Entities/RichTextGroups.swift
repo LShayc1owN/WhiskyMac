@@ -7,14 +7,18 @@ import Foundation
 
 /// Plain copies stay independent; only formatted copies share a module.
 enum RichTextGroups {
+    static func groupingKey(for item: ClipboardItem) -> String? {
+        guard case .text(let text) = item.payload, item.hasRichText, !item.isPinned, item.splitGroup == nil,
+            item.splitSourceID == nil, item.pinnedMetadata == PinnedMetadata()
+        else { return nil }
+        return text
+    }
+
     static func groups(_ items: [ClipboardItem]) -> [[ClipboardItem]] {
         var result: [[ClipboardItem]] = []
         var indices: [String: Int] = [:]
         for item in items {
-            if case .text(let text) = item.payload, item.hasRichText, !item.isPinned, item.splitGroup == nil,
-                item.splitSourceID == nil,
-                item.pinnedMetadata == PinnedMetadata()
-            {
+            if let text = groupingKey(for: item) {
                 if let index = indices[text] {
                     result[index].append(item)
                 } else {
@@ -25,6 +29,9 @@ enum RichTextGroups {
                 result.append([item])
             }
         }
-        return result.map { $0.sorted { $0.copiedAt > $1.copiedAt } }
+        for index in result.indices where result[index].count > 1 {
+            result[index].sort { $0.copiedAt > $1.copiedAt }
+        }
+        return result
     }
 }

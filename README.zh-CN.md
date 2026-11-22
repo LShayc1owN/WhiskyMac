@@ -1,38 +1,25 @@
-# WhiskyMac
+<p align="center"><img src="Assets/icon.png" width="112" alt="WhiskyMac 应用图标"></p>
+<h1 align="center">WhiskyMac</h1>
+<p align="center">随时找回复制过的内容。<br>适用于 macOS 15 及以上版本的剪贴板管理器。</p>
+<p align="center"><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.it.md">Italiano</a></p>
 
-[English](README.md) | [简体中文](README.zh-CN.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Italiano](README.it.md)
+> [!NOTE]
+> WhiskyMac 是基于[原项目 Whisk](https://github.com/nathan-poncet/whisk) 的独立修改版，目前仍在开发中。当前仓库为私有仓库，尚未配置公开下载；下方说明适用于从此项目目录自行构建。
 
-原项目：[Whisk — nathan-poncet/whisk](https://github.com/nathan-poncet/whisk)。
+## 功能亮点
 
-仓库：[lshayc1own/WhiskyMac](https://github.com/lshayc1own/WhiskyMac)。
-当前为私有开发仓库，尚未配置公开二进制发行。
+- **快速查找。** 本地保存文本、富文本、链接、图片、文件和颜色；按内容或来源应用搜索，并按应用、类型、固定项、颜色标签及 Handoff 来源筛选。文件路径文本有独立筛选项，也支持 `type:path` 搜索。
+- **灵活复用。** 复制、直接粘贴、纯文本粘贴、拖放、预览、编辑和顺序粘贴都可使用。相同纯文本的富文本版本会分组展示；支持键盘操作与可选的 Vim 导航。
+- **拆分与整理。** 按行、段落、分隔符拆分文本，或提取 HTTP(S) 链接。预览后可新增卡片、替换原卡片或保存为分组；复制或粘贴时可选择原文或分组中的部分。
+- **保留重要内容。** 固定项支持可搜索备注、七种颜色标签及始终隐藏内容；可在历史中查看，也可打开独立窗口。未固定历史可设置保留期限和容量，清除操作支持撤销。
+- **控制内容显示。** 手动隐私模式可遮挡面板内容；可选的 Zoom/Teams 共享工具栏检测范围有限。搜索、筛选和指针区域显示可分别开启。敏感应用的内容仅暂存于内存并按时过期；排除的应用不会被记录。
+- **按喜好设置。** 可调整卡片大小、磨砂外观、状态栏图标、交互、快捷键和可选拷贝音效。设置页支持搜索，快捷键重置后可撤销。首次启动练习区不会读取或修改真实剪贴板及历史。界面支持英、法、德、意和简体中文。
 
-WhiskyMac 是基于 [Whisk v1.0.3](https://github.com/nathan-poncet/whisk/tree/1ebcee1e0735e957777c599017ee411d8046c7e7)
-开发的 macOS 剪贴板管理器。原作者为 Nathan Poncet 及贡献者，基于提交
-`1ebcee1e0735e957777c599017ee411d8046c7e7`。
+详细行为和限制见[项目说明](docs/PROJECT.md)与[更新日志](CHANGELOG.md)。
 
-这是由 **LinShay（琳曦）**维护的独立修改版本，并非 Whisk 官方发行版，
-也不表示上游作者认可或背书。当前变更见 [CHANGELOG.md](CHANGELOG.md)。
+## 从源码构建
 
-## 功能
-
-- 本地保存文本、富文本、链接、图片、文件及颜色的剪贴板历史；按内容或来源应用搜索，并按应用、类型、固定状态及颜色标签筛选。
-- 支持复制、直接粘贴、纯文本粘贴、拖放、预览、文本编辑、顺序粘贴与可选 Vim 导航；相同纯文本的富文本格式可分组选择。
-- 按行、段落或分隔符拆分文本，或提取 HTTP(S) 链接；预览后可新增卡片、替换原卡片或保存为持久分组，复制和粘贴时可选择分组内的部分。
-- 固定项支持可搜索的备注、七种颜色标签和始终隐藏内容；可在历史中查看或打开独立窗口。普通历史可设置保留期限与容量，清除未固定项后可撤销。
-- 手动隐私模式、范围有限的可选共享工具栏检测、可调节的指针区域显示，以及保持内容遮挡时可选的搜索与筛选。普通模式与隐私模式可分别设置卡片交互。
-- 可将来源应用设为敏感应用，复制内容仅在内存中暂存并按设定时间过期；也可完全排除指定应用的记录。
-- 可暂停捕获、设置登录时启动，并调整卡片尺寸、玻璃外观、状态栏图标、语言、快捷键与卡片操作；设置页支持搜索及按类别重置快捷键并撤销。可选拷贝音效包括 Kenney UI Audio、SFX Kit 和 macOS 系统音效。
-- 英文、法文、德文、意大利文、简体中文界面。
-
-具体行为与限制见[开发说明](docs/DEVELOPMENT.md)及[更新日志](CHANGELOG.md)。当前仍为开发版本。
-
-## 构建与验证
-
-运行要求 macOS 15 或更新版本，构建需要 macOS 26 SDK。
-测试和本地化资源生成需要完整安装 Xcode。
-
-在本项目目录中执行：
+需要 macOS 15 或更新版本、macOS 26 SDK，以及完整安装的 Xcode。在此项目目录中运行：
 
 ```sh
 swift run Whisk
@@ -41,52 +28,32 @@ swift test
 ./scripts/build-app.sh 0.0.0 native
 ```
 
-打包结果为 `dist/WhiskyMac.app` 和 `dist/WhiskyMac.zip`。
-内部 Swift target 与可执行文件仍叫 `Whisk`，以保留现有模块和资源布局。
-没有指定签名身份时仅使用临时签名，不表示已完成公证或满足 App Store 上架要求。
+打包脚本生成 `dist/WhiskyMac.app` 与 `dist/WhiskyMac.zip`。内部 Swift target 和可执行文件仍名为 `Whisk`。未提供签名身份时仅进行临时签名，不代表已完成公证或满足 App Store 上架条件。
 
-## 数据与隐私
+## 隐私与数据
 
-Bundle ID 为 `dev.whisky.maclx`。为保留已有开发数据，
-历史目录继续使用 `~/Library/Application Support/WhiskMay-Dev`；
-应用改名不会迁移或删除历史。隔离测试可使用 `WHISK_MAY_DATA_DIR` 指定目录。
-不会自动导入上游 Whisk 的历史数据。
+- Bundle ID 为 `dev.whisky.maclx`，历史保存在 `~/Library/Application Support/WhiskMay-Dev`。改名不会迁移或删除已有开发数据，也不会自动导入上游 Whisk 的历史。隔离测试可使用 `WHISK_MAY_DATA_DIR`。
+- 全局快捷键、链接预览、共享检测和启动时更新检查默认关闭。启用链接预览后会向所复制的网址请求元数据。可手动检查更新，或主动开启从 GitHub 稳定版获取更新信息；App Store 构建不进行外部更新检查。
+- 直接粘贴和可选共享检测可能需要 macOS 授权。Handoff 来源仅是尽力而为的提示，不能确认具体设备或应用。隐私模式无法撤回已传给其他应用的内容。
 
-全局快捷键和链接预览默认关闭。启用链接预览后会向所复制网址请求元数据。
-当前开发发行方式禁用更新检查。直接粘贴及可选共享检测可能需要 macOS 授权。
-隐私保护不能撤回已经导出到其他应用的内容。
+更多说明见[开发文档](docs/DEVELOPMENT.md)。
 
-## 许可证与署名
+## 原项目与许可证
 
-软件采用 **GPL-3.0-or-later**，单独许可的第三方素材遵守各自条款。
-请保留 [LICENSE](LICENSE)、[NOTICE](NOTICE) 和
-[第三方声明](THIRD_PARTY_NOTICES.md)。
+WhiskyMac 基于 [Whisk v1.0.3](https://github.com/nathan-poncet/whisk/tree/1ebcee1e0735e957777c599017ee411d8046c7e7) 修改，基础提交为 `1ebcee1e0735e957777c599017ee411d8046c7e7`。[原项目 Whisk](https://github.com/nathan-poncet/whisk) 由 Nathan Poncet 及贡献者开发。WhiskyMac 是 **LinShay（琳曦）**维护的独立版本，并非 Whisk 官方发行版，也不表示上游作者背书。
 
-- Whisk 原始部分：版权属于 Nathan Poncet 及贡献者，2026 年。
-- WhiskyMac 修改部分：在持有相应权利范围内，版权属于 LinShay（琳曦），2026 年。
-- 上游 App Store/TestFlight 附加许可：[原文](LICENSE-EXCEPTION-APP-STORE.md)，原样保留。
-- LinShay 对有权授权的新增部分授予的附加许可：[独立文件](LICENSE-EXCEPTION-WHISKYMAC.md)。
+软件采用 **GPL-3.0-or-later**，单独许可的第三方素材遵守各自条款。请保留[许可证](LICENSE)、[项目声明](NOTICE)和[第三方声明](THIRD_PARTY_NOTICES.md)。Whisk 原始部分 © 2026 Nathan Poncet 及贡献者；WhiskyMac 新增部分 © 2026 LinShay（琳曦），以其持有的权利为限。
 
-上游附加许可明确覆盖基于 Whisk 的作品。这些授权解决对应发行渠道的版权许可问题；
-Apple 审核、签名和第三方素材权利仍有各自要求。
-Neovim 标志由 Jason Long 创作，采用 CC BY 3.0；随包 Kenney UI Audio 与
-Wyzowl SFX Kit 音效采用 CC0，详情见第三方声明。
+[上游 App Store/TestFlight 附加许可](LICENSE-EXCEPTION-APP-STORE.md)按原文保留；LinShay 的[独立附加许可](LICENSE-EXCEPTION-WHISKYMAC.md)仅覆盖其有权授权的新增部分。分发二进制时须提供与该版本对应的完整源码；依这些例外在 App Store/TestFlight 分发时，源码须持续公开可用。Apple 审核、签名及第三方素材权利另有要求。Neovim 标志采用 CC BY 3.0；随包 Kenney UI Audio 与 Wyzowl SFX Kit 音效采用 CC0。详见[许可核验说明](docs/LICENSING.md)。
 
-分发二进制时，须按适用条款提供与该版本对应的完整源码，包括修改、
-适合编辑的素材源文件及必要构建脚本。只给出未修改的上游源码链接不够。
-使用上述 App Store/TestFlight 例外发行时，对应源码须持续公开可用。
-维护此派生项目本身无需转让版权、购买许可或申请所谓“GPL 证书”。
+## 发布与支持
 
-## 发布配置
+[release-config.json](release-config.json) 中公开源码、支持及隐私政策地址尚未填写；发布校验会阻止未配置的发行。将来应通过 GitHub Releases 连同对应源码发布安装包，构建产物不纳入源码仓库。应用包中的法律文件位于 `Contents/Resources/Legal`，可通过菜单栏的“许可证与声明…”访问。
 
-开发仓库目前为私有；公开源码访问、支持页面及隐私政策地址尚未配置。
-对外分发二进制前，请填写 [release-config.json](release-config.json)；
-字段留空会使发布校验失败。发布目的地不使用上游作者的账号或网址。
+如果 WhiskyMac 对你有帮助，可以自愿赞助这个独立项目的开发：
 
-打包时会将许可文件放入应用的 `Contents/Resources/Legal`，
-菜单栏的“许可证与声明…”会打开“设置 → 关于 → 许可证与声明”，可在页内打开源文件或在访达中显示。
-核验依据与尚待补齐的信息见[许可核验说明](docs/LICENSING.md)。
-构建产物和本地验收记录不纳入源码仓库；应用安装包通过 GitHub Releases 分发。
+<a href="https://www.buymeacoffee.com/funclinkrev"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&amp;emoji=&amp;slug=funclinkrev&amp;button_colour=FFDD00&amp;font_colour=000000&amp;font_family=Cookie&amp;outline_colour=000000&amp;coffee_colour=ffffff" alt="请我喝杯咖啡 / Buy me a coffee"></a>
 
-贡献说明见 [CONTRIBUTING.md](CONTRIBUTING.md)，架构见
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
+## 更多资料
+
+[项目说明](docs/PROJECT.md) · [开发文档](docs/DEVELOPMENT.md) · [架构](docs/ARCHITECTURE.md) · [更新日志](CHANGELOG.md) · [贡献指南](CONTRIBUTING.md)

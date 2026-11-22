@@ -56,7 +56,7 @@ struct PreviewOverlayView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .frostedSurface(in: RoundedRectangle(cornerRadius: 24, style: .continuous), cornerRadius: 24)
+        .background(ClipboardMaterialSurface(shape: RoundedRectangle(cornerRadius: 24), cornerRadius: 24))
     }
 
     private var richVersions: some View {

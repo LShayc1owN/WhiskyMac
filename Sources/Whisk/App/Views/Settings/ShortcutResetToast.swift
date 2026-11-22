@@ -14,18 +14,17 @@ struct ShortcutResetToast: View {
     var body: some View {
         HStack(spacing: 12) {
             Text(localized("Shortcuts reset"))
-            Button(action: onUndo) {
-                Label(localized("Undo reset"), systemImage: "arrow.uturn.backward")
-                    .fontWeight(.semibold)
-                    .fixedSize()
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 7)
-                    .background(accent.opacity(0.15), in: Capsule())
-                    .contentShape(Capsule())
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(accent)
-            .accessibilityHint(localized("Available for 5 seconds"))
+            Label(localized("Undo reset"), systemImage: "arrow.uturn.backward")
+                .fontWeight(.semibold)
+                .fixedSize()
+                .padding(.horizontal, 12)
+                .padding(.vertical, 7)
+                .background(accent.opacity(0.15), in: Capsule())
+                .contentShape(Capsule())
+                .beButton(onUndo)
+                .buttonStyle(.plain)
+                .foregroundStyle(accent)
+                .accessibilityHint(localized("Available for 5 seconds"))
         }
         .font(.callout)
         .padding(.leading, 16)

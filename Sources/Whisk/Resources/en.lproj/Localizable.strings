@@ -2,14 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key> is a clipboard app based on </key>
-	<string> is a clipboard app based on </string>
-	<key> that aims to do as much as possible, making input on your Mac easier and simpler.</key>
-	<string> that aims to do as much as possible, making input on your Mac easier and simpler.</string>
+	<key>%@ is a clipboard history app based on %@.</key>
+	<string>%@ is a clipboard history app based on %@.</string>
 	<key>%@, application filter</key>
-	<string>%@, application filter</string>
+	<string>%@, app filter</string>
 	<key>%@, kind filter</key>
-	<string>%@, kind filter</string>
+	<string>%@, type filter</string>
 	<key>%lld pt</key>
 	<string>%lld pt</string>
 	<key>+ %lld more</key>
@@ -21,43 +19,53 @@
 	<key>7 days</key>
 	<string>7 days</string>
 	<key>A Handoff marker was observed. The device and source app are unknown.</key>
-	<string>A Handoff marker was observed. The device and source app are unknown.</string>
+	<string>A Handoff marker was detected. The device and source app are unknown.</string>
+	<key>A card copies, but does not paste</key>
+	<string>Why can I copy a card but not paste it directly?</string>
 	<key>A copied link is looked up once for its title and image. Off, nothing leaves this Mac.</key>
-	<string>A copied link is looked up once for its title and image. Off, nothing leaves this Mac.</string>
-	<key>A donation link will be added later.</key>
-	<string>A donation link will be added later.</string>
-	<key>A panel slides up with everything you copied — search it, filter it, arrow through it.</key>
-	<string>A panel slides up with everything you copied — search it, filter it, arrow through it.</string>
+	<string>WhiskyMac checks each copied link once for a title and image. Turn this off to stop these requests.</string>
+	<key>A good idea</key>
+	<string>A good idea</string>
+	<key>A little inspiration</key>
+	<string>A little inspiration</string>
 	<key>About</key>
 	<string>About</string>
 	<key>About the developer</key>
 	<string>About the developer</string>
 	<key>About this App</key>
-	<string>About this App</string>
+	<string>About this app</string>
 	<key>Accent color</key>
 	<string>Accent color</string>
+	<key>Accessibility</key>
+	<string>Accessibility</string>
 	<key>Accessibility access is needed to check sharing toolbars. Content is hidden as a precaution.</key>
-	<string>Accessibility access is needed to check sharing toolbars. Content is hidden as a precaution.</string>
+	<string>Sharing detection needs Accessibility permission. Content is hidden as a precaution.</string>
 	<key>Actions</key>
 	<string>Actions</string>
 	<key>Add App…</key>
 	<string>Add App…</string>
+	<key>Add cards to the paste stack and enable its shortcut to paste them in order.</key>
+	<string>Add cards to the paste stack and enable its shortcut to paste them in order.</string>
+	<key>Add example</key>
+	<string>Add example</string>
 	<key>Add sensitive app…</key>
-	<string>Add sensitive app…</string>
+	<string>Add Sensitive App…</string>
 	<key>Add to Paste Stack</key>
 	<string>Add to Paste Stack</string>
-	<key>Additional contact</key>
-	<string>Additional contact</string>
 	<key>All</key>
 	<string>All</string>
 	<key>All items, clear filters</key>
-	<string>All items, clear filters</string>
+	<string>All items. Clear filters.</string>
+	<key>All set</key>
+	<string>All set</string>
 	<key>Allow Accessibility for toolbar detection…</key>
-	<string>Allow Accessibility for toolbar detection…</string>
+	<string>Allow Accessibility for sharing detection…</string>
 	<key>Allow Clipboard Access</key>
 	<string>Allow Clipboard Access</string>
 	<key>Allow Clipboard Access…</key>
 	<string>Allow Clipboard Access…</string>
+	<key>Allow Handoff filtering in Privacy Mode</key>
+	<string>Allow Handoff filtering in Privacy Mode</string>
 	<key>Allow app filtering in Privacy Mode</key>
 	<string>Allow app filtering in Privacy Mode</string>
 	<key>Allow removal of %lld older history items</key>
@@ -73,33 +81,41 @@
 	<key>App Store exception</key>
 	<string>App Store exception</string>
 	<key>App filters show application names in the filter bar, independently of source labels on cards. Clipboard content stays hidden.</key>
-	<string>App filters show application names in the filter bar, independently of source labels on cards. Clipboard content stays hidden.</string>
+	<string>App filters can show app names in the filter bar. Source labels on cards have a separate setting. Clipboard content stays hidden.</string>
 	<key>Appearance</key>
 	<string>Appearance</string>
-	<key>Application filter trigger</key>
-	<string>Application filter trigger</string>
+	<key>Appearance and card size</key>
+	<string>Appearance and card size</string>
 	<key>Application observed on this Mac at capture time; source is not verified.</key>
-	<string>Application observed on this Mac at capture time; source is not verified.</string>
+	<string>The app was in the foreground when this item was recorded. Its source is unverified.</string>
 	<key>Applies to manual and automatic protection. Search terms and enabled app names are visible on screen and in accessibility. Clipboard content stays hidden; automatic protection still blocks hover reveals.</key>
-	<string>Applies to manual and automatic protection. Search terms and enabled app names are visible on screen and in accessibility. Clipboard content stays hidden; automatic protection still blocks hover reveals.</string>
+	<string>Applies to manual and automatic protection. Search terms and allowed app names appear on screen and are accessible to assistive technologies. Clipboard content stays hidden. Hovering cannot reveal it during automatic protection.</string>
 	<key>Applies to manual privacy with Hover set to Preview. The blur softens the reveal edge. Revealed content can be recorded; automatic protection stays fully masked.</key>
-	<string>Applies to manual privacy with Hover set to Preview. The blur softens the reveal edge. Revealed content can be recorded; automatic protection stays fully masked.</string>
+	<string>Applies when manual Privacy Mode is on and Hover is set to Preview. Blur softens the edges of the visible area. A screen recording can capture that area. Automatic protection keeps all content hidden.</string>
 	<key>Automatic detection is limited. Use manual protection before important sharing.</key>
-	<string>Automatic detection is limited. Use manual protection before important sharing.</string>
+	<string>Automatic detection covers only some sharing sessions. Turn on manual protection before sharing sensitive content.</string>
 	<key>Automatic detection is off. Use manual protection before sharing.</key>
 	<string>Automatic detection is off. Use manual protection before sharing.</string>
 	<key>Automatic protection (limited detection)</key>
 	<string>Automatic protection (limited detection)</string>
+	<key>Automatic protection only detects supported Zoom and Teams sharing sessions.</key>
+	<string>Automatic protection only detects supported Zoom and Teams sharing sessions.</string>
 	<key>Available for 5 seconds</key>
-	<string>Available for 5 seconds</string>
+	<string>Undo is available for 5 seconds</string>
+	<key>Back</key>
+	<string>Back</string>
 	<key>Back to latest</key>
-	<string>Back to latest</string>
+	<string>Jump to newest</string>
 	<key>Base64-decoded</key>
 	<string>Base64-decoded</string>
 	<key>Base64-encoded</key>
 	<string>Base64-encoded</string>
 	<key>Based on Whisk. Includes Kenney UI Audio, SFX Kit and the Neovim icon.</key>
 	<string>Based on Whisk. Includes Kenney UI Audio, SFX Kit and the Neovim icon.</string>
+	<key>Beta and Release</key>
+	<string>Beta and Release</string>
+	<key>Beta only</key>
+	<string>Beta only</string>
 	<key>Blue tag</key>
 	<string>Blue tag</string>
 	<key>By line</key>
@@ -115,47 +131,59 @@
 	<key>Card size</key>
 	<string>Card size</string>
 	<key>Cards from the bottom</key>
-	<string>Cards from the bottom</string>
+	<string>Card row at the bottom</string>
+	<key>Changes are saved only when you choose Save current setting.</key>
+	<string>Changes are saved only when you choose Save current setting.</string>
 	<key>Check for updates</key>
 	<string>Check for updates</string>
 	<key>Check for updates at launch</key>
 	<string>Check for updates at launch</string>
+	<key>Check permissions again</key>
+	<string>Check permissions again</string>
 	<key>Checking for updates…</key>
 	<string>Checking for updates…</string>
 	<key>Checks Zoom and Teams sharing toolbar titles using Accessibility. Client versions and languages may not match. System sharing, remote desktop, recording and browser tabs are not covered. Enable manual protection before important sharing.</key>
-	<string>Checks Zoom and Teams sharing toolbar titles using Accessibility. Client versions and languages may not match. System sharing, remote desktop, recording and browser tabs are not covered. Enable manual protection before important sharing.</string>
+	<string>Uses Accessibility to check Zoom and Teams sharing toolbars. App versions and languages may affect detection. System sharing, remote desktop, screen recording, and browser tabs are outside its scope. Use manual protection before sharing sensitive content.</string>
 	<key>Choose a format to continue</key>
 	<string>Choose a format to continue</string>
 	<key>Choose a format to split</key>
 	<string>Choose a format to split</string>
+	<key>Choose a writable location and try exporting again.</key>
+	<string>Choose a writable location and try exporting again.</string>
+	<key>Choose hiding time</key>
+	<string>Choose when to hide cards</string>
 	<key>Choose how WhiskyMac starts and where you open it.</key>
-	<string>Choose how WhiskyMac starts and where you open it.</string>
+	<string>Choose how WhiskyMac starts, opens, and which language it uses.</string>
 	<key>Choose how much clipboard history to keep and for how long.</key>
-	<string>Choose how much clipboard history to keep and for how long.</string>
+	<string>Choose how many items to keep and for how long.</string>
 	<key>Choose original or parts</key>
-	<string>Choose original or parts</string>
+	<string>Choose the original or the split parts</string>
 	<key>Choose what clicking or hovering over a clipboard card does.</key>
-	<string>Choose what clicking or hovering over a clipboard card does.</string>
-	<key>Clear</key>
-	<string>Clear</string>
+	<string>Choose what happens when you click or hover over a clipboard card.</string>
 	<key>Clear Unpinned Items</key>
 	<string>Clear Unpinned Items</string>
 	<key>Clear the search</key>
 	<string>Clear the search</string>
-	<key>Clear unpinned history</key>
-	<string>Clear unpinned history</string>
-	<key>Clears all unpinned history, including hidden results. Pinned items are kept. Undo with Command-Z.</key>
-	<string>Clears all unpinned history, including hidden results. Pinned items are kept. Undo with Command-Z.</string>
 	<key>Click a shortcut to record a new one — press Escape to cancel recording.</key>
-	<string>Click a shortcut to record a new one — press Escape to cancel recording.</string>
+	<string>Click a shortcut to record a new one. Press Esc to cancel.</string>
+	<key>Click the shortcut to change it. Press Esc to cancel.</key>
+	<string>Click the shortcut to change it. Press Esc to cancel.</string>
 	<key>Click to filter</key>
 	<string>Click to filter</string>
+	<key>Click to record a shortcut. Escape cancels.</key>
+	<string>Click to record a shortcut. Press Esc to cancel.</string>
+	<key>Clipboard access</key>
+	<string>Clipboard access</string>
+	<key>Clipboard appearance</key>
+	<string>Clipboard appearance</string>
 	<key>Clipboard cards</key>
 	<string>Clipboard cards</string>
+	<key>Clipboard controls</key>
+	<string>Clipboard controls</string>
 	<key>Close the panel</key>
 	<string>Close the panel</string>
 	<key>Collapse apps</key>
-	<string>Collapse apps</string>
+	<string>Show fewer apps</string>
 	<key>Collapsed</key>
 	<string>Collapsed</string>
 	<key>Color tags</key>
@@ -166,70 +194,94 @@
 	<string>Comma (, / ，)</string>
 	<key>Complete original</key>
 	<string>Complete original</string>
+	<key>Completed</key>
+	<string>Completed</string>
+	<key>Confirm</key>
+	<string>Confirm</string>
 	<key>Confirm removal of older history before saving.</key>
 	<string>Confirm removal of older history before saving.</string>
 	<key>Content always hidden</key>
 	<string>Content always hidden</string>
 	<key>Content hidden by Privacy Mode</key>
 	<string>Content hidden by Privacy Mode</string>
+	<key>Continue</key>
+	<string>Continue</string>
 	<key>Control what is recorded, displayed and fetched online.</key>
 	<string>Control what is recorded, displayed and fetched online.</string>
 	<key>Copies are kept temporarily, then deleted from WhiskyMac without undo.</key>
-	<string>Copies are kept temporarily, then deleted from WhiskyMac without undo.</string>
+	<string>Sensitive items are deleted from WhiskyMac when they expire and can’t be restored.</string>
 	<key>Copies from excluded apps are never recorded.</key>
 	<string>Copies from excluded apps are never recorded.</string>
 	<key>Copy</key>
 	<string>Copy</string>
 	<key>Copy and paste require an explicit click. Full preview and editing stay disabled. Local reveal works only in manual privacy; automatic protection stays masked.</key>
-	<string>Copy and paste require an explicit click. Full preview and editing stay disabled. Local reveal works only in manual privacy; automatic protection stays masked.</string>
+	<string>Click explicitly to copy or paste. Full previews and editing are disabled. Only manual Privacy Mode can reveal a small area. Automatic protection keeps all content hidden.</string>
+	<key>Copy something new. If it doesn’t appear, check clipboard access, capture status and app exclusions.</key>
+	<string>Copy something new. If it doesn’t appear, check clipboard access, capture status and app exclusions.</string>
 	<key>Copy something to get started</key>
 	<string>Copy something to get started</string>
+	<key>Copy something, then open your history.</key>
+	<string>Copy something, then open your history.</string>
 	<key>Copy sound</key>
 	<string>Copy sound</string>
 	<key>Copy the selection without pasting</key>
 	<string>Copy the selection without pasting</string>
-	<key>Corrections and feedback</key>
-	<string>Corrections and feedback</string>
 	<key>Could not check for updates. Try again or visit GitHub.</key>
 	<string>Could not check for updates. Try again or visit GitHub.</string>
+	<key>Could not export logs</key>
+	<string>Could not export logs</string>
 	<key>Custom color</key>
 	<string>Custom color</string>
 	<key>Custom separator (literal text)</key>
 	<string>Custom separator (literal text)</string>
+	<key>Customize all shortcuts and Vim navigation</key>
+	<string>Customize all shortcuts and Vim navigation</string>
+	<key>Dark</key>
+	<string>Dark</string>
+	<key>Date and time</key>
+	<string>Date and time</string>
+	<key>Debug tools</key>
+	<string>Debug tools</string>
 	<key>Default mode icon</key>
-	<string>Default mode icon</string>
+	<string>Normal mode icon</string>
 	<key>Delete</key>
 	<string>Delete</string>
 	<key>Delete All from %@</key>
 	<string>Delete All from %@</string>
 	<key>Delete everything from the selection's application</key>
-	<string>Delete everything from the selection's application</string>
+	<string>Delete all items from the same app</string>
 	<key>Delete the selection</key>
 	<string>Delete the selection</string>
 	<key>Dependencies and credits</key>
 	<string>Dependencies and credits</string>
 	<key>Detection coverage</key>
-	<string>Detection coverage</string>
+	<string>What detection covers</string>
 	<key>Detection is uncertain. Content is hidden as a precaution.</key>
-	<string>Detection is uncertain. Content is hidden as a precaution.</string>
+	<string>Sharing status is uncertain. Content is hidden as a precaution.</string>
 	<key>Diameter</key>
 	<string>Diameter</string>
+	<key>Direct paste</key>
+	<string>Direct paste</string>
+	<key>Disable Developer Mode</key>
+	<string>Disable Developer Mode</string>
 	<key>Do nothing</key>
 	<string>Do nothing</string>
 	<key>Dock icon</key>
 	<string>Dock icon</string>
 	<key>Document</key>
 	<string>Document</string>
-	<key>Donate</key>
-	<string>Donate</string>
 	<key>Done</key>
 	<string>Done</string>
 	<key>Double click</key>
-	<string>Double click</string>
+	<string>Double-click</string>
 	<key>Download update on GitHub</key>
 	<string>Download update on GitHub</string>
 	<key>Edge blur radius</key>
 	<string>Edge blur radius</string>
+	<key>Edit and split text</key>
+	<string>Edit and split text</string>
+	<key>Edit example</key>
+	<string>Edit example</string>
 	<key>Edit the selection</key>
 	<string>Edit the selection</string>
 	<key>Editing %@</key>
@@ -240,36 +292,56 @@
 	<string>Edit…</string>
 	<key>Enable</key>
 	<string>Enable</string>
-	<key>Enable the global shortcut in Settings whenever you want it.</key>
-	<string>Enable the global shortcut in Settings whenever you want it.</string>
+	<key>Enable Developer Mode</key>
+	<string>Enable Developer Mode</string>
+	<key>Enable WhiskyMac in Accessibility to paste directly. You can also copy a card and press ⌘V.</key>
+	<string>Enable WhiskyMac in Accessibility to paste directly. You can also copy a card and press ⌘V.</string>
+	<key>Enable the history shortcut</key>
+	<string>Enable the history shortcut</string>
 	<key>Enable this global shortcut</key>
 	<string>Enable this global shortcut</string>
 	<key>Enter 1–1440 minutes. Shortening the limit also applies to existing sensitive copies; increasing it only affects new copies.</key>
-	<string>Enter 1–1440 minutes. Shortening the limit also applies to existing sensitive copies; increasing it only affects new copies.</string>
+	<string>Enter 1–1440 minutes. A shorter limit also applies to existing items. A longer limit applies only to new items.</string>
 	<key>Enumeration comma (、)</key>
-	<string>Enumeration comma (、)</string>
-	<key>Everything stays local</key>
-	<string>Everything stays local</string>
+	<string>Ideographic comma (、)</string>
+	<key>Everyday tools</key>
+	<string>Everyday tools</string>
+	<key>Example actions</key>
+	<string>Example actions</string>
 	<key>Exclude %@</key>
 	<string>Exclude %@</string>
 	<key>Exclude the selection's application</key>
-	<string>Exclude the selection's application</string>
+	<string>Exclude the source app</string>
 	<key>Excluded apps</key>
 	<string>Excluded apps</string>
 	<key>Expanded</key>
 	<string>Expanded</string>
 	<key>Explicit no-record markers and excluded apps always win. Existing normal history is not reclassified. An app can belong to only one list; adding it moves it from the other list. Source attribution is best effort.</key>
-	<string>Explicit no-record markers and excluded apps always win. Existing normal history is not reclassified. An app can belong to only one list; adding it moves it from the other list. Source attribution is best effort.</string>
+	<string>Exclusions and do-not-record markers take priority. Existing history stays as it is. Adding an app to one list removes it from the other. The detected source app may be inaccurate.</string>
+	<key>Export logs…</key>
+	<string>Export logs…</string>
 	<key>Extract links</key>
 	<string>Extract links</string>
 	<key>Feedback</key>
 	<string>Feedback</string>
 	<key>Fetch link previews</key>
-	<string>Fetch link previews</string>
+	<string>Load link previews</string>
+	<key>Filter tags</key>
+	<string>Filter tags</string>
+	<key>Filter trigger</key>
+	<string>How to apply filters</string>
+	<key>Filter your history by app, type or tag.</key>
+	<string>Filter your history by app, type or tag.</string>
 	<key>Filters</key>
 	<string>Filters</string>
+	<key>Find and reuse anything you copy.</key>
+	<string>Find and reuse anything you copy.</string>
+	<key>Fine-tune what stays visible</key>
+	<string>Fine-tune what stays visible</string>
 	<key>First card</key>
 	<string>First card</string>
+	<key>Focus a field in the destination app and check Accessibility. You can also copy the card and press ⌘V.</key>
+	<string>Focus a field in the destination app and check Accessibility. You can also copy the card and press ⌘V.</string>
 	<key>Focus the row above</key>
 	<string>Focus the row above</string>
 	<key>Focus the row below</key>
@@ -277,7 +349,7 @@
 	<key>Follow System</key>
 	<string>Follow System</string>
 	<key>Follow windows</key>
-	<string>Follow windows</string>
+	<string>When windows are open</string>
 	<key>Forever</key>
 	<string>Forever</string>
 	<key>Format %lld</key>
@@ -288,32 +360,50 @@
 	<string>GNU General Public License</string>
 	<key>General</key>
 	<string>General</string>
-	<key>Get Started</key>
-	<string>Get Started</string>
 	<key>GitHub repository source code</key>
 	<string>GitHub repository source code</string>
 	<key>Global shortcuts</key>
 	<string>Global shortcuts</string>
 	<key>Global shortcuts are off until enabled here or recorded.</key>
-	<string>Global shortcuts are off until enabled here or recorded.</string>
+	<string>Global shortcuts stay off until you enable or record them.</string>
 	<key>Gray tag</key>
 	<string>Gray tag</string>
 	<key>Green tag</key>
 	<string>Green tag</string>
-	<key>Handoff (system marker)</key>
-	<string>Handoff (system marker)</string>
+	<key>Handoff</key>
+	<string>Handoff</string>
 	<key>Handoff labels use a system pasteboard marker. Missing markers do not prove a local copy; existing history cannot be reclassified.</key>
-	<string>Handoff labels use a system pasteboard marker. Missing markers do not prove a local copy; existing history cannot be reclassified.</string>
+	<string>Handoff labels rely on a system clipboard marker. An item without the marker might still come from another device. Existing history cannot be reclassified.</string>
+	<key>Handoff, source filter</key>
+	<string>Handoff, source filter</string>
+	<key>Hello, WhiskyMac.
+A good idea.
+Ready when you are.</key>
+	<string>Hello, WhiskyMac. ⏎ A good idea. ⏎ Ready when you are.</string>
 	<key>Hidden — right-click to show temporarily</key>
-	<string>Hidden — right-click to show temporarily</string>
+	<string>Hidden. Right-click to show temporarily.</string>
 	<key>Hide</key>
 	<string>Hide</string>
+	<key>Hide by type or source</key>
+	<string>Hide by type or source</string>
+	<key>Hide cards before</key>
+	<string>Hide cards up to</string>
+	<key>Hide cards created before the selected time. Click to use now, or right-click to choose a time. Click again to show hidden cards.</key>
+	<string>Hide cards older than a chosen time. Click to use the current time or right-click to choose one. Click again to show the hidden cards.</string>
+	<key>Hide existing cards</key>
+	<string>Hide older cards</string>
+	<key>Hide or show by type or source</key>
+	<string>Hide or show by type or source</string>
+	<key>Hide or show clipboard history</key>
+	<string>Hide or show clipboard history</string>
+	<key>Hide selected types or Handoff cards created before the selected time. Click to choose filters and a time. Click again to show hidden cards.</key>
+	<string>Choose which card types or Handoff items to hide before a given time. Click to pick filters and a time. Click again to show the hidden cards.</string>
 	<key>History</key>
 	<string>History</string>
 	<key>History capacity</key>
-	<string>History capacity</string>
-	<key>History lives on this Mac. Concealed content from password managers is never recorded.</key>
-	<string>History lives on this Mac. Concealed content from password managers is never recorded.</string>
+	<string>Maximum history size</string>
+	<key>History shortcut</key>
+	<string>History shortcut</string>
 	<key>Hover after a short delay</key>
 	<string>Hover after a short delay</string>
 	<key>Hover delay (seconds)</key>
@@ -321,17 +411,23 @@
 	<key>Hover preview</key>
 	<string>Hover preview</string>
 	<key>Hover reveal area</key>
-	<string>Hover reveal area</string>
-	<key>Hover switches to one app after a brief pause. Click still toggles filters; All clears app, type and pinned filters without clearing search.</key>
-	<string>Hover switches to one app after a brief pause. Click still toggles filters; All clears app, type and pinned filters without clearing search.</string>
+	<string>Area revealed on hover</string>
 	<key>Hover to filter</key>
 	<string>Hover to filter</string>
 	<key>How sensitive access works</key>
-	<string>How sensitive access works</string>
+	<string>How sensitive items are handled</string>
+	<key>Illustration: pin useful cards and arrange a paste stack.</key>
+	<string>Illustration of pinned cards and an ordered paste stack.</string>
+	<key>Illustration: the menu bar opens a searchable row of clipboard cards.</key>
+	<string>Illustration of the menu bar opening searchable clipboard cards.</string>
+	<key>Illustration: your clipboard is ready, with the menu bar as your starting point.</key>
+	<string>Illustration of the WhiskyMac menu bar icon.</string>
 	<key>Image</key>
 	<string>Image</string>
 	<key>Image retained in memory. Copy to view in another app.</key>
-	<string>Image retained in memory. Copy to view in another app.</string>
+	<string>This image is kept in memory. Copy it to view it in another app.</string>
+	<key>Images</key>
+	<string>Images</string>
 	<key>In the clipboard panel</key>
 	<string>In the clipboard panel</string>
 	<key>Inside the clipboard panel</key>
@@ -343,75 +439,103 @@
 	<key>Keep original and add cards</key>
 	<string>Keep original and add cards</string>
 	<key>Keep sensitive copies for</key>
-	<string>Keep sensitive copies for</string>
+	<string>Keep sensitive items for</string>
 	<key>Keep separators at the end of the previous part</key>
-	<string>Keep separators at the end of the previous part</string>
+	<string>Keep each separator at the end of its part</string>
 	<key>Kenney UI Audio is provided under CC0. Open the original license for its full text.</key>
 	<string>Kenney UI Audio is provided under CC0. Open the original license for its full text.</string>
 	<key>Kenney UI Audio license</key>
 	<string>Kenney UI Audio license</string>
 	<key>Kenney UI Audio source</key>
 	<string>Kenney UI Audio source</string>
+	<key>Know what protection covers</key>
+	<string>Know what protection covers</string>
 	<key>Language</key>
 	<string>Language</string>
-	<key>Large</key>
-	<string>Large</string>
 	<key>Last card</key>
 	<string>Last card</string>
 	<key>Launch WhiskyMac at login</key>
 	<string>Launch WhiskyMac at login</string>
+	<key>Launch at login</key>
+	<string>Launch at login</string>
 	<key>Launch at login needs the installed WhiskyMac.app: %@</key>
-	<string>Launch at login needs the installed WhiskyMac.app: %@</string>
+	<string>Install WhiskyMac.app to launch at login: %@</string>
 	<key>Legal file is unavailable.</key>
-	<string>Legal file is unavailable.</string>
-	<key>Let WhiskyMac read what you copy</key>
-	<string>Let WhiskyMac read what you copy</string>
+	<string>Couldn’t read the original file.</string>
 	<key>Licenses and notices</key>
 	<string>Licenses and notices</string>
 	<key>Licenses and notices…</key>
-	<string>Licenses and notices…</string>
+	<string>Licenses and Notices…</string>
+	<key>Light</key>
+	<string>Light</string>
+	<key>Lightweight mode</key>
+	<string>Lightweight mode</string>
+	<key>Lightweight mode loads thumbnails only as needed when you open the clipboard panel. Closing the panel clears the thumbnail cache to reduce memory use.</key>
+	<string>Lightweight mode loads thumbnails only as needed when you open the clipboard panel. Closing the panel clears the thumbnail cache to reduce memory use.</string>
 	<key>Lin Shay contact</key>
 	<string>Lin Shay contact</string>
 	<key>Lin Shay on GitHub</key>
 	<string>Lin Shay on GitHub</string>
 	<key>LinShay (琳曦) independently maintains WhiskyMac, with a focus on a more comfortable clipboard experience on macOS.</key>
-	<string>LinShay (琳曦) independently maintains WhiskyMac, with a focus on a more comfortable clipboard experience on macOS.</string>
+	<string>LinShay (琳曦) independently maintains WhiskyMac, a clipboard history app for macOS.</string>
+	<key>Links</key>
+	<string>Links</string>
+	<key>Local history</key>
+	<string>Local history</string>
+	<key>Lower limits can remove unpinned history immediately.</key>
+	<string>Lower limits can remove unpinned history immediately.</string>
 	<key>Lowercase</key>
 	<string>Lowercase</string>
+	<key>Make room for your next idea.</key>
+	<string>Make space for what’s next.</string>
 	<key>Make the settings and clipboard cards feel at home.</key>
-	<string>Make the settings and clipboard cards feel at home.</string>
+	<string>Adjust the settings layout, accent color, and card size.</string>
 	<key>Manage manual and automatic protection in Settings.</key>
 	<string>Manage manual and automatic protection in Settings.</string>
+	<key>Manage what stays visible and which clicks are allowed.</key>
+	<string>Manage what stays visible and which clicks are allowed.</string>
+	<key>Manual Command-V available</key>
+	<string>Paste manually with Command-V</string>
 	<key>Manual Privacy Mode</key>
 	<string>Manual Privacy Mode</string>
 	<key>Manual privacy: hover to reveal a small area</key>
 	<string>Manual privacy: hover to reveal a small area</string>
-	<key>Medium</key>
-	<string>Medium</string>
 	<key>Menu bar and Dock</key>
 	<string>Menu bar and Dock</string>
 	<key>Menu bar icon click</key>
-	<string>Menu bar icon click</string>
+	<string>Menu bar icon action</string>
 	<key>Menu bar icons</key>
 	<string>Menu bar icons</string>
 	<key>More apps</key>
 	<string>More apps</string>
-	<key>More feedback and contact options will be added when their addresses are available.</key>
-	<string>More feedback and contact options will be added when their addresses are available.</string>
+	<key>More interactions</key>
+	<string>More interactions</string>
+	<key>More settings and configuration</key>
+	<string>More settings</string>
 	<key>More than 1000 results. Choose a different rule.</key>
-	<string>More than 1000 results. Choose a different rule.</string>
+	<string>More than 1,000 results. Choose a different split rule.</string>
+	<key>More ways to make it yours</key>
+	<string>More ways to make it yours</string>
 	<key>Mouse press</key>
 	<string>Mouse press</string>
 	<key>Mouse release</key>
 	<string>Mouse release</string>
 	<key>NORMAL</key>
 	<string>NORMAL</string>
+	<key>Never recorded</key>
+	<string>Never recorded</string>
 	<key>Never show</key>
 	<string>Never show</string>
+	<key>New copies stay in memory briefly. Excluded apps aren’t recorded. Existing history is kept.</key>
+	<string>New copies stay in memory briefly. Excluded apps aren’t recorded. Existing history is kept.</string>
+	<key>Newer cards stay visible. History is not deleted.</key>
+	<string>Newer cards stay visible. Hidden cards remain in history.</string>
 	<key>Next card or chip</key>
-	<string>Next card or chip</string>
+	<string>Next card or filter</string>
 	<key>No excluded apps added.</key>
-	<string>No excluded apps added.</string>
+	<string>No excluded apps</string>
+	<key>No match. Try Hello or clear the search.</key>
+	<string>No match. Try Hello or clear the search.</string>
 	<key>No matches</key>
 	<string>No matches</string>
 	<key>No matching settings</key>
@@ -420,34 +544,50 @@
 	<string>No matching symbols</string>
 	<key>No pinned items</key>
 	<string>No pinned items</string>
+	<key>No releases are available in this update channel.</key>
+	<string>No releases are available in this update channel.</string>
 	<key>No sensitive apps added.</key>
-	<string>No sensitive apps added.</string>
+	<string>No sensitive apps</string>
 	<key>No split results. Try another rule.</key>
-	<string>No split results. Try another rule.</string>
+	<string>No results. Try another split rule.</string>
 	<key>No supported toolbar detected. Other sharing or recording may still be active.</key>
 	<string>No supported toolbar detected. Other sharing or recording may still be active.</string>
 	<key>Normal mode</key>
 	<string>Normal mode</string>
+	<key>Not enabled</key>
+	<string>Not enabled</string>
 	<key>Note</key>
 	<string>Note</string>
+	<key>Nothing is appearing in my history</key>
+	<string>Why are new items missing from my history?</string>
 	<key>Nothing selected</key>
 	<string>Nothing selected</string>
+	<key>Now</key>
+	<string>Now</string>
+	<key>OK</key>
+	<string>OK</string>
+	<key>Off</key>
+	<string>Off</string>
+	<key>Older cards are temporarily hidden. New copies will appear here.</key>
+	<string>Older cards are temporarily hidden. New copies will appear here.</string>
 	<key>One or two characters — a two-character binding like gg runs on the double tap. Esc, Tab, / and 1–9 are fixed.</key>
-	<string>One or two characters — a two-character binding like gg runs on the double tap. Esc, Tab, / and 1–9 are fixed.</string>
+	<string>Use one or two characters. For a shortcut like gg, press g twice. Esc, Tab, /, and 1–9 are reserved.</string>
 	<key>Online content</key>
 	<string>Online content</string>
 	<key>Only links (off: split text and links)</key>
-	<string>Only links (off: split text and links)</string>
+	<string>Extract links only (off: split text and links)</string>
 	<key>Only selected categories are reset.</key>
-	<string>Only selected categories are reset.</string>
+	<string>Only the selected categories will be reset.</string>
+	<key>Open Accessibility settings</key>
+	<string>Open Accessibility settings</string>
 	<key>Open Link</key>
 	<string>Open Link</string>
 	<key>Open Pasteboard Settings</key>
-	<string>Open Pasteboard Settings</string>
-	<key>Open history from the menu bar</key>
-	<string>Open history from the menu bar</string>
+	<string>Open Clipboard Settings</string>
+	<key>Open my clipboard</key>
+	<string>Open clipboard history</string>
 	<key>Open source file</key>
-	<string>Open source file</string>
+	<string>Open original file</string>
 	<key>Open the selected link</key>
 	<string>Open the selected link</string>
 	<key>Orange tag</key>
@@ -461,51 +601,57 @@
 	<key>Paste</key>
 	<string>Paste</string>
 	<key>Paste actions stay silent. Automatic sounds are muted during Privacy Mode; sensitive and excluded copies stay silent.</key>
-	<string>Paste actions stay silent. Automatic sounds are muted during Privacy Mode; sensitive and excluded copies stay silent.</string>
+	<string>Pasting is silent. Automatic sounds are off during Privacy Mode and for sensitive items or copies from excluded apps.</string>
 	<key>Paste as Plain Text</key>
 	<string>Paste as Plain Text</string>
 	<key>Paste as plain text</key>
 	<string>Paste as plain text</string>
 	<key>Paste as…</key>
 	<string>Paste as…</string>
+	<key>Paste example</key>
+	<string>Paste example</string>
+	<key>Paste in order</key>
+	<string>Paste in order</string>
 	<key>Paste next from the stack</key>
 	<string>Paste next from the stack</string>
 	<key>Paste stack position %lld</key>
 	<string>Paste stack position %lld</string>
 	<key>Paste stack — pop with the global shortcut</key>
-	<string>Paste stack — pop with the global shortcut</string>
+	<string>Paste stack. Use the global shortcut to paste each item in order.</string>
 	<key>Paste the selection</key>
 	<string>Paste the selection</string>
 	<key>Paste to previous app</key>
-	<string>Paste to previous app</string>
+	<string>Paste into the previous app</string>
 	<key>Pasting needs Accessibility permission. Without it, use Command-V after copying.</key>
-	<string>Pasting needs Accessibility permission. Without it, use Command-V after copying.</string>
+	<string>Direct paste requires Accessibility permission. You can still copy the item and press Command-V in the destination app.</string>
 	<key>Pause Capture</key>
-	<string>Pause Capture</string>
+	<string>Pause Recording</string>
 	<key>Pause over a card to preview it without clicking.</key>
-	<string>Pause over a card to preview it without clicking.</string>
+	<string>Hover over a card to preview it.</string>
+	<key>Permissions</key>
+	<string>Permissions</string>
 	<key>Pin</key>
 	<string>Pin</string>
 	<key>Pin / unpin the selection</key>
-	<string>Pin / unpin the selection</string>
-	<key>Pin what you always need</key>
-	<string>Pin what you always need</string>
+	<string>Pin or unpin the selection</string>
+	<key>Pin favorites</key>
+	<string>Pin favorites</string>
+	<key>Pin from a card’s menu. Pinned items stay when you clear history.</key>
+	<string>Pin from a card’s menu. Pinned items stay when you clear history.</string>
 	<key>Pin, delete and stack actions apply to the newest format.</key>
 	<string>Pin, delete and stack actions apply to the newest format.</string>
 	<key>Pinned</key>
 	<string>Pinned</string>
 	<key>Pinned card</key>
 	<string>Pinned card</string>
-	<key>Pinned cards survive Clear and retention, and one chip shows only them.</key>
-	<string>Pinned cards survive Clear and retention, and one chip shows only them.</string>
 	<key>Pinned item details…</key>
 	<string>Pinned item details…</string>
 	<key>Pinned items</key>
 	<string>Pinned items</string>
 	<key>Pinned items are never expired or evicted.</key>
-	<string>Pinned items are never expired or evicted.</string>
+	<string>Pinned items are exempt from time and size limits.</string>
 	<key>Pinned items presentation</key>
-	<string>Pinned items presentation</string>
+	<string>Show pinned items</string>
 	<key>Pinned items, filter</key>
 	<string>Pinned items, filter</string>
 	<key>Pinned window layout</key>
@@ -513,29 +659,33 @@
 	<key>Plain text (discard formatting)</key>
 	<string>Plain text (discard formatting)</string>
 	<key>Play a sound when a new copy is recorded</key>
-	<string>Play a sound when a new copy is recorded</string>
+	<string>Play a sound for newly recorded items</string>
 	<key>Play a sound when copying from history</key>
 	<string>Play a sound when copying from history</string>
-	<key>Press %@</key>
-	<string>Press %@</string>
+	<key>Practice</key>
+	<string>Practice</string>
+	<key>Practice note</key>
+	<string>Practice note</string>
+	<key>Practice space</key>
+	<string>Practice area</string>
 	<key>Press %@ to search</key>
 	<string>Press %@ to search</string>
+	<key>Press a shortcut…</key>
+	<string>Press a shortcut…</string>
 	<key>Preview</key>
 	<string>Preview</string>
-	<key>Preview a size, then save it to keep the change.</key>
-	<string>Preview a size, then save it to keep the change.</string>
-	<key>Preview size…</key>
-	<string>Preview size…</string>
+	<key>Preview on screen</key>
+	<string>Preview on screen</string>
 	<key>Preview sound</key>
 	<string>Preview sound</string>
 	<key>Preview the selection</key>
 	<string>Preview the selection</string>
 	<key>Previous card or chip</key>
-	<string>Previous card or chip</string>
+	<string>Previous card or filter</string>
 	<key>Privacy</key>
 	<string>Privacy</string>
 	<key>Privacy Mode is on (manual)</key>
-	<string>Privacy Mode is on (manual)</string>
+	<string>Manual Privacy Mode is on</string>
 	<key>Privacy mode</key>
 	<string>Privacy mode</string>
 	<key>Privacy mode icon</key>
@@ -546,20 +696,30 @@
 	<string>Protected clipboard item</string>
 	<key>Purple tag</key>
 	<string>Purple tag</string>
+	<key>Quick reference</key>
+	<string>Quick reference</string>
 	<key>Quit WhiskyMac</key>
 	<string>Quit WhiskyMac</string>
 	<key>Read the licenses and notices included with WhiskyMac.</key>
-	<string>Read the licenses and notices included with WhiskyMac.</string>
+	<string>View the licenses and notices included with WhiskyMac.</string>
 	<key>Reading mode</key>
 	<string>Reading mode</string>
+	<key>Ready</key>
+	<string>Ready</string>
 	<key>Recording settings</key>
-	<string>Recording settings</string>
+	<string>History recording</string>
 	<key>Red tag</key>
 	<string>Red tag</string>
+	<key>Regular apps</key>
+	<string>Regular apps</string>
+	<key>Release only</key>
+	<string>Release only</string>
 	<key>Remove</key>
 	<string>Remove</string>
 	<key>Remove from Paste Stack</key>
 	<string>Remove from Paste Stack</string>
+	<key>Reopens the welcome guide from the beginning without resetting its completion status.</key>
+	<string>Opens the Welcome Guide from the beginning and keeps its completion status.</string>
 	<key>Replace original card</key>
 	<string>Replace original card</string>
 	<key>Report a bug on GitHub</key>
@@ -581,7 +741,9 @@
 	<key>Restore default size</key>
 	<string>Restore default size</string>
 	<key>Restore default values</key>
-	<string>Restore default values</string>
+	<string>Restore defaults</string>
+	<key>Restore last saved size</key>
+	<string>Restore last saved size</string>
 	<key>Restores Vim bindings without changing Vim navigation.</key>
 	<string>Restores Vim bindings without changing Vim navigation.</string>
 	<key>Restores global shortcuts and turns them off.</key>
@@ -591,17 +753,17 @@
 	<key>Results</key>
 	<string>Results</string>
 	<key>Resume Capture</key>
-	<string>Resume Capture</string>
+	<string>Resume Recording</string>
 	<key>Return saves, Shift-Return breaks the line, Escape cancels.</key>
-	<string>Return saves, Shift-Return breaks the line, Escape cancels.</string>
+	<string>Press Return to save, Shift-Return for a new line, or Esc to cancel.</string>
 	<key>Reveal a small area</key>
 	<string>Reveal a small area</string>
 	<key>Reveal in Finder</key>
 	<string>Reveal in Finder</string>
 	<key>Reveal the selected files in Finder</key>
 	<string>Reveal the selected files in Finder</string>
-	<key>Reverting in %d seconds</key>
-	<string>Reverting in %d seconds</string>
+	<key>Review permissions</key>
+	<string>Review permissions</string>
 	<key>Rich text</key>
 	<string>Rich text</string>
 	<key>Rich text could not be preserved. Enable Plain text to continue.</key>
@@ -609,7 +771,9 @@
 	<key>Right click</key>
 	<string>Right click</string>
 	<key>Right-click always opens the menu. Follow windows shows the Dock icon for Settings and welcome windows only.</key>
-	<string>Right-click always opens the menu. Follow windows shows the Dock icon for Settings and welcome windows only.</string>
+	<string>Right-click to open the menu. “When windows are open” shows the Dock icon only while a Settings or welcome window is open.</string>
+	<key>Right-click the menu bar icon for settings and pinned items.</key>
+	<string>Right-click the menu bar icon for settings and pinned items.</string>
 	<key>Rollover tick</key>
 	<string>Rollover tick</string>
 	<key>SEARCH</key>
@@ -620,22 +784,36 @@
 	<string>SFX Kit license</string>
 	<key>SFX Kit source</key>
 	<string>SFX Kit source</string>
+	<key>Sample copied.</key>
+	<string>Sample copied.</string>
+	<key>Sample pasted.</key>
+	<string>Sample pasted.</string>
+	<key>Sample updated.</key>
+	<string>Sample updated.</string>
 	<key>Save</key>
 	<string>Save</string>
 	<key>Save As…</key>
 	<string>Save As…</string>
 	<key>Save as a card group</key>
 	<string>Save as a card group</string>
+	<key>Save current setting</key>
+	<string>Save current setting</string>
+	<key>Save new copies to your history. If prompted, choose Allow Paste, then set WhiskyMac to Allow in Paste from Other Apps.</key>
+	<string>Save new copies to your history. If prompted, choose Allow Paste, then set WhiskyMac to Allow in Paste from Other Apps.</string>
 	<key>Save results</key>
-	<string>Save results</string>
+	<string>How to save</string>
 	<key>Save the selection as a file</key>
 	<string>Save the selection as a file</string>
 	<key>Screen privacy</key>
 	<string>Screen privacy</string>
+	<key>Screen sharing</key>
+	<string>Screen sharing</string>
 	<key>Search</key>
 	<string>Search</string>
 	<key>Search SF Symbols by name</key>
 	<string>Search SF Symbols by name</string>
+	<key>Search and filter</key>
+	<string>Search and filter</string>
 	<key>Search clipboard history</key>
 	<string>Search clipboard history</string>
 	<key>Search match</key>
@@ -646,34 +824,44 @@
 	<string>Search pinned items</string>
 	<key>Search settings</key>
 	<string>Search settings</string>
+	<key>Search your clipboard</key>
+	<string>Search your clipboard</string>
 	<key>Select a delimiter or enter a custom separator.</key>
 	<string>Select a delimiter or enter a custom separator.</string>
+	<key>Select all types</key>
+	<string>Select all types</string>
 	<key>Select at least one result.</key>
 	<string>Select at least one result.</string>
 	<key>Selected</key>
 	<string>Selected</string>
 	<key>Selected parts are combined in their original order with line breaks.</key>
-	<string>Selected parts are combined in their original order with line breaks.</string>
+	<string>Selected parts are joined in their original order, one per line.</string>
 	<key>Semicolon (; / ；)</key>
 	<string>Semicolon (; / ；)</string>
 	<key>Sensitive access</key>
-	<string>Sensitive access</string>
+	<string>Sensitive content</string>
 	<key>Sensitive apps</key>
 	<string>Sensitive apps</string>
 	<key>Sensitive copies stay in memory, outside disk history, search and undo. They start hidden and can be shown for 10 seconds. They expire at the selected limit or sooner when the app quits, the Mac sleeps or the memory limit is reached. Expiration does not clear the system clipboard or copies held by other apps.</key>
-	<string>Sensitive copies stay in memory, outside disk history, search and undo. They start hidden and can be shown for 10 seconds. They expire at the selected limit or sooner when the app quits, the Mac sleeps or the memory limit is reached. Expiration does not clear the system clipboard or copies held by other apps.</string>
+	<string>Sensitive items stay in memory and are excluded from disk history, search, and undo. They’re hidden by default and can be shown for 10 seconds. They’re deleted when the time limit expires, when WhiskyMac quits, when the Mac sleeps, or when memory reaches its limit. The system clipboard and other apps may still hold copies.</string>
 	<key>Sensitive copy</key>
-	<string>Sensitive copy</string>
+	<string>Sensitive item</string>
 	<key>Sensitive copy actions</key>
-	<string>Sensitive copy actions</string>
+	<string>Sensitive item actions</string>
 	<key>Separate window</key>
 	<string>Separate window</string>
+	<key>Set up later</key>
+	<string>Set up later</string>
 	<key>Set up shortcuts for quick access and keyboard navigation.</key>
-	<string>Set up shortcuts for quick access and keyboard navigation.</string>
+	<string>Set shortcuts to open and navigate the clipboard panel.</string>
+	<key>Set up when ready</key>
+	<string>Set up when ready</string>
 	<key>Settings layout</key>
 	<string>Settings layout</string>
 	<key>Settings navigation</key>
 	<string>Settings navigation</string>
+	<key>Settings window appearance</key>
+	<string>Settings window appearance</string>
 	<key>Settings…</key>
 	<string>Settings…</string>
 	<key>Sharing toolbar detected. Content is hidden.</key>
@@ -682,18 +870,26 @@
 	<string>Shortcuts</string>
 	<key>Shortcuts reset</key>
 	<string>Shortcuts reset</string>
+	<key>Show</key>
+	<string>Show</string>
 	<key>Show / hide pinned items</key>
-	<string>Show / hide pinned items</string>
+	<string>Show or hide pinned items</string>
 	<key>Show / hide the panel</key>
-	<string>Show / hide the panel</string>
+	<string>Show or hide the panel</string>
 	<key>Show History</key>
 	<string>Show History</string>
+	<key>Show by type or source</key>
+	<string>Show hidden cards</string>
 	<key>Show clipboard cards</key>
 	<string>Show clipboard cards</string>
 	<key>Show fewer formats</key>
 	<string>Show fewer formats</string>
+	<key>Show first-launch guide</key>
+	<string>Open the first-run guide</string>
 	<key>Show for 10 seconds</key>
 	<string>Show for 10 seconds</string>
+	<key>Show hidden cards</key>
+	<string>Show hidden cards</string>
 	<key>Show in Finder</key>
 	<string>Show in Finder</string>
 	<key>Show menu</key>
@@ -706,10 +902,10 @@
 	<string>Sidebar width</string>
 	<key>Single click</key>
 	<string>Single click</string>
+	<key>Single click: %@ · Double click: %@</key>
+	<string>Single-click: %@ · Double-click: %@</string>
 	<key>Single line</key>
 	<string>Single line</string>
-	<key>Small</key>
-	<string>Small</string>
 	<key>Small bubble</key>
 	<string>Small bubble</string>
 	<key>Soft button</key>
@@ -718,14 +914,22 @@
 	<string>Soft snap</string>
 	<key>Soft tap</key>
 	<string>Soft tap</string>
+	<key>Software Update</key>
+	<string>Software Update</string>
 	<key>Sound volume</key>
 	<string>Sound volume</string>
 	<key>Sounds and effects</key>
 	<string>Sounds and effects</string>
 	<key>Source repositories</key>
 	<string>Source repositories</string>
+	<key>Source to hide</key>
+	<string>Source to hide</string>
+	<key>Specific time</key>
+	<string>Choose a time</string>
 	<key>Split options</key>
 	<string>Split options</string>
+	<key>Split results are examples only and are not saved to history.</key>
+	<string>Split results in practice aren’t saved to history.</string>
 	<key>Split rule</key>
 	<string>Split rule</string>
 	<key>Splitting is unavailable for this item.</key>
@@ -733,21 +937,33 @@
 	<key>Split…</key>
 	<string>Split…</string>
 	<key>Start a search</key>
-	<string>Start a search</string>
-	<key>Startup</key>
-	<string>Startup</string>
+	<string>Start searching</string>
+	<key>Start over</key>
+	<string>Start over</string>
+	<key>Start setup</key>
+	<string>Start setup</string>
+	<key>Startup and loading</key>
+	<string>Startup and loading</string>
+	<key>Step %lld of %lld: %@</key>
+	<string>Step %lld of %lld: %@</string>
 	<key>Storage management</key>
 	<string>Storage management</string>
 	<key>Support development</key>
-	<string>Support development</string>
+	<string>Support WhiskyMac</string>
 	<key>Switch click</key>
 	<string>Switch click</string>
 	<key>Switch filter group</key>
 	<string>Switch filter group</string>
 	<key>Tab</key>
 	<string>Tab</string>
+	<key>Tag size</key>
+	<string>Tag size</string>
+	<key>Temporary session</key>
+	<string>Temporary session</string>
+	<key>Text</key>
+	<string>Text</string>
 	<key>Thanks for opening this page &gt;&lt; I hope you enjoy my work! Wishing you happiness and success every day!</key>
-	<string>Thanks for opening this page &gt;&lt; I hope you enjoy my work! Wishing you happiness and success every day!</string>
+	<string>Thanks for stopping by! I hope you enjoy using WhiskyMac.</string>
 	<key>The Whisk author grants additional App Store and TestFlight distribution permission.</key>
 	<string>The Whisk author grants additional App Store and TestFlight distribution permission.</string>
 	<key>The WhiskyMac author grants additional App Store and TestFlight permission for their work.</key>
@@ -755,23 +971,23 @@
 	<key>The accent color also highlights the selected clipboard card.</key>
 	<string>The accent color also highlights the selected clipboard card.</string>
 	<key>The note stays visible. Copy and paste use the original; previews, editing, dragging and online link previews are blocked while hidden.</key>
-	<string>The note stays visible. Copy and paste use the original; previews, editing, dragging and online link previews are blocked while hidden.</string>
+	<string>The note stays visible. Copy and paste still use the original content. Full previews, editing, dragging, and online link previews are unavailable while the content is hidden.</string>
 	<key>The original will be removed. Unselected content is not included in the new cards. Undo restores the original.</key>
-	<string>The original will be removed. Unselected content is not included in the new cards. Undo restores the original.</string>
+	<string>This replaces the original card with the selected parts. You can undo it to restore the original.</string>
 	<key>The overview is a reading aid. Refer to the original text for the complete terms.</key>
-	<string>The overview is a reading aid. Refer to the original text for the complete terms.</string>
+	<string>Read the original text for the complete terms.</string>
 	<key>The panel opens with letters as commands: %@ to search, %@ to move, %@ to paste, %@ to preview, %@ to close.</key>
-	<string>The panel opens with letters as commands: %@ to search, %@ to move, %@ to paste, %@ to preview, %@ to close.</string>
+	<string>Use %@ to search, %@ to move, %@ to paste, %@ to preview, and %@ to close the panel.</string>
 	<key>The results could not be saved. Your history and draft were kept.</key>
-	<string>The results could not be saved. Your history and draft were kept.</string>
+	<string>Couldn’t save the results. Your history and draft are still available.</string>
 	<key>The rich text could not be saved.</key>
 	<string>The rich text could not be saved.</string>
 	<key>The selected results do not fit the history capacity. Select fewer results or increase capacity.</key>
-	<string>The selected results do not fit the history capacity. Select fewer results or increase capacity.</string>
+	<string>The results exceed the history limit. Select fewer or increase the limit.</string>
 	<key>The separator cuts through a combined character. Choose another separator.</key>
-	<string>The separator cuts through a combined character. Choose another separator.</string>
+	<string>This separator splits a combined character. Choose another separator.</string>
 	<key>The source changed or was removed. Reopen Split to continue.</key>
-	<string>The source changed or was removed. Reopen Split to continue.</string>
+	<string>The original item changed or was removed. Open Split again to continue.</string>
 	<key>The source exceeds the split size limit.</key>
 	<string>The source exceeds the split size limit.</string>
 	<key>Third-party notices</key>
@@ -782,16 +998,22 @@
 	<string>This document records the source and conversion details for the bundled Kenney UI sounds.</string>
 	<key>This document records the source and selected files for the bundled SFX Kit sounds.</key>
 	<string>This document records the source and selected files for the bundled SFX Kit sounds.</string>
+	<key>This example could not be split. Try a shorter text.</key>
+	<string>This example could not be split. Try a shorter text.</string>
 	<key>This global shortcut could not be registered. Choose another binding.</key>
-	<string>This global shortcut could not be registered. Choose another binding.</string>
+	<string>Couldn’t register this global shortcut. Choose another key combination.</string>
 	<key>This notice names the original authors, WhiskyMac modifications and third-party materials.</key>
 	<string>This notice names the original authors, WhiskyMac modifications and third-party materials.</string>
+	<key>This shortcut is unavailable or duplicated. Choose another combination.</key>
+	<string>This shortcut is unavailable or already in use. Choose another combination.</string>
 	<key>This shortcut is used by another action</key>
 	<string>This shortcut is used by another action</string>
 	<key>Toggle manual Privacy Mode</key>
 	<string>Toggle manual Privacy Mode</string>
 	<key>Toggle the selection in the paste stack</key>
 	<string>Toggle the selection in the paste stack</string>
+	<key>Tools for testing WhiskyMac.</key>
+	<string>Tools for testing WhiskyMac.</string>
 	<key>Top tabs</key>
 	<string>Top tabs</string>
 	<key>Translation contributors</key>
@@ -800,14 +1022,26 @@
 	<string>Trim surrounding whitespace</string>
 	<key>Trimmed</key>
 	<string>Trimmed</string>
+	<key>Try it anytime</key>
+	<string>Try it anytime</string>
+	<key>Try it out</key>
+	<string>Try it out</string>
+	<key>Try it safely with sample content.</key>
+	<string>Try it safely with sample content.</string>
+	<key>Try searching for Hello</key>
+	<string>Try searching for Hello</string>
 	<key>Turn off manual protection</key>
 	<string>Turn off manual protection</string>
+	<key>Turn on Privacy Mode before sharing. Revealed or pasted content can still appear on screen.</key>
+	<string>Turn on Privacy Mode before sharing. Revealed or pasted content can still appear on screen.</string>
 	<key>Turn on manual protection</key>
 	<string>Turn on manual protection</string>
 	<key>Two actions share the same shortcut.</key>
 	<string>Two actions share the same shortcut.</string>
 	<key>Type shortcut…</key>
-	<string>Type shortcut…</string>
+	<string>Press a shortcut…</string>
+	<key>Types to hide</key>
+	<string>Types to hide</string>
 	<key>URL-decoded</key>
 	<string>URL-decoded</string>
 	<key>URL-encoded</key>
@@ -828,14 +1062,26 @@
 	<string>Update Available (v%@)…</string>
 	<key>Update available: %@</key>
 	<string>Update available: %@</string>
-	<key>Updates are downloaded from GitHub. Backup source is not configured.</key>
-	<string>Updates are downloaded from GitHub. Backup source is not configured.</string>
+	<key>Update channel</key>
+	<string>Update channel</string>
+	<key>Update checks are unavailable in this build.</key>
+	<string>Update checks are unavailable in this build.</string>
+	<key>Updates are downloaded from GitHub.</key>
+	<string>Updates are downloaded from GitHub.</string>
 	<key>Uppercase</key>
 	<string>Uppercase</string>
+	<key>Use a text card’s menu to edit or split its contents.</key>
+	<string>Use a text card’s menu to edit or split its contents.</string>
 	<key>Use sidebar navigation</key>
 	<string>Use sidebar navigation</string>
+	<key>Use the card menu or a shortcut to continue.</key>
+	<string>Use the card menu or a shortcut to continue.</string>
+	<key>Use the menu bar</key>
+	<string>Use the menu bar</string>
 	<key>Use the pinned-items shortcut or menu item. In the clipboard panel it selects Pinned; a separate window only shows pinned items.</key>
-	<string>Use the pinned-items shortcut or menu item. In the clipboard panel it selects Pinned; a separate window only shows pinned items.</string>
+	<string>Open pinned items from the menu or with their shortcut. The clipboard panel switches to the Pinned filter. The separate window shows pinned items only.</string>
+	<key>Use the tags above the clipboard cards to filter after opening the clipboard.</key>
+	<string>Use the tags above the cards to filter your clipboard history.</string>
 	<key>Use top navigation</key>
 	<string>Use top navigation</string>
 	<key>Uses the configured card action</key>
@@ -843,31 +1089,33 @@
 	<key>Version</key>
 	<string>Version</string>
 	<key>Version and introduction</key>
-	<string>Version and introduction</string>
+	<string>Version and overview</string>
 	<key>Vertical list at the pointer</key>
-	<string>Vertical list at the pointer</string>
+	<string>Vertical list near the pointer</string>
+	<key>View in Settings</key>
+	<string>View in Settings</string>
 	<key>View profile links</key>
 	<string>View profile links</string>
 	<key>Vim Keybindings</key>
-	<string>Vim Keybindings</string>
+	<string>Vim key bindings</string>
 	<key>Vim navigation in the panel</key>
 	<string>Vim navigation in the panel</string>
 	<key>Visible during protection</key>
 	<string>Visible during protection</string>
 	<key>Waiting for a stable end. Content remains hidden.</key>
-	<string>Waiting for a stable end. Content remains hidden.</string>
+	<string>Waiting for sharing to end. Content stays hidden.</string>
 	<key>Welcome</key>
 	<string>Welcome</string>
-	<key>Welcome to WhiskyMac</key>
-	<string>Welcome to WhiskyMac</string>
+	<key>Welcome Guide</key>
+	<string>Welcome Guide</string>
+	<key>Where are settings and my pinned items?</key>
+	<string>Where are settings and my pinned items?</string>
 	<key>WhiskyMac Settings</key>
 	<string>WhiskyMac Settings</string>
 	<key>WhiskyMac exception</key>
 	<string>WhiskyMac exception</string>
-	<key>WhiskyMac is a native clipboard history app for macOS, based on Whisk.</key>
-	<string>WhiskyMac is a native clipboard history app for macOS, based on Whisk.</string>
 	<key>WhiskyMac is not allowed to read the clipboard.</key>
-	<string>WhiskyMac is not allowed to read the clipboard.</string>
+	<string>WhiskyMac needs clipboard access.</string>
 	<key>WhiskyMac needs your permission to read what you copy.</key>
 	<string>WhiskyMac needs your permission to read what you copy.</string>
 	<key>WhiskyMac on GitHub</key>
@@ -878,8 +1126,12 @@
 	<string>Without accents</string>
 	<key>Yellow tag</key>
 	<string>Yellow tag</string>
-	<key>Your clipboard, remembered.</key>
-	<string>Your clipboard, remembered.</string>
+	<key>Your Beta is newer than the latest Release. Waiting for a newer Release.</key>
+	<string>Your Beta is newer than the latest Release. Waiting for a newer Release.</string>
+	<key>Your everyday snippet</key>
+	<string>Your everyday snippet</string>
+	<key>Your example lands here.</key>
+	<string>The pasted example appears here.</string>
 	<key>You’re up to date.</key>
 	<string>You’re up to date.</string>
 	<key>clear history delete history empty history</key>
@@ -888,6 +1140,8 @@
 	<string>code</string>
 	<key>color</key>
 	<string>color</string>
+	<key>dark light theme system appearance</key>
+	<string>dark light theme system appearance</string>
 	<key>files</key>
 	<string>files</string>
 	<key>global</key>
@@ -898,12 +1152,12 @@
 	<string>key %lld</string>
 	<key>link</key>
 	<string>link</string>
-	<key>macOS asks before an app reads the clipboard. Click Allow Clipboard Access, choose Allow Paste, then set WhiskyMac to Allow under Paste from Other Apps.</key>
-	<string>macOS asks before an app reads the clipboard. Click Allow Clipboard Access, choose Allow Paste, then set WhiskyMac to Allow under Paste from Other Apps.</string>
 	<key>minutes</key>
 	<string>minutes</string>
 	<key>now</key>
 	<string>now</string>
+	<key>path</key>
+	<string>path</string>
 	<key>pt</key>
 	<string>pt</string>
 	<key>sidebar tabs navigation</key>
@@ -914,6 +1168,8 @@
 	<string>text</string>
 	<key>volume audio mute</key>
 	<string>volume audio mute</string>
+	<key>· With hover filtering, pause the pointer over a tag to show the matching cards. You can still click tags to combine multiple filters.</key>
+	<string>· Hover over a tag to see matching cards. Click tags to combine filters.</string>
 	<key>⌘1…⌘9 paste the matching card directly.</key>
 	<string>⌘1…⌘9 paste the matching card directly.</string>
 </dict>
