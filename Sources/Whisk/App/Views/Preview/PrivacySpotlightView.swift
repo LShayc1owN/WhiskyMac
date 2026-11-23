@@ -37,7 +37,7 @@ struct PrivacySpotlightView: View {
                 let metrics = ClipboardSearchMetrics(prompt: prompt, expanded: !store.protectedQuery.isEmpty)
                 ClipboardSearchToolbarLayout(field: metrics) {
                     HStack(spacing: 10) {
-                        Image(systemName: "magnifyingglass").foregroundStyle(.secondary).accessibilityHidden(true)
+                        ClipboardSearchIcon()
                         TextField(
                             localized("Search clipboard history"),
                             text: Binding(
@@ -54,7 +54,7 @@ struct PrivacySpotlightView: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
                     .frame(height: 36)
-                    .background(ClipboardSearchBackground())
+                    .modifier(ClipboardSearchSurface())
                     HStack { HistoryToolbarActions(store: store, actions: actions) }
                 }
                 .frame(maxWidth: .infinity)

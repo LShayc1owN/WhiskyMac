@@ -38,6 +38,7 @@ struct HistoryPanelView: View {
     let actions: PanelActions
     var keyBindings: KeyBindingsStore? = nil
     var popoverCoordinator: CardPopoverCoordinator? = nil
+    var usesMacOS26Cards = false
     @FocusState private var searchFocused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var scheme
@@ -208,9 +209,7 @@ struct HistoryPanelView: View {
 
     private func toolbar(prompt: String, fieldWidth: CGFloat) -> some View {
         HStack(spacing: 10) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
+            ClipboardSearchIcon()
             Group {
                 if store.vimEnabled && !store.searchActive {
                     // NORMAL mode leaves the persisted query readable while the field is inactive.
@@ -262,7 +261,7 @@ struct HistoryPanelView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
-        .background(ClipboardSearchBackground())
+        .modifier(ClipboardSearchSurface())
         .accessibilityIdentifier("clipboard-search")
         // The capsule lights up as it stretches: a crisp matcha rim, the
         // same language as the cards' selection ring. Plain opacity (not
@@ -300,7 +299,8 @@ struct HistoryPanelView: View {
         } else {
             HistoryCardRail(
                 store: store, actions: actions, keyBindings: keyBindings,
-                returnToLatestRevision: returnToLatestRevision, appScope: appScope
+                returnToLatestRevision: returnToLatestRevision, appScope: appScope,
+                usesMacOS26Cards: usesMacOS26Cards
             )
             .overlay {
                 if let message = store.state.emptyMessage {
@@ -350,7 +350,35 @@ struct HistoryPanelView: View {
     }
 }
 
-struct ClipboardSearchBackground: View {
+struct ClipboardSearchSurface: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(macOS 26, *) {
+            content.modifier(MacOS26ClipboardSearchSurface())
+        } else {
+            content.background(ClipboardSearchBackground())
+        }
+    }
+}
+
+struct ClipboardSearchIcon: View {
+    @Environment(\.colorScheme) private var scheme
+
+    var body: some View {
+        Image(systemName: "magnifyingglass")
+            .foregroundStyle(color)
+            .accessibilityHidden(true)
+    }
+
+    private var color: Color {
+        if #available(macOS 26, *) {
+            Color(white: scheme == .dark ? 0.76 : 0.32)
+        } else {
+            .secondary
+        }
+    }
+}
+
+private struct ClipboardSearchBackground: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 

@@ -82,6 +82,7 @@ struct HistoryCardRail: View {
     let keyBindings: KeyBindingsStore?
     let returnToLatestRevision: Int
     var appScope: FilterAppScope? = nil
+    var usesMacOS26Cards = false
     @State private var window = CardRailWindow()
     @State private var viewport = Viewport()
     @State private var position = ScrollPosition()
@@ -183,16 +184,31 @@ struct HistoryCardRail: View {
             .accessibilityHidden(true)
     }
 
-    private func card(_ card: CardViewState) -> some View {
-        ItemCardView(
-            card: card, actions: actions, keyBindings: keyBindings,
-            showsSelection: !store.cursorOnSearch, side: store.cardSide, interactions: store.interactions,
-            isPanelVisible: store.panelVisible, hoverEnabled: !store.cardMenuOpen && !store.pinMetadataEditing,
-            canExport: { !store.isProtected && store.state.cards.contains { $0.id == card.id } },
-            onInteraction: { action in store.interact(card, action: action, actions: actions) },
-            onHoverPreview: { store.hoverPreview(card, actions: actions) },
-            onHoverChanged: { inside in store.cardHoverChanged(card.id, inside: inside) }
-        )
-        .equatable()
+    @ViewBuilder private func card(_ card: CardViewState) -> some View {
+        let canExport = { !store.isProtected && store.state.cards.contains { $0.id == card.id } }
+        if #available(macOS 26, *), usesMacOS26Cards {
+            MacOS26HistoryCard(
+                card: card, actions: actions, keyBindings: keyBindings, side: store.cardSide,
+                showsSelection: !store.cursorOnSearch, isVisible: store.panelVisible,
+                hoverEnabled: !store.cardMenuOpen && !store.pinMetadataEditing,
+                pinnedWorkspace: store.isPinnedWorkspace,
+                interactions: store.interactions, canExport: canExport,
+                interact: { store.interact(card, action: $0, actions: actions) },
+                hoverPreview: { store.hoverPreview(card, actions: actions) },
+                hoverChanged: { store.cardHoverChanged(card.id, inside: $0) }
+            )
+            .equatable()
+        } else {
+            ItemCardView(
+                card: card, actions: actions, keyBindings: keyBindings,
+                showsSelection: !store.cursorOnSearch, side: store.cardSide, interactions: store.interactions,
+                isPanelVisible: store.panelVisible, hoverEnabled: !store.cardMenuOpen && !store.pinMetadataEditing,
+                canExport: canExport,
+                onInteraction: { action in store.interact(card, action: action, actions: actions) },
+                onHoverPreview: { store.hoverPreview(card, actions: actions) },
+                onHoverChanged: { inside in store.cardHoverChanged(card.id, inside: inside) }
+            )
+            .equatable()
+        }
     }
 }

@@ -58,7 +58,11 @@ import Testing
         #expect(!help.isVisible)
     }
 
-    @Test func type_list_time_picker_and_hover_text_fit_in_all_supported_languages() async throws {
+    @Test(arguments: [false, true])
+    func type_list_time_picker_and_hover_text_fit_in_all_supported_languages(useNativeOptions: Bool) async throws {
+        if useNativeOptions {
+            guard #available(macOS 26, *) else { return }
+        }
         _ = NSApplication.shared
         let previous = AppLocalization.language
         defer { AppLocalization.language = previous }
@@ -66,9 +70,15 @@ import Testing
         for language in ["zh-Hans", "zh-Hant", "en", "fr", "de", "it", "ja"] {
             AppLocalization.language = language
             for types in [false, true] {
-                let content = HistoryHidingOptions(
-                    includesTypes: types, confirm: { _ in Issue.record("Rendering must not apply a rule") }, cancel: {},
-                    draft: HistoryHidingDraft(usesNow: false, date: date, categories: [.text, .image]))
+                let draft = HistoryHidingDraft(usesNow: false, date: date, categories: [.text, .image])
+                let confirm: (HistoryHidingRule) -> Void = { _ in Issue.record("Rendering must not apply a rule") }
+                let content = Group {
+                    if #available(macOS 26, *), useNativeOptions {
+                        MacOS26HistoryHidingOptions(includesTypes: types, confirm: confirm, cancel: {}, draft: draft)
+                    } else {
+                        HistoryHidingOptions(includesTypes: types, confirm: confirm, cancel: {}, draft: draft)
+                    }
+                }
                 let host = NSHostingView(rootView: content.environment(\.colorScheme, .dark))
                 let size = host.fittingSize
                 #expect(size.width == 360 && size.height < 560, "\(language), types=\(types), size=\(size)")
@@ -89,9 +99,9 @@ import Testing
                     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
                     let bitmap = try #require(host.bitmapImageRepForCachingDisplay(in: host.bounds))
                     host.cacheDisplay(in: host.bounds, to: bitmap)
-                    try bitmap.representation(using: .png, properties: [:])?.write(
-                        to: directory.appendingPathComponent("hide-options-\(language)-\(types ? "types" : "time").png")
-                    )
+                    let prefix = useNativeOptions ? "hide-options-macos26" : "hide-options"
+                    let file = directory.appendingPathComponent("\(prefix)-\(language)-\(types ? "types" : "time").png")
+                    try bitmap.representation(using: .png, properties: [:])?.write(to: file)
                 }
             }
         }

@@ -64,8 +64,8 @@ struct HistoryToolbarActions: View {
         )
         .modifier(HistoryHoverHelp(title: localized("Hide"), message: hideHelp, enabled: helpEnabled))
         .popover(isPresented: showingOptions(.time)) {
-            HistoryHidingOptions(
-                includesTypes: false, confirm: apply, cancel: closeOptions,
+            options(
+                includesTypes: false,
                 draft: HistoryHidingDraft(usesNow: false, date: store.historyHidingCutoff ?? Date()))
         }
     }
@@ -86,7 +86,16 @@ struct HistoryToolbarActions: View {
         .accessibilityIdentifier("clipboard-hide-types")
         .modifier(HistoryHoverHelp(title: localized("Hide by type or source"), message: typeHelp, enabled: helpEnabled))
         .popover(isPresented: showingOptions(.typeOrSource)) {
-            HistoryHidingOptions(includesTypes: true, confirm: apply, cancel: closeOptions)
+            options(includesTypes: true, draft: HistoryHidingDraft())
+        }
+    }
+
+    @ViewBuilder private func options(includesTypes: Bool, draft: HistoryHidingDraft) -> some View {
+        if #available(macOS 26, *) {
+            MacOS26HistoryHidingOptions(
+                includesTypes: includesTypes, confirm: apply, cancel: closeOptions, draft: draft)
+        } else {
+            HistoryHidingOptions(includesTypes: includesTypes, confirm: apply, cancel: closeOptions, draft: draft)
         }
     }
 

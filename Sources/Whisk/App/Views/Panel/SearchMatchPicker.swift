@@ -2,12 +2,18 @@ import AppKit
 import SwiftUI
 
 struct SearchMatchPicker: View {
-    private static let titleFont = NSFont.systemFont(ofSize: NSFont.smallSystemFontSize)
-
     let mode: SearchMatchMode
     let select: (SearchMatchMode) -> Void
 
     var body: some View {
+        if #available(macOS 26, *) {
+            MacOS26SearchMatchPicker(mode: mode, select: select)
+        } else {
+            legacyMenu
+        }
+    }
+
+    private var legacyMenu: some View {
         Menu {
             Picker(localized("Search match mode"), selection: Binding(get: { mode }, set: select)) {
                 ForEach(SearchMatchMode.allCases, id: \.self) { option in
@@ -17,7 +23,7 @@ struct SearchMatchPicker: View {
             .pickerStyle(.inline)
         } label: {
             Text(mode.title)
-                .font(.system(size: Self.titleFont.pointSize))
+                .font(.system(size: NSFont.smallSystemFontSize))
                 .foregroundStyle(.secondary)
         }
         .menuStyle(.borderlessButton)
@@ -31,7 +37,7 @@ struct SearchMatchPicker: View {
     }
 }
 
-private extension SearchMatchMode {
+extension SearchMatchMode {
     var title: String {
         switch self {
         case .fuzzy: localized("Fuzzy Match")

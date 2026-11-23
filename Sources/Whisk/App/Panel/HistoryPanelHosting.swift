@@ -11,9 +11,12 @@ enum HistoryPanelHosting {
         store: HistoryViewStateStore, actions: PanelActions, keyBindings: KeyBindingsStore? = nil,
         popoverCoordinator: CardPopoverCoordinator? = nil
     ) -> NSHostingView<HistoryPanelView> {
+        let usesMacOS26Cards: Bool
+        if #available(macOS 26, *) { usesMacOS26Cards = true } else { usesMacOS26Cards = false }
         let host = NSHostingView(
             rootView: HistoryPanelView(
-                store: store, actions: actions, keyBindings: keyBindings, popoverCoordinator: popoverCoordinator))
+                store: store, actions: actions, keyBindings: keyBindings, popoverCoordinator: popoverCoordinator,
+                usesMacOS26Cards: usesMacOS26Cards))
         // The panel frame is authoritative; do not measure a full scroll
         // document as an intrinsic window size before the viewport exists.
         host.sizingOptions = []

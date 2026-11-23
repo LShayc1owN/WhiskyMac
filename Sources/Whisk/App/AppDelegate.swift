@@ -39,7 +39,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var bindingsObserver: AnyCancellable?
     private var settingsWindow: NSWindow?
     private let settingsSearch = SettingsSearchModel()
-    private var settingsSearchToolbar: SettingsSearchToolbar?
+    // NSToolbar holds its delegate weakly.
+    private var settingsSearchToolbar: AnyObject?
     private var stateStore: HistoryViewStateStore?
     private var clipboard: Controller?
     private var thumbnailPreparation: PanelThumbnailPreparation?
@@ -802,50 +803,74 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         try await diagnostics.export(to: destination)
     }
 
+    private func makeSettingsWindow(initialPage: SettingsPage) -> NSWindow {
+        let clearHistory: () -> Void = { [weak self] in self?.clipboard?.clear() }
+        let showWelcomeGuide = { [weak self] in
+            guard let self, self.developerMode.showsTools else { return }
+            self.showOnboarding(fromBeginning: true)
+        }
+        let exportDiagnostics: () async throws -> Void = { [weak self] in try await self?.exportDiagnostics() }
+        let previewClipboard: (Double, Double) -> Void = { [weak self] side, scale in
+            self?.panelController?.previewSize(cardSide: side, tagScale: scale)
+        }
+        let cancelClipboardPreview: () -> Void = { [weak self] in self?.panelController?.cancelSizePreview() }
+        let canFocusSearch = { [weak self] in self?.keyBindings.recordingAction == nil }
+
+        let window: NSWindow
+        if #available(macOS 26, *) {
+            window = MainActor.assumeIsolated {
+                MacOS26SettingsWindow.make(
+                    rootView: MacOS26SettingsView(
+                        store: keyBindings, general: generalSettings, loginItem: loginItem,
+                        vimBindings: vimKeymap, privacy: privacy, clearHistory: clearHistory,
+                        showWelcomeGuide: showWelcomeGuide, exportDiagnostics: exportDiagnostics,
+                        previewClipboard: previewClipboard, cancelClipboardPreview: cancelClipboardPreview,
+                        appearance: appearance, updateChecker: updateChecker, search: settingsSearch,
+                        developerMode: developerMode, selectedPage: initialPage)
+                )
+            }
+            settingsSearchToolbar = MacOS26SettingsToolbar(
+                window: window, search: settingsSearch, appearance: appearance, canFocus: canFocusSearch)
+        } else {
+            let hosting = NSHostingController(
+                rootView: SettingsView(
+                    store: keyBindings, general: generalSettings, loginItem: loginItem,
+                    vimBindings: vimKeymap, privacy: privacy, clearHistory: clearHistory,
+                    showWelcomeGuide: showWelcomeGuide, exportDiagnostics: exportDiagnostics,
+                    previewClipboard: previewClipboard, cancelClipboardPreview: cancelClipboardPreview,
+                    appearance: appearance, updateChecker: updateChecker, search: settingsSearch,
+                    developerMode: developerMode, selectedPage: initialPage)
+            )
+            window = NSWindow(contentViewController: hosting)
+            // SwiftUI sizing is lazy: without this the window materializes
+            // at 1×32 points and is effectively invisible.
+            window.setContentSize(hosting.view.fittingSize)
+            window.styleMask.remove([.resizable, .miniaturizable])
+            SettingsWindowConfiguration.apply(to: window)
+            settingsSearchToolbar = SettingsSearchToolbar(
+                window: window, search: settingsSearch, appearance: appearance, canFocus: canFocusSearch)
+        }
+        window.appearance = appearance.settingsAppearance.nsAppearance
+        window.title = localized("WhiskyMac Settings")
+        window.isReleasedWhenClosed = false
+        return window
+    }
+
     private func showSettings(destination requested: SettingsDestination?) {
         let destination = requested.flatMap {
             $0.resolvedSection(isProtected: privacy.isProtected, showsDeveloperTools: developerMode.showsTools) != nil
                 ? $0 : nil
         }
         if settingsWindow == nil {
-            let hosting = NSHostingController(
-                rootView: SettingsView(
-                    store: keyBindings, general: generalSettings, loginItem: loginItem,
-                    vimBindings: vimKeymap, privacy: privacy,
-                    clearHistory: { [weak self] in self?.clipboard?.clear() },
-                    showWelcomeGuide: { [weak self] in
-                        guard let self, self.developerMode.showsTools else { return }
-                        self.showOnboarding(fromBeginning: true)
-                    },
-                    exportDiagnostics: { [weak self] in try await self?.exportDiagnostics() },
-                    previewClipboard: { [weak self] side, scale in
-                        self?.panelController?.previewSize(cardSide: side, tagScale: scale)
-                    },
-                    cancelClipboardPreview: { [weak self] in self?.panelController?.cancelSizePreview() },
-                    appearance: appearance, updateChecker: updateChecker, search: settingsSearch,
-                    developerMode: developerMode,
-                    selectedPage: destination?.page ?? .general)
-            )
-            let window = NSWindow(contentViewController: hosting)
-            // SwiftUI sizing is lazy: without this the window materializes
-            // at 1×32 points and is effectively invisible.
-            window.setContentSize(hosting.view.fittingSize)
-            window.styleMask.remove([.resizable, .miniaturizable])
-            SettingsWindowConfiguration.apply(to: window)
-            window.appearance = appearance.settingsAppearance.nsAppearance
-            settingsSearchToolbar = SettingsSearchToolbar(
-                window: window, search: settingsSearch, appearance: appearance
-            ) { [weak self] in
-                self?.keyBindings.recordingAction == nil
-            }
-            window.title = localized("WhiskyMac Settings")
-            window.isReleasedWhenClosed = false
-            settingsWindow = window
+            settingsWindow = makeSettingsWindow(initialPage: destination?.page ?? .general)
         }
-        if let window = settingsWindow, let screen = window.screen ?? NSScreen.main {
+        if let window = settingsWindow {
             let chrome = window.frame.height - window.contentRect(forFrameRect: window.frame).height
+            let visibleHeight =
+                (window.screen ?? NSScreen.main)?.visibleFrame.height
+                ?? (SettingsWindowSize.height + chrome + 2 * SettingsWindowSize.margin)
             window.setContentSize(
-                SettingsWindowSize.content(visibleHeight: screen.visibleFrame.height, chromeHeight: chrome))
+                SettingsWindowSize.content(visibleHeight: visibleHeight, chromeHeight: chrome))
         }
         settingsWindow?.center()
         if appearance.dockIcon != .never { NSApp.setActivationPolicy(.regular) }

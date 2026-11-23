@@ -23,6 +23,7 @@ struct SettingsSearchContext: Equatable {
     var automaticProtection = false
     var vimEnabled = false
     var showsDeveloperTools = AppBuildInfo.current.channel == .debug
+    var showsPinnedWindowLayout = true
 }
 
 struct SettingsSearchEntry: Identifiable {
@@ -109,7 +110,9 @@ struct SettingsSearchIndex {
                 SettingsSearchEntry(id: id, section: section, title: title, keywords: keywords, anchor: anchor))
         }
         add("pinnedPresentation", .pinnedItems, settingsSearchText("Pinned items presentation"))
-        add("pinnedWindowStyle", .pinnedItems, settingsSearchText("Pinned window layout"))
+        add(
+            "pinnedWindowStyle", .pinnedItems, settingsSearchText("Pinned window layout"),
+            anchor: context.showsPinnedWindowLayout ? nil : "pinnedPresentation")
         add("launch", .startup, settingsSearchText("Launch WhiskyMac at login"))
         add(
             "lightweightMode", .startup, settingsSearchText("Lightweight mode"),

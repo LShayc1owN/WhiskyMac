@@ -71,11 +71,17 @@ live in the commit history.
   including when the preview is reopened while the actions are visible.
 
 ### Changed
+- Clipboard search and history hiding on macOS 26 and later use native glass
+  controls with the same search and hiding options as on macOS 15.
+- Clipboard history cards on macOS 26 and later use a new content surface,
+  selection outline, and a Liquid Glass actions button.
+- Settings on macOS 26 and later uses a floating Liquid Glass tab bar or the
+  native glass sidebar, with a system window background and toolbar search.
 - App filters start collapsed and follow the apps on currently visible cards,
   keeping active filters accessible; More apps expands the full list. Content
   types stay visible, and reopening the panel returns filters to the leading edge.
-- Use the same frosted surfaces and controls on all supported macOS versions;
-  remove the macOS 26 Liquid Glass treatment and its dedicated transitions.
+- The clipboard panel backdrop uses the same frosted appearance
+  across supported macOS versions.
 - Copy sounds use short-lived AudioToolbox queues instead of NSSound, keeping
   volume control and disposing playback resources after completion.
 - Privacy hover reveal defaults to a 150-point diameter and 50-point soft edge.
@@ -89,8 +95,8 @@ live in the commit history.
 - Settings group related controls, explain each page, separate global and panel
   shortcuts, and confirm before resetting keyboard bindings. Privacy details
   expand on demand, and hover timing appears only when preview is enabled.
-- Settings use frosted surfaces with animated navigation, page changes and
-  expandable options on all supported macOS versions. Reduced motion,
+- Settings on macOS 15 uses frosted surfaces with animated navigation, page
+  changes and expandable options. Reduced motion,
   reduced transparency and increased contrast follow system preferences.
 
 ## [1.0.3] - 2026-10-21
