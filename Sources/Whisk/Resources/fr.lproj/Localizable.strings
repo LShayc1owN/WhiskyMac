@@ -110,8 +110,6 @@
 	<string>Décodé depuis base64</string>
 	<key>Base64-encoded</key>
 	<string>Encodé en base64</string>
-	<key>Based on Whisk. Includes Kenney UI Audio, SFX Kit and the Neovim icon.</key>
-	<string>Basé sur Whisk. Inclut Kenney UI Audio, SFX Kit et l’icône Neovim.</string>
 	<key>Beta and Release</key>
 	<string>Bêtas et versions stables</string>
 	<key>Beta only</key>
@@ -200,6 +198,8 @@
 	<string>Confirmer</string>
 	<key>Confirm removal of older history before saving.</key>
 	<string>Confirmez la suppression des anciens éléments avant d’enregistrer.</string>
+	<key>Containing</key>
+	<string>N’importe où dans le texte</string>
 	<key>Content always hidden</key>
 	<string>Contenu toujours masqué</string>
 	<key>Content hidden by Privacy Mode</key>
@@ -254,6 +254,8 @@
 	<string>Supprimer la sélection</string>
 	<key>Dependencies and credits</key>
 	<string>Dépendances et crédits</string>
+	<key>Deselect all</key>
+	<string>Tout désélectionner</string>
 	<key>Detection coverage</key>
 	<string>Portée et limites de la détection</string>
 	<key>Detection is uncertain. Content is hidden as a precaution.</key>
@@ -300,6 +302,8 @@
 	<string>Activer le raccourci de l’historique</string>
 	<key>Enable this global shortcut</key>
 	<string>Activer ce raccourci global</string>
+	<key>Ending With</key>
+	<string>En fin de texte</string>
 	<key>Enter 1–1440 minutes. Shortening the limit also applies to existing sensitive copies; increasing it only affects new copies.</key>
 	<string>Saisissez de 1 à 1440 minutes. Réduire la durée s’applique aussi aux copies sensibles existantes ; l’augmenter ne concerne que les nouvelles copies.</string>
 	<key>Enumeration comma (、)</key>
@@ -356,6 +360,8 @@
 	<string>Format %lld</string>
 	<key>Formatted JSON</key>
 	<string>JSON formaté</string>
+	<key>Fuzzy Match</key>
+	<string>Correspondance approximative</string>
 	<key>GNU General Public License</key>
 	<string>Licence publique générale GNU</string>
 	<key>General</key>
@@ -502,6 +508,8 @@ Une bonne idée.
 	<string>Mode confidentialité manuel</string>
 	<key>Manual privacy: hover to reveal a small area</key>
 	<string>Confidentialité manuelle : survolez pour révéler une petite zone</string>
+	<key>Matching Word</key>
+	<string>Mot entier</string>
 	<key>Menu bar and Dock</key>
 	<string>Barre des menus et Dock</string>
 	<key>Menu bar icon click</key>
@@ -810,8 +818,6 @@ Une bonne idée.
 	<string>Confidentialité à l’écran</string>
 	<key>Screen sharing</key>
 	<string>Partage d’écran</string>
-	<key>Search</key>
-	<string>Rechercher</string>
 	<key>Search SF Symbols by name</key>
 	<string>Rechercher des symboles SF par nom</string>
 	<key>Search and filter</key>
@@ -820,6 +826,8 @@ Une bonne idée.
 	<string>Rechercher dans l’historique</string>
 	<key>Search match</key>
 	<string>Résultat correspondant</string>
+	<key>Search match mode</key>
+	<string>Mode de recherche</string>
 	<key>Search mode</key>
 	<string>Mode recherche</string>
 	<key>Search pinned items</key>
@@ -944,6 +952,8 @@ Une bonne idée.
 	<string>Recommencer</string>
 	<key>Start setup</key>
 	<string>Commencer la configuration</string>
+	<key>Starting With</key>
+	<string>En début de texte</string>
 	<key>Startup and loading</key>
 	<string>Démarrage et chargement</string>
 	<key>Step %lld of %lld: %@</key>
@@ -1112,6 +1122,8 @@ Une bonne idée.
 	<string>Guide de bienvenue</string>
 	<key>Where are settings and my pinned items?</key>
 	<string>Où sont les réglages et les éléments épinglés ?</string>
+	<key>Whisk is the upstream project for WhiskyMac.</key>
+	<string>Whisk est le projet sur lequel repose WhiskyMac.</string>
 	<key>WhiskyMac Settings</key>
 	<string>Réglages de WhiskyMac</string>
 	<key>WhiskyMac exception</key>
@@ -1136,6 +1148,8 @@ Une bonne idée.
 	<string>L’exemple collé apparaît ici.</string>
 	<key>You’re up to date.</key>
 	<string>Vous êtes à jour.</string>
+	<key>adds soft clicks, taps, snaps, and bubbles to the copy sound options.</key>
+	<string>ajoute aux sons de copie des clics doux, des tapotements, des claquements et des sons de bulles.</string>
 	<key>clear history delete history empty history</key>
 	<string>effacer historique supprimer historique vider historique</string>
 	<key>code</key>
@@ -1150,6 +1164,8 @@ Une bonne idée.
 	<string>global</string>
 	<key>image</key>
 	<string>image</string>
+	<key>is the source of the code category icon in the original Whisk.</key>
+	<string>est le projet dont le logo servait d’icône à la catégorie « Code » dans la version originale de Whisk.</string>
 	<key>key %lld</key>
 	<string>touche %lld</string>
 	<key>link</key>
@@ -1160,6 +1176,8 @@ Une bonne idée.
 	<string>maintenant</string>
 	<key>path</key>
 	<string>chemin de fichier</string>
+	<key>provides click and switch sounds for clipboard copy feedback.</key>
+	<string>fournit des sons de clic et d’interrupteur pour signaler une copie.</string>
 	<key>pt</key>
 	<string>pt</string>
 	<key>sidebar tabs navigation</key>

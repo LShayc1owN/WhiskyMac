@@ -21,9 +21,10 @@ swift test
 
 Edit `Sources/Whisk/Resources/Localizable.xcstrings` for translations, then run
 `./scripts/localizations.sh generate`. Commit the catalog and generated language
-resources together. The interface supports English, French, German, Italian and
-Simplified Chinese. Custom symbol sources are in `Assets/Symbols`; compile them
-with `bash scripts/build-symbols.sh` when changing the artwork.
+resources together. The interface supports English, French, German, Italian,
+Simplified Chinese, Traditional Chinese, and Japanese. Custom symbol sources are
+in `Assets/Symbols`; compile them with `bash scripts/build-symbols.sh` when changing
+the artwork.
 
 When a package is needed, run `./scripts/build-app.sh <version> native` (or
 `universal`). Set `WHISK_PACKAGE_SUBDIR` to an explicit child name to avoid

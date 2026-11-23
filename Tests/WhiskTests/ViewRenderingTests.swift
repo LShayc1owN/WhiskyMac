@@ -381,53 +381,9 @@ private func pump(_ hosting: NSView) {
     hosting.displayIfNeeded()
 }
 
-/// A view drawn off screen and read back pixel by pixel: the one measure
-/// of a SwiftUI layout that needs no window and no AppKit view — a
-/// headless runner draws the glass tints and strokes like any other shape.
 @MainActor
-private struct Pixels {
-    let width: Int
-    let height: Int
-    private let rgba: [UInt8]
-
-    init?<V: View>(_ view: V, _ width: Int, _ height: Int) {
-        let renderer = ImageRenderer(content: view)
-        renderer.proposedSize = ProposedViewSize(width: CGFloat(width), height: CGFloat(height))
-        renderer.scale = 1
-        guard let image = renderer.cgImage else { return nil }
-        var buffer = [UInt8](repeating: 0, count: width * height * 4)
-        let drawn = buffer.withUnsafeMutableBytes { raw -> Bool in
-            guard
-                let context = CGContext(
-                    data: raw.baseAddress, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4,
-                    space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
-            else { return false }
-            context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
-            return true
-        }
-        guard drawn else { return nil }
-        self.width = width
-        self.height = height
-        rgba = buffer
-    }
-
-    /// The horizontal span of the widest row that has anything drawn on
-    /// it, in points from the left edge.
-    var widestDrawnSpan: ClosedRange<Int>? {
-        var widest: ClosedRange<Int>?
-        for y in 0..<height {
-            var first: Int?
-            var last = 0
-            for x in 0..<width where rgba[(y * width + x) * 4 + 3] > 0 {
-                if first == nil { first = x }
-                last = x
-            }
-            if let first, widest.map({ last - first > $0.count - 1 }) ?? true {
-                widest = first...last
-            }
-        }
-        return widest
-    }
+private func collectBackdrops(_ view: NSView) -> [BackdropView] {
+    (view as? BackdropView).map { [$0] } ?? view.subviews.flatMap(collectBackdrops)
 }
 
 /// SwiftUI backs its ScrollView with an NSScrollView on macOS.
@@ -509,31 +465,34 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
         store.endEditing()
     }
 
-    /// An ultra-wide monitor: the rail may run edge to edge, but a text
-    /// editor or an empty-state slab 3400 points wide is unreadable. With
-    /// the rail gone, the widest thing drawn on any row is the editor's
-    /// glass, or the slab's; both must sit inside a centered column.
+    /// The editor and empty state each sit in a bounded, centered column.
     @Test func on_an_ultra_wide_screen_the_editor_and_the_empty_state_keep_a_readable_width() throws {
         let store = HistoryViewStateStore()
         let items = ViewFixtures.items()
         store.update(
             HistoryPresenter().present(items: items, query: "", now: ViewFixtures.now, selectedID: items[0].id))
+        func contentBackdrop() throws -> NSRect {
+            let window = hostOffscreen(panel(store), 3440, 430)
+            defer { window.close() }
+            let host = try #require(window.contentView)
+            pump(host)
+            let backdrop = try #require(collectBackdrops(host).first { $0.cornerRadius != nil })
+            return backdrop.convert(backdrop.bounds, to: host)
+        }
         store.beginEditing(store.state.cards[0])
-        let editing = try #require(Pixels(panel(store), 3440, 430))
+        let editor = try contentBackdrop()
         store.endEditing()
-        let editor = try #require(editing.widestDrawnSpan)
 
-        #expect(editor.count > 600)
-        #expect(editor.count <= Int(HistoryPanelView.editorMaxWidth))
-        #expect(within(2, CGFloat(editor.lowerBound + editor.upperBound) / 2, 1720))
+        #expect(editor.width > 600)
+        #expect(editor.width <= HistoryPanelView.editorMaxWidth)
+        #expect(within(2, editor.midX, 1720))
 
         store.update(HistoryPresenter().present(items: [], query: "zzz", now: ViewFixtures.now))
-        let empty = try #require(Pixels(panel(store), 3440, 430))
-        let slab = try #require(empty.widestDrawnSpan)
+        let slab = try contentBackdrop()
 
-        #expect(slab.count > 300)
-        #expect(slab.count <= Int(HistoryPanelView.emptyStateMaxWidth))
-        #expect(within(2, CGFloat(slab.lowerBound + slab.upperBound) / 2, 1720))
+        #expect(slab.width > 300)
+        #expect(slab.width <= HistoryPanelView.emptyStateMaxWidth)
+        #expect(within(2, slab.midX, 1720))
     }
 
     @Test func the_editor_renders_for_text_code_and_link_cards_blank_or_not() {
@@ -633,9 +592,6 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
         #expect(veil.contentView != nil)
         let host = try #require(material.contentView)
         pump(host)
-        func collectBackdrops(_ view: NSView) -> [BackdropView] {
-            (view as? BackdropView).map { [$0] } ?? view.subviews.flatMap(collectBackdrops)
-        }
         let backdrops = collectBackdrops(host)
         #expect(backdrops.count == 2)
         #expect(Set(backdrops.map(\.material)) == [.hudWindow, .underWindowBackground])

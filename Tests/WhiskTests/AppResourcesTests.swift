@@ -16,7 +16,7 @@ import Testing
         #expect(image.size.width > 0 && image.size.height > 0)
     }
 
-    @Test(arguments: ["en", "fr", "de", "it", "zh-Hans", "zh-Hant"])
+    @Test(arguments: ["en", "fr", "de", "it", "zh-Hans", "zh-Hant", "ja"])
     func localization_loads_from_a_relocated_app_contents_resources_directory(language: String) throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("whisky-resource-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: root) }
@@ -40,6 +40,7 @@ import Testing
             "en": ["Copy", "1 item"], "fr": ["Copier", "1 élément"],
             "de": ["Kopieren", "1 Eintrag"], "it": ["Copia", "1 elemento"],
             "zh-Hans": ["拷贝", "1 项"], "zh-Hant": ["拷貝", "1 項"],
+            "ja": ["コピー", "1件"],
         ]
         #expect(localized("Copy", bundle: translation) == expected[language]?[0])
         #expect(localized("\(1) items", bundle: translation) == expected[language]?[1])
@@ -51,7 +52,7 @@ import Testing
 
     @Test func the_runtime_resolver_finds_the_catalogs_without_a_build_path() throws {
         #expect(AppResources.bundle.bundleURL.lastPathComponent == AppResources.name)
-        for language in ["en", "fr", "de", "it", "zh-Hans", "zh-Hant"] {
+        for language in ["en", "fr", "de", "it", "zh-Hans", "zh-Hant", "ja"] {
             #expect(
                 AppResources.bundle.url(
                     forResource: "Localizable", withExtension: "strings", subdirectory: nil, localization: language)

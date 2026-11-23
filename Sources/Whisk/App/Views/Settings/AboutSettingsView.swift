@@ -57,8 +57,17 @@ struct AboutSettingsView: View {
             }
             .settingsSearchAnchor("repositories")
             group(localized("Dependencies and credits")) {
-                Text(dependencyCredits)
+                Text(upstreamCredit)
                     .fixedSize(horizontal: false, vertical: true)
+                repositoryCredit(
+                    "Kenney UI Audio", repository: "Calinou/kenney-ui-audio",
+                    purpose: localized("provides click and switch sounds for clipboard copy feedback."))
+                repositoryCredit(
+                    "SFX Kit", repository: "wyzowl/sfx-kit",
+                    purpose: localized("adds soft clicks, taps, snaps, and bubbles to the copy sound options."))
+                repositoryCredit(
+                    "Neovim", repository: "neovim/neovim",
+                    purpose: localized("is the source of the code category icon in the original Whisk."))
             }
             .settingsSearchAnchor("dependencies")
             group(localized("Translation contributors")) {
@@ -271,26 +280,16 @@ struct AboutSettingsView: View {
         }
     }
 
-    /// Keep the translated sentence's word order and let native text wrap its links.
-    private var dependencyCredits: AttributedString {
-        var text = AttributedString(
-            localized("Based on Whisk. Includes Kenney UI Audio, SFX Kit and the Neovim icon."))
-        let destinations: [(String, URL)] = [
-            ("Whisk", upstreamURL),
-            ("Kenney UI Audio", URL(string: "https://kenney.nl/assets/ui-audio")!),
-            ("SFX Kit", URL(string: "https://github.com/wyzowl/sfx-kit")!),
-            ("Neovim", URL(string: "https://store.neovim.io/products/neovim-sticker-logo-only")!),
-        ]
-        for (name, url) in destinations {
-            guard let range = text.range(of: name) else { continue }
-            var link = AttributedString(name)
-            link.link = url
-            var arrow = AttributedString(" ↗")
-            arrow.link = url
-            arrow.font = .caption2.weight(.semibold)
-            link.append(arrow)
-            text.replaceSubrange(range, with: link)
-        }
+    private var upstreamCredit: AttributedString {
+        var text = AttributedString(localized("Whisk is the upstream project for WhiskyMac."))
+        guard let range = text.range(of: "Whisk") else { return text }
+        var link = AttributedString("Whisk")
+        link.link = upstreamURL
+        var arrow = AttributedString(" ↗")
+        arrow.link = upstreamURL
+        arrow.font = .caption2.weight(.semibold)
+        link.append(arrow)
+        text.replaceSubrange(range, with: link)
         return text
     }
 
@@ -329,6 +328,15 @@ struct AboutSettingsView: View {
 
     private func githubLink(_ title: String, destination: URL) -> some View {
         ExternalHomepageLink(title: title, destination: destination)
+    }
+
+    private func repositoryCredit(_ title: String, repository: String, purpose: String) -> some View {
+        HStack(alignment: .center, spacing: 4) {
+            githubLink(title, destination: URL(string: "https://github.com/\(repository)")!)
+            Text(purpose)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
 
     private func inlineWebsiteLink(_ title: String, destination: URL) -> some View {

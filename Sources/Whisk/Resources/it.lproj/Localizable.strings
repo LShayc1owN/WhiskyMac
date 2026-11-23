@@ -110,8 +110,6 @@
 	<string>Decodificato da Base64</string>
 	<key>Base64-encoded</key>
 	<string>Codificato in Base64</string>
-	<key>Based on Whisk. Includes Kenney UI Audio, SFX Kit and the Neovim icon.</key>
-	<string>Basato su Whisk. Include Kenney UI Audio, SFX Kit e l’icona di Neovim.</string>
 	<key>Beta and Release</key>
 	<string>Beta e versioni stabili</string>
 	<key>Beta only</key>
@@ -200,6 +198,8 @@
 	<string>Conferma</string>
 	<key>Confirm removal of older history before saving.</key>
 	<string>Conferma la rimozione della cronologia meno recente prima di salvare.</string>
+	<key>Containing</key>
+	<string>In qualsiasi punto del testo</string>
 	<key>Content always hidden</key>
 	<string>Contenuto sempre nascosto</string>
 	<key>Content hidden by Privacy Mode</key>
@@ -254,6 +254,8 @@
 	<string>Elimina la selezione</string>
 	<key>Dependencies and credits</key>
 	<string>Dipendenze e riconoscimenti</string>
+	<key>Deselect all</key>
+	<string>Deseleziona tutto</string>
 	<key>Detection coverage</key>
 	<string>Cosa può rilevare</string>
 	<key>Detection is uncertain. Content is hidden as a precaution.</key>
@@ -300,6 +302,8 @@
 	<string>Attiva abbreviazione della cronologia</string>
 	<key>Enable this global shortcut</key>
 	<string>Abilita questa abbreviazione globale</string>
+	<key>Ending With</key>
+	<string>Alla fine del testo</string>
 	<key>Enter 1–1440 minutes. Shortening the limit also applies to existing sensitive copies; increasing it only affects new copies.</key>
 	<string>Inserisci da 1 a 1440 minuti. Un limite più breve vale anche per gli elementi esistenti. Un limite più lungo vale solo per i nuovi elementi.</string>
 	<key>Enumeration comma (、)</key>
@@ -356,6 +360,8 @@
 	<string>Formato %lld</string>
 	<key>Formatted JSON</key>
 	<string>JSON formattato</string>
+	<key>Fuzzy Match</key>
+	<string>Corrispondenza approssimativa</string>
 	<key>GNU General Public License</key>
 	<string>Licenza pubblica generale GNU</string>
 	<key>General</key>
@@ -502,6 +508,8 @@ Pronta quando serve.</string>
 	<string>Modalità privacy manuale</string>
 	<key>Manual privacy: hover to reveal a small area</key>
 	<string>Privacy manuale: passa il puntatore per rivelare una piccola area</string>
+	<key>Matching Word</key>
+	<string>Parola intera</string>
 	<key>Menu bar and Dock</key>
 	<string>Barra dei menu e Dock</string>
 	<key>Menu bar icon click</key>
@@ -810,8 +818,6 @@ Pronta quando serve.</string>
 	<string>Privacy dello schermo</string>
 	<key>Screen sharing</key>
 	<string>Condivisione dello schermo</string>
-	<key>Search</key>
-	<string>Cerca</string>
 	<key>Search SF Symbols by name</key>
 	<string>Cerca i simboli SF per nome</string>
 	<key>Search and filter</key>
@@ -820,6 +826,8 @@ Pronta quando serve.</string>
 	<string>Cerca nella cronologia degli appunti</string>
 	<key>Search match</key>
 	<string>Corrispondenza di ricerca</string>
+	<key>Search match mode</key>
+	<string>Modalità di ricerca</string>
 	<key>Search mode</key>
 	<string>Modalità ricerca</string>
 	<key>Search pinned items</key>
@@ -944,6 +952,8 @@ Pronta quando serve.</string>
 	<string>Ricomincia</string>
 	<key>Start setup</key>
 	<string>Inizia la configurazione</string>
+	<key>Starting With</key>
+	<string>All’inizio del testo</string>
 	<key>Startup and loading</key>
 	<string>Avvio e caricamento</string>
 	<key>Step %lld of %lld: %@</key>
@@ -1112,6 +1122,8 @@ Pronta quando serve.</string>
 	<string>Guida di benvenuto</string>
 	<key>Where are settings and my pinned items?</key>
 	<string>Dove sono le impostazioni e gli elementi fissati?</string>
+	<key>Whisk is the upstream project for WhiskyMac.</key>
+	<string>Whisk è il progetto su cui si basa WhiskyMac.</string>
 	<key>WhiskyMac Settings</key>
 	<string>Impostazioni di WhiskyMac</string>
 	<key>WhiskyMac exception</key>
@@ -1136,6 +1148,8 @@ Pronta quando serve.</string>
 	<string>L’esempio incollato appare qui.</string>
 	<key>You’re up to date.</key>
 	<string>WhiskyMac è aggiornato.</string>
+	<key>adds soft clicks, taps, snaps, and bubbles to the copy sound options.</key>
+	<string>aggiunge clic delicati, tocchi, schiocchi e bolle ai suoni di copia.</string>
 	<key>clear history delete history empty history</key>
 	<string>cancella cronologia elimina cronologia svuota cronologia</string>
 	<key>code</key>
@@ -1150,6 +1164,8 @@ Pronta quando serve.</string>
 	<string>globale</string>
 	<key>image</key>
 	<string>immagine</string>
+	<key>is the source of the code category icon in the original Whisk.</key>
+	<string>è il progetto il cui logo era usato come icona della categoria Codice nella versione originale di Whisk.</string>
 	<key>key %lld</key>
 	<string>tasto %lld</string>
 	<key>link</key>
@@ -1160,6 +1176,8 @@ Pronta quando serve.</string>
 	<string>ora</string>
 	<key>path</key>
 	<string>percorso file</string>
+	<key>provides click and switch sounds for clipboard copy feedback.</key>
+	<string>fornisce suoni di clic e di interruttore come conferma della copia.</string>
 	<key>pt</key>
 	<string>pt</string>
 	<key>sidebar tabs navigation</key>

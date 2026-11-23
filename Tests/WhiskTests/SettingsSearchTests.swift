@@ -59,6 +59,7 @@ struct SettingsSearchTests {
             ("zh-Hant", "輕量模式", "lightweightMode"),
             ("zh-Hant", "設定頁面配置", "navigation"), ("zh-Hant", "音量", "volume"),
             ("de", "GROSSE", "cardSize"), ("it", "volume", "volume"),
+            ("ja", "カードサイズ", "cardSize"), ("ja", "軽量モード", "lightweightMode"),
         ] {
             AppLocalization.language = language
             let results = SettingsSearchIndex.matches(query, context: context)
@@ -159,7 +160,7 @@ struct SettingsSearchTests {
         window.orderFront(nil)
         defer { window.close(); withExtendedLifetime(toolbar) {} }
 
-        for language in ["zh-Hans", "zh-Hant", "en", "fr", "de", "it"] {
+        for language in ["zh-Hans", "zh-Hant", "en", "fr", "de", "it", "ja"] {
             AppLocalization.language = language
             search.refresh(context: SettingsSearchContext())
             search.query = "shortcuts"

@@ -1,6 +1,288 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Search match mode": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search match mode"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索匹配方式"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜尋比對方式"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mode de recherche"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suchmodus"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modalità di ricerca"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "検索の一致条件"
+          }
+        }
+      }
+    },
+    "Fuzzy Match": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fuzzy Match"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模糊匹配"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模糊比對"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correspondance approximative"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unscharfe Suche"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Corrispondenza approssimativa"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "あいまい一致"
+          }
+        }
+      }
+    },
+    "Containing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anywhere in the text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "被包含"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "被包含"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "N’importe où dans le texte"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An beliebiger Stelle"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In qualsiasi punto del testo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置を問わず一致"
+          }
+        }
+      }
+    },
+    "Matching Word": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Matching Word"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "整词匹配"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完整單詞"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mot entier"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ganzes Wort"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parola intera"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "単語単位で一致"
+          }
+        }
+      }
+    },
+    "Starting With": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "At the start"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为开头"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "為開頭"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En début de texte"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Am Textanfang"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All’inizio del testo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先頭に一致"
+          }
+        }
+      }
+    },
+    "Ending With": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "At the end"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为结尾"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "為結尾"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En fin de texte"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Am Textende"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alla fine del testo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "末尾に一致"
+          }
+        }
+      }
+    },
     "Update channel": {
       "extractionState": "manual",
       "localizations": {
@@ -38,6 +320,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Canale di aggiornamento"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アップデートチャンネル"
           }
         }
       }
@@ -80,6 +368,12 @@
             "state": "translated",
             "value": "Solo versioni stabili"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Releaseのみ"
+          }
         }
       }
     },
@@ -120,6 +414,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Solo beta"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Betaのみ"
           }
         }
       }
@@ -162,6 +462,12 @@
             "state": "translated",
             "value": "Beta e versioni stabili"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BetaとRelease"
+          }
         }
       }
     },
@@ -202,6 +508,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nessuna versione è disponibile in questo canale."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このアップデートチャンネルに利用可能なバージョンはありません。"
           }
         }
       }
@@ -244,6 +556,12 @@
             "state": "translated",
             "value": "La beta installata è più recente dell’ultima versione stabile. Potrai aggiornare quando uscirà una versione stabile più recente."
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "お使いのBetaは最新のReleaseより新しいバージョンです。次のReleaseをお待ちください。"
+          }
         }
       }
     },
@@ -284,6 +602,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Attiva modalità sviluppatore"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デベロッパモードをオンにする"
           }
         }
       }
@@ -326,6 +650,12 @@
             "state": "translated",
             "value": "Disattiva modalità sviluppatore"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デベロッパモードをオフにする"
+          }
         }
       }
     },
@@ -366,6 +696,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Esporta log…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ログを書き出す…"
           }
         }
       }
@@ -408,6 +744,12 @@
             "state": "translated",
             "value": "Impossibile esportare i log"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ログを書き出せませんでした"
+          }
         }
       }
     },
@@ -449,6 +791,12 @@
             "state": "translated",
             "value": "Scegli una posizione scrivibile e riprova."
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "書き込み可能な場所を選んで、もう一度書き出してください。"
+          }
         }
       }
     },
@@ -486,6 +834,12 @@
           }
         },
         "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        },
+        "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "OK"
@@ -531,6 +885,12 @@
             "state": "translated",
             "value": "已收起"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "折りたたみ済み"
+          }
         }
       }
     },
@@ -571,6 +931,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "已展開"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "展開済み"
           }
         }
       }
@@ -613,6 +979,12 @@
             "state": "translated",
             "value": "收合 App"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アプリの表示を減らす"
+          }
         }
       }
     },
@@ -653,6 +1025,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "更多 App"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "さらにアプリを表示"
           }
         }
       }
@@ -695,6 +1073,12 @@
             "state": "translated",
             "value": "查看個人連結"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プロフィールのリンクを表示"
+          }
         }
       }
     },
@@ -735,6 +1119,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "分割選項"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分割オプション"
           }
         }
       }
@@ -777,6 +1167,12 @@
             "state": "translated",
             "value": "卡片組"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カードグループ"
+          }
         }
       }
     },
@@ -817,6 +1213,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "聲音與效果"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サウンドとエフェクト"
           }
         }
       }
@@ -859,6 +1261,12 @@
             "state": "translated",
             "value": "回復預設值"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デフォルトに戻す"
+          }
         }
       }
     },
@@ -899,6 +1307,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Lin Shay 的 GitHub"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHubでLin Shayを見る"
           }
         }
       }
@@ -941,6 +1355,12 @@
             "state": "translated",
             "value": "謝謝你來看看！希望你喜歡我的作品，也祝你事事順心。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ご覧いただきありがとうございます。WhiskyMacを気に入っていただけたら嬉しいです。"
+          }
         }
       }
     },
@@ -981,6 +1401,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "側邊欄寬度"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サイドバーの幅"
           }
         }
       }
@@ -1023,6 +1449,12 @@
             "state": "translated",
             "value": "關於"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このアプリについて"
+          }
         }
       }
     },
@@ -1063,6 +1495,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "關於此 App"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WhiskyMacについて"
           }
         }
       }
@@ -1105,6 +1543,12 @@
             "state": "translated",
             "value": "關於開發者"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開発者について"
+          }
         }
       }
     },
@@ -1145,6 +1589,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "LinShay（琳曦）獨立維護 WhiskyMac，希望讓 macOS 上的剪貼板使用更順手。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LinShay（琳曦）は、macOS向けのクリップボード履歴アプリ「WhiskyMac」を個人でメンテナンスしています。"
           }
         }
       }
@@ -1187,6 +1637,12 @@
             "state": "translated",
             "value": "版本與介紹"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "バージョンと概要"
+          }
         }
       }
     },
@@ -1227,6 +1683,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "版本"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "バージョン"
           }
         }
       }
@@ -1269,6 +1731,12 @@
             "state": "translated",
             "value": "檢查更新"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アップデートを確認"
+          }
         }
       }
     },
@@ -1309,6 +1777,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "原始碼儲存庫"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ソースコード"
           }
         }
       }
@@ -1351,6 +1825,12 @@
             "state": "translated",
             "value": "WhiskyMac 的 GitHub 儲存庫"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHubでWhiskyMacを見る"
+          }
         }
       }
     },
@@ -1391,6 +1871,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "原版 Whisk 的 GitHub 儲存庫"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHubで元のWhiskを見る"
           }
         }
       }
@@ -1433,6 +1919,12 @@
             "state": "translated",
             "value": "相依項目與致謝"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用ライブラリとクレジット"
+          }
         }
       }
     },
@@ -1473,6 +1965,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "翻譯貢獻者"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "翻訳協力"
           }
         }
       }
@@ -1515,6 +2013,12 @@
             "state": "translated",
             "value": "意見回饋"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フィードバック"
+          }
         }
       }
     },
@@ -1555,6 +2059,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "在 GitHub 回報問題"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHubで不具合を報告"
           }
         }
       }
@@ -1597,6 +2107,12 @@
             "state": "translated",
             "value": "支援開發"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WhiskyMacを支援"
+          }
         }
       }
     },
@@ -1637,6 +2153,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "返回最新項目"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最新の項目へ移動"
           }
         }
       }
@@ -1679,6 +2201,12 @@
             "state": "translated",
             "value": "授權條款與聲明"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ライセンスと通知"
+          }
         }
       }
     },
@@ -1719,6 +2247,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "查看 WhiskyMac 隨附的授權條款與聲明。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WhiskyMacに同梱されているライセンスと通知を確認できます。"
           }
         }
       }
@@ -1761,6 +2295,12 @@
             "state": "translated",
             "value": "檔案"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文書"
+          }
         }
       }
     },
@@ -1801,6 +2341,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "開啟原始檔案"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原文ファイルを開く"
           }
         }
       }
@@ -1843,6 +2389,12 @@
             "state": "translated",
             "value": "在 Finder 中顯示"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finderに表示"
+          }
         }
       }
     },
@@ -1883,6 +2435,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "無法讀取許可檔案。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原文ファイルを読み込めませんでした。"
           }
         }
       }
@@ -1925,6 +2483,12 @@
             "state": "translated",
             "value": "GNU 通用公共授權條款"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GNU一般公衆利用許諾書"
+          }
         }
       }
     },
@@ -1965,6 +2529,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "專案聲明"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プロジェクトに関する通知"
           }
         }
       }
@@ -2007,6 +2577,12 @@
             "state": "translated",
             "value": "第三方聲明"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サードパーティに関する通知"
+          }
         }
       }
     },
@@ -2047,6 +2623,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "App Store 例外授權"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App Store向けの追加許諾"
           }
         }
       }
@@ -2089,6 +2671,12 @@
             "state": "translated",
             "value": "WhiskyMac 例外授權"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WhiskyMacの追加許諾"
+          }
         }
       }
     },
@@ -2129,6 +2717,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kenney UI Audio 授權條款"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kenney UI Audioのライセンス"
           }
         }
       }
@@ -2171,6 +2765,12 @@
             "state": "translated",
             "value": "Kenney UI Audio 來源"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kenney UI Audioの入手元"
+          }
         }
       }
     },
@@ -2211,6 +2811,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "完成"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完了"
           }
         }
       }
@@ -2253,6 +2859,12 @@
             "state": "translated",
             "value": "預設模式圖示"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通常モードのアイコン"
+          }
         }
       }
     },
@@ -2293,6 +2905,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "隱私模式圖示"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プライバシーモードのアイコン"
           }
         }
       }
@@ -2335,6 +2953,12 @@
             "state": "translated",
             "value": "選單列圖示"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メニューバーアイコン"
+          }
         }
       }
     },
@@ -2375,6 +2999,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "依名稱搜尋 SF Symbols"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SF Symbolsを名前で検索"
           }
         }
       }
@@ -2417,6 +3047,12 @@
             "state": "translated",
             "value": "找不到符合的符號"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一致するシンボルがありません"
+          }
         }
       }
     },
@@ -2457,6 +3093,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "授權條款與聲明…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ライセンスと通知…"
           }
         }
       }
@@ -2499,6 +3141,12 @@
             "state": "translated",
             "value": "%@，App 篩選"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@、アプリフィルタ"
+          }
         }
       }
     },
@@ -2539,6 +3187,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@，類型篩選"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@、種類フィルタ"
           }
         }
       }
@@ -2637,6 +3291,18 @@
                 "stringUnit": {
                   "state": "translated",
                   "value": "%lld 個字元"
+                }
+              }
+            }
+          }
+        },
+        "ja": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld文字"
                 }
               }
             }
@@ -2742,6 +3408,18 @@
               }
             }
           }
+        },
+        "ja": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "連続ペーストに%lld枚のカード"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -2843,6 +3521,18 @@
               }
             }
           }
+        },
+        "ja": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld件"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -2883,6 +3573,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "另有 %lld 項"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ほか%lld件"
           }
         }
       }
@@ -2925,6 +3621,12 @@
             "state": "translated",
             "value": "24 小時"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "24時間"
+          }
         }
       }
     },
@@ -2965,6 +3667,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "30 天"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30日間"
           }
         }
       }
@@ -3007,6 +3715,12 @@
             "state": "translated",
             "value": "7 天"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7日間"
+          }
         }
       }
     },
@@ -3047,6 +3761,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "偵測到接力標記，無法確認裝置或來源 App。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Handoffのマーカーを検出しました。コピー元のデバイスとアプリは不明です。"
           }
         }
       }
@@ -3089,6 +3809,12 @@
             "state": "translated",
             "value": "開啟後，每次拷貝連結會向該網站查詢一次標題與圖片。關閉時，這項功能不會對外連線。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コピーしたリンクのタイトルと画像を取得するため、WhiskyMacはそのリンクに1回アクセスします。この機能をオフにするとアクセスしません。"
+          }
         }
       }
     },
@@ -3129,6 +3855,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "強調顏色"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アクセントカラー"
           }
         }
       }
@@ -3171,6 +3903,12 @@
             "state": "translated",
             "value": "偵測分享工具列需要「輔助使用」權限。為保護隱私，內容已隱藏。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "画面共有の検出にはアクセシビリティの許可が必要です。念のため、内容を非表示にしています。"
+          }
         }
       }
     },
@@ -3208,6 +3946,12 @@
           }
         },
         "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "操作"
+          }
+        },
+        "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "操作"
@@ -3253,6 +3997,12 @@
             "state": "translated",
             "value": "加入 App…"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アプリを追加…"
+          }
         }
       }
     },
@@ -3293,6 +4043,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "加入敏感 App…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "機密扱いのアプリを追加…"
           }
         }
       }
@@ -3335,6 +4091,12 @@
             "state": "translated",
             "value": "加入待貼上清單"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "連続ペーストに追加"
+          }
         }
       }
     },
@@ -3375,6 +4137,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "允許使用「輔助使用」以偵測分享工具列…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "画面共有の検出を許可…"
           }
         }
       }
@@ -3417,6 +4185,12 @@
             "state": "translated",
             "value": "允許取用剪貼板"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリップボードへのアクセスを許可"
+          }
         }
       }
     },
@@ -3457,6 +4231,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "允許取用剪貼板…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリップボードへのアクセスを許可…"
           }
         }
       }
@@ -3499,6 +4279,12 @@
             "state": "translated",
             "value": "隱私模式下允許搜尋"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プライバシーモード中に検索を許可"
+          }
         }
       }
     },
@@ -3539,6 +4325,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "始終顯示"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "常に表示"
           }
         }
       }
@@ -3581,6 +4373,12 @@
             "state": "translated",
             "value": "外觀"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "外観"
+          }
         }
       }
     },
@@ -3621,6 +4419,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "記錄當下在這部 Mac 前景執行的 App，實際來源未經確認。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "記録時にこのMacで最前面にあったアプリです。実際のコピー元は確認されていません。"
           }
         }
       }
@@ -3663,6 +4467,12 @@
             "state": "translated",
             "value": "適用於手動與自動保護。搜尋字詞與允許顯示的 App 名稱會出現在螢幕上，也能透過輔助使用功能讀取。剪貼板內容仍會隱藏，自動保護也不會因游標停留而顯示內容。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手動保護と自動保護の両方に適用されます。検索語と表示を許可したアプリ名は画面に表示され、支援技術でも読み取れます。クリップボードの内容は非表示のままです。自動保護中はポインタを重ねても内容は表示されません。"
+          }
         }
       }
     },
@@ -3703,6 +4513,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "自動偵測的覆蓋範圍有限。重要分享前，請開啟手動隱私保護。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自動検出には対象外の共有があります。機密情報を共有する前に手動保護をオンにしてください。"
           }
         }
       }
@@ -3745,6 +4561,12 @@
             "state": "translated",
             "value": "自動偵測已關閉。分享前請手動開啟保護。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自動検出はオフです。画面を共有する前に手動保護をオンにしてください。"
+          }
         }
       }
     },
@@ -3785,6 +4607,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "自動保護（有限偵測）"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自動保護（検出範囲に制限あり）"
           }
         }
       }
@@ -3827,6 +4655,12 @@
             "state": "translated",
             "value": "Base64 解碼"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Base64をデコード"
+          }
         }
       }
     },
@@ -3867,6 +4701,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Base64 編碼"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Base64でエンコード"
           }
         }
       }
@@ -3909,6 +4749,12 @@
             "state": "translated",
             "value": "取消"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キャンセル"
+          }
         }
       }
     },
@@ -3949,6 +4795,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "卡片大小"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カードサイズ"
           }
         }
       }
@@ -3991,6 +4843,12 @@
             "state": "translated",
             "value": "啟動時檢查更新"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "起動時にアップデートを確認"
+          }
         }
       }
     },
@@ -4031,6 +4889,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "透過「輔助使用」檢查 Zoom 和 Teams 的分享工具列名稱。辨識結果可能因版本和語言而異。系統分享、遠端桌面、螢幕錄製和瀏覽器分頁均不在偵測範圍內。重要分享前請開啟手動保護。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アクセシビリティ機能を使って、ZoomとTeamsの共有ツールバーを検出します。アプリのバージョンや言語によっては検出できません。システムの画面共有、リモートデスクトップ、画面収録、ブラウザのタブは対象外です。機密情報を共有する前に手動保護をオンにしてください。"
           }
         }
       }
@@ -4073,6 +4937,12 @@
             "state": "translated",
             "value": "選擇一種格式以繼續"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "続けるには形式を選択してください"
+          }
         }
       }
     },
@@ -4113,6 +4983,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "設定啟動方式、選單列入口與顯示語言。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WhiskyMacの起動方法、開き方、表示言語を設定します。"
           }
         }
       }
@@ -4155,6 +5031,12 @@
             "state": "translated",
             "value": "選擇歷史記錄的保留時長與容量。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "履歴に残す件数と保存期間を設定します。"
+          }
         }
       }
     },
@@ -4195,6 +5077,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "設定按一下、按兩下、按右鍵或將游標停在卡片上時的動作。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カードをクリックしたときやポインタを重ねたときの動作を設定します。"
           }
         }
       }
@@ -4237,6 +5125,12 @@
             "state": "translated",
             "value": "清除未置頂項目"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ピン留めしていない項目を消去"
+          }
         }
       }
     },
@@ -4277,6 +5171,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "清除搜尋"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "検索をクリア"
           }
         }
       }
@@ -4319,6 +5219,12 @@
             "state": "translated",
             "value": "按一下快速鍵重新錄製，按 Esc 取消。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ショートカットをクリックして新しいキーの組み合わせを入力します。取り消すにはEscキーを押します。"
+          }
         }
       }
     },
@@ -4359,6 +5265,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "剪貼板卡片"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリップボードのカード"
           }
         }
       }
@@ -4401,6 +5313,12 @@
             "state": "translated",
             "value": "關閉面板"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パネルを閉じる"
+          }
         }
       }
     },
@@ -4441,6 +5359,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "顏色"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カラー"
           }
         }
       }
@@ -4483,6 +5407,12 @@
             "state": "translated",
             "value": "隱私模式已遮蔽內容"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プライバシーモードで内容を非表示"
+          }
         }
       }
     },
@@ -4523,6 +5453,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "管理記錄範圍、螢幕保護與線上預覽。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "記録する項目、画面に表示する情報、オンラインで取得する内容を設定します。"
           }
         }
       }
@@ -4565,6 +5501,12 @@
             "state": "translated",
             "value": "已排除 App 中的拷貝內容不會被記錄。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "除外したアプリからコピーした内容は記録されません。"
+          }
         }
       }
     },
@@ -4605,6 +5547,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "拷貝"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コピー"
           }
         }
       }
@@ -4647,6 +5595,12 @@
             "state": "translated",
             "value": "拷貝任意內容，即可開始使用"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "何かをコピーすると、ここに表示されます"
+          }
         }
       }
     },
@@ -4687,6 +5641,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "拷貝音效"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コピー音"
           }
         }
       }
@@ -4729,6 +5689,12 @@
             "state": "translated",
             "value": "拷貝所選項目，不貼上"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ペーストせずに選択項目をコピー"
+          }
         }
       }
     },
@@ -4769,6 +5735,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "自選顏色"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カスタムカラー"
           }
         }
       }
@@ -4811,6 +5783,12 @@
             "state": "translated",
             "value": "刪除"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "削除"
+          }
         }
       }
     },
@@ -4851,6 +5829,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "刪除來自 %@ 的所有項目"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@からコピーした項目をすべて削除"
           }
         }
       }
@@ -4893,6 +5877,12 @@
             "state": "translated",
             "value": "刪除來自所選項目來源 App 的所有內容"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同じアプリからコピーした項目をすべて削除"
+          }
         }
       }
     },
@@ -4933,6 +5923,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "刪除所選項目"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択項目を削除"
           }
         }
       }
@@ -4975,6 +5971,12 @@
             "state": "translated",
             "value": "偵測範圍與限制"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "検出対象"
+          }
         }
       }
     },
@@ -5015,6 +6017,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "無法確認是否正在分享。為保護隱私，內容已隱藏。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "画面の共有状況を確認できません。念のため、内容を非表示にしています。"
           }
         }
       }
@@ -5057,6 +6065,12 @@
             "state": "translated",
             "value": "不執行操作"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "何もしない"
+          }
         }
       }
     },
@@ -5097,6 +6111,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dock圖示"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dockアイコン"
           }
         }
       }
@@ -5139,6 +6159,12 @@
             "state": "translated",
             "value": "按兩下"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ダブルクリック"
+          }
         }
       }
     },
@@ -5179,6 +6205,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "編輯所選項目"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択項目を編集"
           }
         }
       }
@@ -5221,6 +6253,12 @@
             "state": "translated",
             "value": "正在編輯 %@"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "編集中：%@"
+          }
         }
       }
     },
@@ -5261,6 +6299,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "編輯器"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "エディタ"
           }
         }
       }
@@ -5303,6 +6347,12 @@
             "state": "translated",
             "value": "編輯…"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "編集…"
+          }
         }
       }
     },
@@ -5343,6 +6393,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "啟用"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "オンにする"
           }
         }
       }
@@ -5385,6 +6441,12 @@
             "state": "translated",
             "value": "啟用此全域快速鍵"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このグローバルショートカットをオンにする"
+          }
         }
       }
     },
@@ -5425,6 +6487,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "排除 %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@を除外"
           }
         }
       }
@@ -5467,6 +6535,12 @@
             "state": "translated",
             "value": "排除所選項目的來源 App"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コピー元のアプリを除外"
+          }
         }
       }
     },
@@ -5507,6 +6581,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "已排除的 App"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "除外するアプリ"
           }
         }
       }
@@ -5549,6 +6629,12 @@
             "state": "translated",
             "value": "載入連結預覽"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リンクのプレビューを読み込む"
+          }
         }
       }
     },
@@ -5589,6 +6675,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "第一張卡片"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最初のカード"
           }
         }
       }
@@ -5631,6 +6723,12 @@
             "state": "translated",
             "value": "將焦點移到上一列"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上の行に移動"
+          }
         }
       }
     },
@@ -5671,6 +6769,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "將焦點移到下一列"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下の行に移動"
           }
         }
       }
@@ -5713,6 +6817,12 @@
             "state": "translated",
             "value": "跟隨系統"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "システム設定に従う"
+          }
         }
       }
     },
@@ -5753,6 +6863,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "跟隨視窗"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ウインドウを開いているとき"
           }
         }
       }
@@ -5795,6 +6911,12 @@
             "state": "translated",
             "value": "永久"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無期限"
+          }
         }
       }
     },
@@ -5836,6 +6958,12 @@
             "state": "translated",
             "value": "格式化 JSON"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "整形済みJSON"
+          }
         }
       }
     },
@@ -5873,6 +7001,12 @@
           }
         },
         "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一般"
+          }
+        },
+        "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "一般"
@@ -5918,6 +7052,12 @@
             "state": "translated",
             "value": "全域快速鍵"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "グローバルショートカット"
+          }
         }
       }
     },
@@ -5958,6 +7098,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "全域快速鍵預設關閉。在這裡啟用或錄製快速鍵後即可使用。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "グローバルショートカットは、オンにするかキーを登録するまで無効です。"
           }
         }
       }
@@ -6000,6 +7146,12 @@
             "state": "translated",
             "value": "跨裝置接力"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Handoff"
+          }
         }
       }
     },
@@ -6040,6 +7192,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "接力標籤根據系統的剪貼板標記判斷。沒有標記不代表項目來自這部 Mac，既有記錄也無法重新分類。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Handoffの表示はシステムのクリップボードにあるマーカーに基づきます。マーカーがなくても別のデバイスがコピー元の場合があります。記録済みの履歴は再分類できません。"
           }
         }
       }
@@ -6082,6 +7240,12 @@
             "state": "translated",
             "value": "已隱藏，右鍵可暫時顯示"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "非表示中。右クリックで一時表示"
+          }
         }
       }
     },
@@ -6122,6 +7286,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "顯示"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "表示"
           }
         }
       }
@@ -6164,6 +7334,12 @@
             "state": "translated",
             "value": "隱藏已有卡片"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "古いカードを隠す"
+          }
         }
       }
     },
@@ -6204,6 +7380,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "顯示隱藏的卡片"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "非表示のカードを表示"
           }
         }
       }
@@ -6246,6 +7428,12 @@
             "state": "translated",
             "value": "較舊的卡片已暫時隱藏。新拷貝的內容會顯示在這裡。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "古いカードを一時的に非表示にしています。新しくコピーした内容はここに表示されます。"
+          }
         }
       }
     },
@@ -6286,6 +7474,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "選擇隱藏時間"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "非表示にする基準日時を選択"
           }
         }
       }
@@ -6328,6 +7522,12 @@
             "state": "translated",
             "value": "要隱藏的類型"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "非表示にする種類"
+          }
         }
       }
     },
@@ -6368,6 +7568,59 @@
           "stringUnit": {
             "state": "translated",
             "value": "選取所有類型"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべての種類を選択"
+          }
+        }
+      }
+    },
+    "Deselect all": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deselect all"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout désélectionner"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消全选"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auswahl aufheben"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deseleziona tutto"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消全選"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべての選択を解除"
           }
         }
       }
@@ -6410,6 +7663,12 @@
             "state": "translated",
             "value": "隱藏截至此時間的卡片"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この日時までのカードを非表示"
+          }
         }
       }
     },
@@ -6447,6 +7706,12 @@
           }
         },
         "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在"
+          }
+        },
+        "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "現在"
@@ -6492,6 +7757,12 @@
             "state": "translated",
             "value": "指定時間"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日時を指定"
+          }
         }
       }
     },
@@ -6533,6 +7804,12 @@
             "state": "translated",
             "value": "日期和時間"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日付と時刻"
+          }
         }
       }
     },
@@ -6570,6 +7847,12 @@
           }
         },
         "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確定"
+          }
+        },
+        "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "確定"
@@ -6615,6 +7898,12 @@
             "state": "translated",
             "value": "較新的卡片仍會顯示，不會刪除歷史記錄。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新しいカードは引き続き表示されます。非表示にしたカードも履歴に残ります。"
+          }
         }
       }
     },
@@ -6655,6 +7944,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "隱藏所選時間前建立的卡片。按一下以現在為準，或按右鍵選擇時間。再按一下即可顯示隱藏的卡片。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "指定した日時までのカードを非表示にします。クリックで現在の時刻を使い、右クリックで日時を指定できます。もう一度クリックすると、非表示にしたカードが表示されます。"
           }
         }
       }
@@ -6697,6 +7992,12 @@
             "state": "translated",
             "value": "隱藏"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "非表示"
+          }
         }
       }
     },
@@ -6737,6 +8038,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "歷史記錄"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "履歴"
           }
         }
       }
@@ -6779,6 +8086,12 @@
             "state": "translated",
             "value": "歷史記錄容量"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "履歴の上限"
+          }
         }
       }
     },
@@ -6819,6 +8132,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "短暫停留後"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "少し待ってから実行"
           }
         }
       }
@@ -6861,6 +8180,12 @@
             "state": "translated",
             "value": "游標停留延遲（秒）"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ポインタを重ねてからの待ち時間（秒）"
+          }
         }
       }
     },
@@ -6901,6 +8226,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "停留時預覽"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ポインタを重ねてプレビュー"
           }
         }
       }
@@ -6943,6 +8274,12 @@
             "state": "translated",
             "value": "圖像"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "画像"
+          }
         }
       }
     },
@@ -6983,6 +8320,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "圖片只保留在記憶體中。拷貝後可在其他 App 中查看。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この画像はメモリに保存されています。別のアプリで見るにはコピーしてください。"
           }
         }
       }
@@ -7025,6 +8368,12 @@
             "state": "translated",
             "value": "剪貼板面板內"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリップボードパネル内"
+          }
         }
       }
     },
@@ -7065,6 +8414,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "互動"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "操作方法"
           }
         }
       }
@@ -7107,6 +8462,12 @@
             "state": "translated",
             "value": "保留記錄的時間"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "履歴の保存期間"
+          }
         }
       }
     },
@@ -7147,6 +8508,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "語言"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "言語"
           }
         }
       }
@@ -7189,6 +8556,12 @@
             "state": "translated",
             "value": "最後一張卡片"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最後のカード"
+          }
         }
       }
     },
@@ -7229,6 +8602,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "登入時啟動 WhiskyMac"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ログイン時にWhiskyMacを起動"
           }
         }
       }
@@ -7271,6 +8650,12 @@
             "state": "translated",
             "value": "登入時啟動需要已安裝的 WhiskyMac.app：%@"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ログイン時に起動するにはWhiskyMac.appをインストールしてください：%@"
+          }
         }
       }
     },
@@ -7311,6 +8696,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "小寫"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "小文字"
           }
         }
       }
@@ -7353,6 +8744,12 @@
             "state": "translated",
             "value": "自訂設定頁配置、強調顏色與卡片大小。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定画面のレイアウト、アクセントカラー、カードサイズを調整します。"
+          }
         }
       }
     },
@@ -7393,6 +8790,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "可在設定中管理手動保護與自動保護。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手動保護と自動保護は「設定」で管理できます。"
           }
         }
       }
@@ -7435,6 +8838,12 @@
             "state": "translated",
             "value": "手動隱私模式"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手動プライバシーモード"
+          }
         }
       }
     },
@@ -7475,6 +8884,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "手動隱私模式：將游標停在卡片上可顯示局部內容"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手動保護中は、ポインタを重ねると一部を表示できます"
           }
         }
       }
@@ -7517,6 +8932,12 @@
             "state": "translated",
             "value": "選單列與Dock"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メニューバーとDock"
+          }
         }
       }
     },
@@ -7557,6 +8978,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "按一下選單列圖示"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メニューバーアイコンをクリックしたとき"
           }
         }
       }
@@ -7599,6 +9026,12 @@
             "state": "translated",
             "value": "普通"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通常"
+          }
         }
       }
     },
@@ -7639,6 +9072,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "不顯示"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "表示しない"
           }
         }
       }
@@ -7681,6 +9120,12 @@
             "state": "translated",
             "value": "下一張卡片或篩選項"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次のカードまたはフィルタ"
+          }
         }
       }
     },
@@ -7721,6 +9166,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "尚未加入排除 App。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "除外するアプリはありません"
           }
         }
       }
@@ -7763,6 +9214,12 @@
             "state": "translated",
             "value": "找不到符合的項目"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一致する項目がありません"
+          }
         }
       }
     },
@@ -7803,6 +9260,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "尚未加入敏感 App。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "機密扱いのアプリはありません"
           }
         }
       }
@@ -7845,6 +9308,12 @@
             "state": "translated",
             "value": "未偵測到支援的分享工具列。其他分享或螢幕錄製仍可能正在進行。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "対応する共有ツールバーは検出されませんでした。別の方法で共有や収録が行われている可能性があります。"
+          }
         }
       }
     },
@@ -7885,6 +9354,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "普通模式"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通常モード"
           }
         }
       }
@@ -7927,6 +9402,12 @@
             "state": "translated",
             "value": "未選擇任何項目"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "項目が選択されていません"
+          }
         }
       }
     },
@@ -7967,6 +9448,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "可指定一個或兩個字元。像 gg 這樣的雙字元組合要連按兩下。Esc、Tab、/ 和 1–9 保留給固定用途。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1文字または2文字で指定します。たとえば「gg」はgキーを2回押します。Esc、Tab、/、1〜9は固定です。"
           }
         }
       }
@@ -8009,6 +9496,12 @@
             "state": "translated",
             "value": "線上內容"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "オンラインコンテンツ"
+          }
         }
       }
     },
@@ -8049,6 +9542,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "開啟連結"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リンクを開く"
           }
         }
       }
@@ -8091,6 +9590,12 @@
             "state": "translated",
             "value": "開啟剪貼板設定"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリップボード設定を開く"
+          }
         }
       }
     },
@@ -8131,6 +9636,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "開啟所選連結"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択したリンクを開く"
           }
         }
       }
@@ -8173,6 +9684,12 @@
             "state": "translated",
             "value": "貼上為純文字"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プレーンテキストでペースト"
+          }
         }
       }
     },
@@ -8213,6 +9730,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "貼上為純文字"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プレーンテキストでペースト"
           }
         }
       }
@@ -8255,6 +9778,12 @@
             "state": "translated",
             "value": "貼上為…"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "形式を選んでペースト…"
+          }
         }
       }
     },
@@ -8295,6 +9824,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "貼上清單中的下一項"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次の項目をペースト"
           }
         }
       }
@@ -8337,6 +9872,12 @@
             "state": "translated",
             "value": "待貼上清單第 %lld 項"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "連続ペーストの%lld番目"
+          }
         }
       }
     },
@@ -8377,6 +9918,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "待貼上清單：用全域快速鍵依序貼上"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "連続ペースト：グローバルショートカットで項目を順番にペースト"
           }
         }
       }
@@ -8419,6 +9966,12 @@
             "state": "translated",
             "value": "貼上所選項目"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択項目をペースト"
+          }
         }
       }
     },
@@ -8459,6 +10012,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "貼上到上一個 App"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "直前のアプリにペースト"
           }
         }
       }
@@ -8501,6 +10060,12 @@
             "state": "translated",
             "value": "直接貼上需要「輔助使用」權限。你也可以先拷貝，再按 Command-V 貼上。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "直接ペーストするにはアクセシビリティの許可が必要です。項目をコピーして、ペースト先のアプリで⌘Vを押すこともできます。"
+          }
         }
       }
     },
@@ -8541,6 +10106,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "暫停記錄"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "記録を一時停止"
           }
         }
       }
@@ -8583,6 +10154,12 @@
             "state": "translated",
             "value": "將游標停在卡片上即可預覽。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カードにポインタを重ねるとプレビューできます。"
+          }
         }
       }
     },
@@ -8623,6 +10200,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "置頂"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ピン留め"
           }
         }
       }
@@ -8665,6 +10248,12 @@
             "state": "translated",
             "value": "置頂或取消置頂所選項目"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択項目のピン留めを切り替え"
+          }
         }
       }
     },
@@ -8705,6 +10294,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "置頂、刪除和待貼上清單的操作都套用到最新格式。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ピン留め、削除、連続ペーストの操作は最新の形式に適用されます。"
           }
         }
       }
@@ -8747,6 +10342,12 @@
             "state": "translated",
             "value": "已置頂"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ピン留め済み"
+          }
         }
       }
     },
@@ -8787,6 +10388,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "已置頂卡片"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ピン留め済みのカード"
           }
         }
       }
@@ -8829,6 +10436,12 @@
             "state": "translated",
             "value": "置頂項目不會自動過期，也不會因容量不足而被移除。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ピン留めした項目に、履歴の保存期間や件数の上限は適用されません。"
+          }
         }
       }
     },
@@ -8869,6 +10482,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "置頂項目篩選"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ピン留め済みの項目、フィルタ"
           }
         }
       }
@@ -8911,6 +10530,12 @@
             "state": "translated",
             "value": "記錄新拷貝時播放音效"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新しい項目を記録したときに音を鳴らす"
+          }
         }
       }
     },
@@ -8951,6 +10576,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "從歷史記錄拷貝時播放音效"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "履歴からコピーしたときに音を鳴らす"
           }
         }
       }
@@ -8993,6 +10624,12 @@
             "state": "translated",
             "value": "按 %@ 搜尋"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@で検索"
+          }
         }
       }
     },
@@ -9033,6 +10670,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "篩選標籤"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フィルタタグ"
           }
         }
       }
@@ -9075,6 +10718,12 @@
             "state": "translated",
             "value": "標籤尺寸"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "タグサイズ"
+          }
         }
       }
     },
@@ -9115,6 +10764,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "回到上次儲存的大小"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前回保存したサイズに戻す"
           }
         }
       }
@@ -9157,6 +10812,12 @@
             "state": "translated",
             "value": "儲存目前設定"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在の設定を保存"
+          }
         }
       }
     },
@@ -9197,6 +10858,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "在螢幕上預覽"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "画面でプレビュー"
           }
         }
       }
@@ -9239,6 +10906,12 @@
             "state": "translated",
             "value": "按下「儲存目前設定」後才會套用變更。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「現在の設定を保存」を選ぶと変更が保存されます。"
+          }
         }
       }
     },
@@ -9279,6 +10952,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "預覽"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プレビュー"
           }
         }
       }
@@ -9321,6 +11000,12 @@
             "state": "translated",
             "value": "試聽"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サウンドを試聴"
+          }
         }
       }
     },
@@ -9361,6 +11046,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "預覽所選項目"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択項目をプレビュー"
           }
         }
       }
@@ -9403,6 +11094,12 @@
             "state": "translated",
             "value": "上一張卡片或篩選項"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前のカードまたはフィルタ"
+          }
         }
       }
     },
@@ -9443,6 +11140,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "隱私"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プライバシー"
           }
         }
       }
@@ -9485,6 +11188,12 @@
             "state": "translated",
             "value": "隱私模式已開啟（手動）"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手動プライバシーモードがオンです"
+          }
         }
       }
     },
@@ -9525,6 +11234,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "結束 WhiskyMac"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WhiskyMacを終了"
           }
         }
       }
@@ -9567,6 +11282,12 @@
             "state": "translated",
             "value": "移除"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取り除く"
+          }
         }
       }
     },
@@ -9607,6 +11328,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "移出待貼上清單"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "連続ペーストから取り除く"
           }
         }
       }
@@ -9649,6 +11376,12 @@
             "state": "translated",
             "value": "重設"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リセット"
+          }
         }
       }
     },
@@ -9689,6 +11422,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "重設鍵盤快速鍵"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キーボードショートカットをリセット"
           }
         }
       }
@@ -9731,6 +11470,12 @@
             "state": "translated",
             "value": "重設鍵盤快速鍵？"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キーボードショートカットをリセットしますか？"
+          }
         }
       }
     },
@@ -9771,6 +11516,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "回復預設值"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デフォルトに戻す"
           }
         }
       }
@@ -9813,6 +11564,12 @@
             "state": "translated",
             "value": "重設…"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リセット…"
+          }
         }
       }
     },
@@ -9853,6 +11610,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "回復預設設定"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デフォルトの設定に戻す"
           }
         }
       }
@@ -9895,6 +11658,12 @@
             "state": "translated",
             "value": "繼續記錄"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "記録を再開"
+          }
         }
       }
     },
@@ -9935,6 +11704,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "按 Return 儲存，Shift-Return 換行，Esc 取消。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Returnキーで保存、Shift＋Returnで改行、Escキーでキャンセルします。"
           }
         }
       }
@@ -9977,6 +11752,12 @@
             "state": "translated",
             "value": "在Finder中顯示"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finderに表示"
+          }
         }
       }
     },
@@ -10017,6 +11798,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "在 Finder 中顯示所選檔案"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択したファイルをFinderに表示"
           }
         }
       }
@@ -10059,6 +11846,12 @@
             "state": "translated",
             "value": "格式化文字"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リッチテキスト"
+          }
         }
       }
     },
@@ -10099,6 +11892,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "右鍵按一下"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "右クリック"
           }
         }
       }
@@ -10141,6 +11940,12 @@
             "state": "translated",
             "value": "按右鍵一定會開啟選單。「跟隨視窗」只在設定或歡迎視窗開啟時顯示 Dock 圖示。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "右クリックでメニューが開きます。「ウインドウを開いているとき」を選ぶと、設定画面かウェルカムガイドを開いている間だけDockアイコンが表示されます。"
+          }
         }
       }
     },
@@ -10181,6 +11986,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "搜尋"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "検索"
           }
         }
       }
@@ -10223,6 +12034,12 @@
             "state": "translated",
             "value": "儲存"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存"
+          }
         }
       }
     },
@@ -10263,6 +12080,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "儲存為…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "別名で保存…"
           }
         }
       }
@@ -10305,6 +12128,12 @@
             "state": "translated",
             "value": "將所選項目儲存為檔案"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択項目をファイルとして保存"
+          }
         }
       }
     },
@@ -10346,46 +12175,124 @@
             "state": "translated",
             "value": "螢幕隱私保護"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "画面上のプライバシー保護"
+          }
         }
       }
     },
-    "Search": {
+    "Search in %lld items": {
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Search"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Search in %lld item"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Search in %lld items"
+                }
+              }
+            }
           }
         },
         "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rechercher"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Rechercher dans %lld élément"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Rechercher dans %lld éléments"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "搜索"
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "在%lld项中搜索"
+                }
+              }
+            }
           }
         },
         "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Suchen"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "In %lld Eintrag suchen"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "In %lld Einträgen suchen"
+                }
+              }
+            }
           }
         },
         "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cerca"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Cerca in %lld elemento"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Cerca in %lld elementi"
+                }
+              }
+            }
           }
         },
         "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "搜尋"
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "在%lld項中搜尋"
+                }
+              }
+            }
+          }
+        },
+        "ja": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld件から検索"
+                }
+              }
+            }
           }
         }
       }
@@ -10428,6 +12335,12 @@
             "state": "translated",
             "value": "搜尋剪貼板記錄"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリップボード履歴を検索"
+          }
         }
       }
     },
@@ -10468,6 +12381,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "搜尋模式"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "検索モード"
           }
         }
       }
@@ -10510,6 +12429,12 @@
             "state": "translated",
             "value": "已選取"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択済み"
+          }
         }
       }
     },
@@ -10550,6 +12475,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "敏感 App"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "機密扱いのアプリ"
           }
         }
       }
@@ -10592,6 +12523,12 @@
             "state": "translated",
             "value": "設定快速開啟剪貼板與在面板中操作的按鍵組合。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリップボードパネルを開くショートカットや、パネル内で使うショートカットを設定します。"
+          }
         }
       }
     },
@@ -10632,6 +12569,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "設定頁面配置"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定画面のレイアウト"
           }
         }
       }
@@ -10674,6 +12617,12 @@
             "state": "translated",
             "value": "設定頁導覽"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定画面のナビゲーション"
+          }
         }
       }
     },
@@ -10711,6 +12660,12 @@
           }
         },
         "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定…"
+          }
+        },
+        "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "設定…"
@@ -10756,6 +12711,12 @@
             "state": "translated",
             "value": "偵測到分享工具列，內容已遮蔽。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "共有ツールバーを検出しました。内容は非表示です。"
+          }
         }
       }
     },
@@ -10796,6 +12757,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "快速鍵"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ショートカット"
           }
         }
       }
@@ -10838,6 +12805,12 @@
             "state": "translated",
             "value": "顯示或隱藏面板"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パネルの表示を切り替え"
+          }
         }
       }
     },
@@ -10878,6 +12851,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "顯示歷史記錄"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "履歴を表示"
           }
         }
       }
@@ -10920,6 +12899,12 @@
             "state": "translated",
             "value": "顯示剪貼板卡片"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリップボードのカードを表示"
+          }
         }
       }
     },
@@ -10960,6 +12945,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "收起其他格式"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ほかの形式を折りたたむ"
           }
         }
       }
@@ -11002,6 +12993,12 @@
             "state": "translated",
             "value": "暫時顯示 10 秒"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "10秒間表示"
+          }
         }
       }
     },
@@ -11042,6 +13039,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "顯示選單"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メニューを表示"
           }
         }
       }
@@ -11084,6 +13087,12 @@
             "state": "translated",
             "value": "隱私模式下顯示來源 App"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プライバシーモード中にコピー元のアプリを表示"
+          }
         }
       }
     },
@@ -11124,6 +13133,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "側邊標籤列"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サイドバーのタブ"
           }
         }
       }
@@ -11166,6 +13181,12 @@
             "state": "translated",
             "value": "按一下"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "シングルクリック"
+          }
         }
       }
     },
@@ -11207,6 +13228,12 @@
             "state": "translated",
             "value": "合併為單行"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1行"
+          }
         }
       }
     },
@@ -11244,6 +13271,12 @@
           }
         },
         "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "音量"
+          }
+        },
+        "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "音量"
@@ -11289,6 +13322,12 @@
             "state": "translated",
             "value": "開始搜尋"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "検索を開始"
+          }
         }
       }
     },
@@ -11329,6 +13368,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "啟動與載入"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "起動と読み込み"
           }
         }
       }
@@ -11371,6 +13416,12 @@
             "state": "translated",
             "value": "輕量模式"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "軽量モード"
+          }
         }
       }
     },
@@ -11411,6 +13462,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "開啟輕量模式後，僅在開啟剪貼簿面板時視需要載入縮圖，關閉面板後清空縮圖快取，以減少記憶體用量。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "軽量モードでは、クリップボードパネルを開いたときに必要なサムネールだけを読み込みます。パネルを閉じるとキャッシュを消去し、メモリの使用量を抑えます。"
           }
         }
       }
@@ -11453,6 +13510,12 @@
             "state": "translated",
             "value": "切換篩選分組"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フィルタグループを切り替え"
+          }
         }
       }
     },
@@ -11493,6 +13556,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "選取的剪貼板卡片也會以強調顏色標示。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択中のカードはアクセントカラーで強調表示されます。"
           }
         }
       }
@@ -11535,6 +13604,12 @@
             "state": "translated",
             "value": "在面板中，按 %@ 搜尋、%@ 移動、%@ 貼上、%@ 預覽、%@ 關閉。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パネル内では%@で検索、%@で移動、%@でペースト、%@でプレビュー、%@で閉じます。"
+          }
         }
       }
     },
@@ -11575,6 +13650,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "無法儲存格式化文字。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リッチテキストを保存できませんでした。"
           }
         }
       }
@@ -11617,6 +13698,12 @@
             "state": "translated",
             "value": "無法註冊此全域快速鍵，請更換按鍵組合。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このグローバルショートカットを登録できませんでした。別のキーの組み合わせを選んでください。"
+          }
         }
       }
     },
@@ -11657,6 +13744,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "此快速鍵已用於其他操作"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このショートカットは別の操作に割り当てられています"
           }
         }
       }
@@ -11699,6 +13792,12 @@
             "state": "translated",
             "value": "切換手動隱私模式"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手動プライバシーモードを切り替え"
+          }
         }
       }
     },
@@ -11739,6 +13838,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "將所選項目加入或移出待貼上清單"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択項目を連続ペーストに追加／取り除く"
           }
         }
       }
@@ -11781,6 +13886,12 @@
             "state": "translated",
             "value": "頂部標籤列"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上部のタブ"
+          }
         }
       }
     },
@@ -11821,6 +13932,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "移除首尾空白"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前後の空白を削除"
           }
         }
       }
@@ -11863,6 +13980,12 @@
             "state": "translated",
             "value": "關閉手動保護"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手動保護をオフにする"
+          }
         }
       }
     },
@@ -11903,6 +14026,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "開啟手動保護"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手動保護をオンにする"
           }
         }
       }
@@ -11945,6 +14074,12 @@
             "state": "translated",
             "value": "兩個操作使用了相同的快速鍵。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2つの操作に同じショートカットが割り当てられています。"
+          }
         }
       }
     },
@@ -11985,6 +14120,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "輸入快速鍵…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ショートカットキーを押す…"
           }
         }
       }
@@ -12027,6 +14168,12 @@
             "state": "translated",
             "value": "URL 解碼"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "URLをデコード"
+          }
         }
       }
     },
@@ -12067,6 +14214,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "URL 編碼"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "URL用にエンコード"
           }
         }
       }
@@ -12109,6 +14262,12 @@
             "state": "translated",
             "value": "還原上次更改"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "直前の変更を取り消す"
+          }
         }
       }
     },
@@ -12149,6 +14308,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "還原上次刪除或編輯"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "直前の削除または編集を取り消す"
           }
         }
       }
@@ -12191,6 +14356,12 @@
             "state": "translated",
             "value": "未知"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不明"
+          }
         }
       }
     },
@@ -12231,6 +14402,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "不限"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無制限"
           }
         }
       }
@@ -12273,6 +14450,12 @@
             "state": "translated",
             "value": "取消置頂"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ピン留めを解除"
+          }
         }
       }
     },
@@ -12313,6 +14496,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "有可用更新（v%@）…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アップデートがあります（v%@）…"
           }
         }
       }
@@ -12355,6 +14544,12 @@
             "state": "translated",
             "value": "大寫"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "大文字"
+          }
         }
       }
     },
@@ -12395,6 +14590,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "使用側邊標籤列"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サイドバーで移動"
           }
         }
       }
@@ -12437,6 +14638,12 @@
             "state": "translated",
             "value": "使用頂部標籤列"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上部タブで移動"
+          }
         }
       }
     },
@@ -12477,6 +14684,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "使用已設定的卡片操作"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定したカード操作を使う"
           }
         }
       }
@@ -12519,6 +14732,12 @@
             "state": "translated",
             "value": "Vim 按鍵綁定"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vimのキー割り当て"
+          }
         }
       }
     },
@@ -12559,6 +14778,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "在面板中使用 Vim 導覽"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パネル内でVimのキー操作を使う"
           }
         }
       }
@@ -12601,6 +14826,12 @@
             "state": "translated",
             "value": "保護期間顯示的內容"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保護中に表示する情報"
+          }
         }
       }
     },
@@ -12641,6 +14872,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在確認分享是否已結束。內容仍會保持隱藏。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "共有の終了を確認しています。内容は非表示のままです。"
           }
         }
       }
@@ -12683,6 +14920,12 @@
             "state": "translated",
             "value": "歡迎"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ようこそ"
+          }
         }
       }
     },
@@ -12723,6 +14966,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "WhiskyMac 設定"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WhiskyMacの設定"
           }
         }
       }
@@ -12765,6 +15014,12 @@
             "state": "translated",
             "value": "WhiskyMac 尚未獲准讀取剪貼板。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WhiskyMacにはクリップボードへのアクセス許可が必要です。"
+          }
         }
       }
     },
@@ -12805,6 +15060,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "允許 WhiskyMac 讀取你拷貝的內容。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コピーした内容を読み取るには、WhiskyMacに許可を与えてください。"
           }
         }
       }
@@ -12847,6 +15108,12 @@
             "state": "translated",
             "value": "移除重音符號"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アクセント記号を削除"
+          }
         }
       }
     },
@@ -12887,6 +15154,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "程式碼"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コード"
           }
         }
       }
@@ -12929,6 +15202,12 @@
             "state": "translated",
             "value": "顏色"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カラー"
+          }
         }
       }
     },
@@ -12969,6 +15248,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "檔案"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ファイル"
           }
         }
       }
@@ -13011,6 +15296,12 @@
             "state": "translated",
             "value": "全域"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "グローバル"
+          }
         }
       }
     },
@@ -13051,6 +15342,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "圖像"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "画像"
           }
         }
       }
@@ -13093,6 +15390,12 @@
             "state": "translated",
             "value": "按鍵 %lld"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キー %lld"
+          }
         }
       }
     },
@@ -13133,6 +15436,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "連結"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リンク"
           }
         }
       }
@@ -13175,6 +15484,12 @@
             "state": "translated",
             "value": "剛剛"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "たった今"
+          }
         }
       }
     },
@@ -13215,6 +15530,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "文字"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テキスト"
           }
         }
       }
@@ -13257,6 +15578,12 @@
             "state": "translated",
             "value": "按 ⌘1 至 ⌘9 可直接貼上對應卡片。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌘1〜⌘9で対応するカードを直接ペーストできます。"
+          }
         }
       }
     },
@@ -13297,6 +15624,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "貼上操作不播放音效。隱私模式下自動音效靜音；敏感及被排除的拷貝保持靜音。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ペースト時は音が鳴りません。プライバシーモード中、機密項目、除外したアプリからのコピーでは、自動で音を鳴らしません。"
           }
         }
       }
@@ -13339,6 +15672,12 @@
             "state": "translated",
             "value": "全部"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべて"
+          }
         }
       }
     },
@@ -13379,6 +15718,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "全部記錄，清除篩選"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべての項目。フィルタを解除します。"
           }
         }
       }
@@ -13421,6 +15766,12 @@
             "state": "translated",
             "value": "篩選觸發方式"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フィルタの適用方法"
+          }
         }
       }
     },
@@ -13461,6 +15812,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "篩選器"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フィルタ"
           }
         }
       }
@@ -13503,6 +15860,12 @@
             "state": "translated",
             "value": "按一下篩選"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリックして絞り込む"
+          }
         }
       }
     },
@@ -13543,6 +15906,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "停留時篩選"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ポインタを重ねて絞り込む"
           }
         }
       }
@@ -13585,6 +15954,12 @@
             "state": "translated",
             "value": "開啟剪貼板面板後，可用卡片上方的標籤篩選。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カードの上にあるタグを使って、クリップボード履歴を絞り込めます。"
+          }
         }
       }
     },
@@ -13625,6 +16000,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "· 使用停留篩選時，把游標停在標籤上即可顯示符合的卡片。按一下標籤仍可組合多個篩選條件。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "・タグにポインタを重ねると、一致するカードが表示されます。クリックすると複数のフィルタを組み合わせられます。"
           }
         }
       }
@@ -13667,6 +16048,12 @@
             "state": "translated",
             "value": "直徑"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "直径"
+          }
         }
       }
     },
@@ -13707,6 +16094,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "邊緣模糊半徑"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "境界のぼかし半径"
           }
         }
       }
@@ -13749,6 +16142,12 @@
             "state": "translated",
             "value": "%lld 點"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld pt"
+          }
         }
       }
     },
@@ -13789,6 +16188,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "游標停留時顯示的範圍"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ポインタを重ねたときの表示範囲"
           }
         }
       }
@@ -13831,6 +16236,12 @@
             "state": "translated",
             "value": "適用於手動隱私模式，且停留動作須設為「預覽」。模糊半徑控制顯示區域邊緣的柔和程度。顯示的內容仍可能出現在錄影中，自動保護則會隱藏全部內容。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手動プライバシーモードがオンで、ポインタを重ねたときの操作が「プレビュー」の場合に適用されます。ぼかしで表示範囲の境界をなじませます。表示した範囲は画面収録に映ることがあります。自動保護中はすべての内容が非表示のままです。"
+          }
         }
       }
     },
@@ -13871,6 +16282,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "點"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pt"
           }
         }
       }
@@ -13913,6 +16330,12 @@
             "state": "translated",
             "value": "隱私模式"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プライバシーモード"
+          }
         }
       }
     },
@@ -13953,6 +16376,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "局部顯示"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一部だけ表示"
           }
         }
       }
@@ -13995,6 +16424,12 @@
             "state": "translated",
             "value": "已遮蔽的剪貼板記錄"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保護されているクリップボード項目"
+          }
         }
       }
     },
@@ -14035,6 +16470,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "格式 %lld"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "形式 %lld"
           }
         }
       }
@@ -14077,6 +16518,12 @@
             "state": "translated",
             "value": "需手動按一下才能拷貝或貼上。完整預覽和編輯仍會停用。只有手動隱私模式可顯示局部內容，自動保護仍會隱藏全部內容。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コピーやペーストにはクリックでの操作が必要です。全体のプレビューと編集はできません。一部だけ表示できるのは手動プライバシーモード中に限られ、自動保護中はすべての内容が非表示のままです。"
+          }
         }
       }
     },
@@ -14117,6 +16564,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "閱讀方式"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "表示形式"
           }
         }
       }
@@ -14159,6 +16612,12 @@
             "state": "translated",
             "value": "內容導覽"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "概要"
+          }
         }
       }
     },
@@ -14196,6 +16655,12 @@
           }
         },
         "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原文"
+          }
+        },
+        "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "原文"
@@ -14241,6 +16706,12 @@
             "state": "translated",
             "value": "導覽僅供參考。完整條款請見原文。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "条件の詳細は原文を参照してください。"
+          }
         }
       }
     },
@@ -14281,6 +16752,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kenney UI Audio 採用 CC0 授權。完整授權文字請查看原文。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kenney UI AudioはCC0で提供されています。全文は原文のライセンスを参照してください。"
           }
         }
       }
@@ -14323,6 +16800,12 @@
             "state": "translated",
             "value": "本文記錄隨附 Kenney UI 音效的來源和格式轉換資訊。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この文書には、同梱のKenney UI Audioの入手元と変換内容が記載されています。"
+          }
         }
       }
     },
@@ -14363,6 +16846,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "WhiskyMac 採用 GNU GPL 第 3 版或更新版本。許可涉及使用、散布、修改、原始碼提供和擔保等事項。完整條款請閱讀原文。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WhiskyMacはGNU GPLバージョン3以降を採用しています。条件の詳細は原文を参照してください。"
           }
         }
       }
@@ -14405,6 +16894,12 @@
             "state": "translated",
             "value": "WhiskyMac 基於 Whisk。本聲明列出原作者、WhiskyMac 的修改，以及隨附的第三方素材。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "元の作者、WhiskyMacでの変更、使用しているサードパーティの素材について記載しています。"
+          }
         }
       }
     },
@@ -14445,6 +16940,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "本文列出隨附的第三方圖像與音效，以及作者、授權條款和來源連結。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サードパーティの画像とサウンド、そのライセンスと入手元を記載しています。"
           }
         }
       }
@@ -14487,6 +16988,12 @@
             "state": "translated",
             "value": "Whisk 原著作權人授予透過 App Store 和 TestFlight 散布的額外授權，適用條件請見原文。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whiskの作者は、App StoreとTestFlightでの配布に関する追加許諾を付与しています。"
+          }
         }
       }
     },
@@ -14528,6 +17035,12 @@
             "state": "translated",
             "value": "WhiskyMac 作者就其有權授權的貢獻，授予透過 App Store 和 TestFlight 散布的額外授權。適用範圍與條件請見原文。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WhiskyMacの作者は、自ら許諾できる著作物について、App StoreとTestFlightでの追加許諾を付与しています。"
+          }
         }
       }
     },
@@ -14567,6 +17080,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "在 GitHub 下載更新"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHubからアップデートをダウンロード"
           }
         }
       },
@@ -14609,6 +17128,12 @@
             "state": "translated",
             "value": "軟體更新"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ソフトウェアアップデート"
+          }
         }
       },
       "extractionState": "manual"
@@ -14649,6 +17174,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "從 GitHub 下載更新。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アップデートはGitHubからダウンロードされます。"
           }
         }
       },
@@ -14691,6 +17222,12 @@
             "state": "translated",
             "value": "目前的建置版本無法檢查更新。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このビルドではアップデートを確認できません。"
+          }
         }
       },
       "extractionState": "manual"
@@ -14731,6 +17268,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在檢查更新…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アップデートを確認中…"
           }
         }
       },
@@ -14773,6 +17316,12 @@
             "state": "translated",
             "value": "目前已是最新版本。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最新バージョンをお使いです。"
+          }
         }
       },
       "extractionState": "manual"
@@ -14814,6 +17363,12 @@
             "state": "translated",
             "value": "發現新版本：%@"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アップデートがあります：%@"
+          }
         }
       },
       "extractionState": "manual"
@@ -14854,6 +17409,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "無法檢查更新。請再試一次，或前往 GitHub 查看。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アップデートを確認できませんでした。もう一度試すか、GitHubで確認してください。"
           }
         }
       },
@@ -14897,6 +17458,12 @@
             "state": "translated",
             "value": "敏感內容處理"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "機密情報の取り扱い"
+          }
         }
       }
     },
@@ -14937,6 +17504,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "敏感內容"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "機密項目"
           }
         }
       }
@@ -14979,6 +17552,12 @@
             "state": "translated",
             "value": "敏感內容操作"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "機密項目の操作"
+          }
         }
       }
     },
@@ -15019,6 +17598,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "拷貝的內容僅暫時保留，到期會從 WhiskyMac 刪除，無法還原。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存期間が過ぎた機密項目はWhiskyMacから削除され、元に戻せません。"
           }
         }
       }
@@ -15061,6 +17646,12 @@
             "state": "translated",
             "value": "敏感內容保留時間"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "機密項目の保存期間"
+          }
         }
       }
     },
@@ -15101,6 +17692,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "分鐘"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分"
           }
         }
       }
@@ -15143,6 +17740,12 @@
             "state": "translated",
             "value": "可輸入 1–1440 分鐘。縮短時限也會套用到既有的敏感內容，延長時限僅影響之後拷貝的內容。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1〜1440分で指定してください。期間を短くすると保存済みの項目にも適用されます。長くした場合は新しい項目にのみ適用されます。"
+          }
         }
       }
     },
@@ -15183,6 +17786,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "敏感內容的處理方式"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "機密項目の仕組み"
           }
         }
       }
@@ -15225,6 +17834,12 @@
             "state": "translated",
             "value": "敏感內容只保留在記憶體中，不會寫入磁碟，也無法搜尋或還原。內容預設隱藏，可顯示 10 秒。到期會刪除，若結束 App、Mac 進入睡眠或達到記憶體上限，也可能提前清除。刪除時不會清空系統剪貼板或其他 App 保留的副本。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "機密項目はメモリにのみ保持され、ディスク上の履歴、検索、取り消しの対象にはなりません。初期状態では非表示で、10秒間だけ表示できます。設定した期間の経過、WhiskyMacの終了、Macのスリープ、またはメモリの上限に達すると削除されます。システムのクリップボードやほかのアプリにはコピーが残ることがあります。"
+          }
         }
       }
     },
@@ -15265,6 +17880,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "禁止記錄標記和排除規則一律優先。既有的一般記錄不會重新分類。每個 App 只能加入一份清單，加入時會從另一份清單移除。來源 App 的辨識結果可能不完全準確。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "記録禁止マーカーや除外設定が優先されます。記録済みの履歴はそのままです。アプリを片方のリストに追加すると、もう一方のリストから取り除かれます。コピー元のアプリを正しく特定できないことがあります。"
           }
         }
       }
@@ -15307,6 +17928,12 @@
             "state": "translated",
             "value": "回復預設大小"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デフォルトのサイズに戻す"
+          }
         }
       }
     },
@@ -15347,6 +17974,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "搜尋設定"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定を検索"
           }
         }
       }
@@ -15389,6 +18022,12 @@
             "state": "translated",
             "value": "沒有符合的設定"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一致する設定がありません"
+          }
         }
       }
     },
@@ -15429,6 +18068,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "音量 聲音 音效 靜音"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "音量 サウンド 効果音 ミュート 消音"
           }
         }
       }
@@ -15471,6 +18116,12 @@
             "state": "translated",
             "value": "側邊欄 標籤 導覽"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サイドバー タブ レイアウト ナビゲーション"
+          }
         }
       }
     },
@@ -15511,6 +18162,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "尺寸 大小 寬度 預覽 回復預設"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サイズ 大きさ 幅 プレビュー デフォルト 初期化"
           }
         }
       }
@@ -15553,6 +18210,12 @@
             "state": "translated",
             "value": "清除記錄 清空歷史 刪除記錄"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "履歴を消去 履歴を削除 履歴をクリア"
+          }
         }
       }
     },
@@ -15593,6 +18256,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "GitHub 儲存庫 原始碼 項目 原專案"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub リポジトリ ソースコード"
           }
         }
       }
@@ -15635,6 +18304,12 @@
             "state": "translated",
             "value": "Lin Shay 琳曦 開發者 聯絡方式"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lin Shay 琳曦 開発者 連絡先"
+          }
         }
       }
     },
@@ -15675,6 +18350,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "滑鼠按下"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "マウスボタンを押す音"
           }
         }
       }
@@ -15717,6 +18398,12 @@
             "state": "translated",
             "value": "滑鼠放開"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "マウスボタンを放す音"
+          }
         }
       }
     },
@@ -15757,6 +18444,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "游標經過的聲音"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ポインタを重ねたときの音"
           }
         }
       }
@@ -15799,6 +18492,12 @@
             "state": "translated",
             "value": "開關輕響"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スイッチのクリック音"
+          }
         }
       }
     },
@@ -15839,6 +18538,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "柔和按鍵"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "やわらかいボタン音"
           }
         }
       }
@@ -15881,6 +18586,12 @@
             "state": "translated",
             "value": "輕觸"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "軽いタップ音"
+          }
         }
       }
     },
@@ -15921,6 +18632,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "輕彈聲"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "小さなスナップ音"
           }
         }
       }
@@ -15963,6 +18680,12 @@
             "state": "translated",
             "value": "小氣泡"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "小さな泡の音"
+          }
         }
       }
     },
@@ -16003,6 +18726,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "SFX Kit 授權條款"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SFX Kitのライセンス"
           }
         }
       }
@@ -16045,6 +18774,12 @@
             "state": "translated",
             "value": "SFX Kit 來源"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SFX Kitの入手元"
+          }
         }
       }
     },
@@ -16085,6 +18820,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "SFX Kit 採用 CC0 授權。完整授權文字請查看原文。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SFX KitはCC0で提供されています。全文は原文のライセンスを参照してください。"
           }
         }
       }
@@ -16127,46 +18868,202 @@
             "state": "translated",
             "value": "本文記錄隨附 SFX Kit 音效的來源和所選檔案。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この文書には、同梱のSFX Kitの入手元と使用ファイルが記載されています。"
+          }
         }
       }
     },
-    "Based on Whisk. Includes Kenney UI Audio, SFX Kit and the Neovim icon.": {
+    "Whisk is the upstream project for WhiskyMac.": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Based on Whisk. Includes Kenney UI Audio, SFX Kit and the Neovim icon."
+            "value": "Whisk is the upstream project for WhiskyMac."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "基于 Whisk，包含 Kenney UI Audio、SFX Kit 音效和 Neovim 图标。"
+            "value": "Whisk 是 WhiskyMac 的上游项目。"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Basé sur Whisk. Inclut Kenney UI Audio, SFX Kit et l’icône Neovim."
+            "value": "Whisk est le projet sur lequel repose WhiskyMac."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Basiert auf Whisk. Enthält Kenney UI Audio, SFX Kit und das Neovim-Symbol."
+            "value": "Whisk ist das Projekt, auf dem WhiskyMac basiert."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Basato su Whisk. Include Kenney UI Audio, SFX Kit e l’icona di Neovim."
+            "value": "Whisk è il progetto su cui si basa WhiskyMac."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "以 Whisk 為基礎，包含 Kenney UI Audio、SFX Kit 音效和 Neovim 圖示。"
+            "value": "Whisk 是 WhiskyMac 的上游專案。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WhiskはWhiskyMacのベースとなったプロジェクトです。"
+          }
+        }
+      }
+    },
+    "provides click and switch sounds for clipboard copy feedback.": {
+      "comment": "Continues a sentence that starts with the linked repository name shown before this text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "provides click and switch sounds for clipboard copy feedback."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为剪贴板拷贝提供点击声和开关声。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "fournit des sons de clic et d’interrupteur pour signaler une copie."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "liefert Klick- und Schaltergeräusche als Rückmeldung beim Kopieren."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "fornisce suoni di clic e di interruttore come conferma della copia."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "為剪貼簿拷貝提供點按聲和開關聲。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "は、クリップボードにコピーしたときに鳴るクリック音とスイッチ音を提供します。"
+          }
+        }
+      }
+    },
+    "adds soft clicks, taps, snaps, and bubbles to the copy sound options.": {
+      "comment": "Continues a sentence that starts with the linked repository name shown before this text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "adds soft clicks, taps, snaps, and bubbles to the copy sound options."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为拷贝音效新增轻点声、轻敲声、弹响声和气泡声。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ajoute aux sons de copie des clics doux, des tapotements, des claquements et des sons de bulles."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ergänzt die Kopiertöne um sanfte Klick-, Tipp-, Schnapp- und Blasengeräusche."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "aggiunge clic delicati, tocchi, schiocchi e bolle ai suoni di copia."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "為拷貝音效新增輕點聲、輕敲聲、彈響聲和氣泡聲。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "は、コピー音にソフトクリック、タップ、スナップ、泡の音を追加します。"
+          }
+        }
+      }
+    },
+    "is the source of the code category icon in the original Whisk.": {
+      "comment": "Continues a sentence that starts with the linked repository name shown before this text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "is the source of the code category icon in the original Whisk."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "的标志曾被原版 Whisk 用作代码分类图标。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "est le projet dont le logo servait d’icône à la catégorie « Code » dans la version originale de Whisk."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ist das Projekt, dessen Logo im ursprünglichen Whisk als Symbol für die Kategorie „Code“ diente."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "è il progetto il cui logo era usato come icona della categoria Codice nella versione originale di Whisk."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "的標誌曾被原版 Whisk 用作程式碼分類圖示。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "のロゴは、オリジナルのWhiskでコードカテゴリのアイコンとして使われていました。"
           }
         }
       }
@@ -16209,6 +19106,12 @@
             "state": "translated",
             "value": "記錄設定"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "履歴の記録"
+          }
         }
       }
     },
@@ -16249,6 +19152,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "儲存管理"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ストレージ管理"
           }
         }
       }
@@ -16291,6 +19200,12 @@
             "state": "translated",
             "value": "始終隱藏內容"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内容を常に非表示にする"
+          }
         }
       }
     },
@@ -16331,6 +19246,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "藍色標籤"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "青のタグ"
           }
         }
       }
@@ -16373,6 +19294,12 @@
             "state": "translated",
             "value": "底部卡片列"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "画面下部にカードを並べる"
+          }
         }
       }
     },
@@ -16413,6 +19340,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "彩色標籤"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カラータグ"
           }
         }
       }
@@ -16455,6 +19388,12 @@
             "state": "translated",
             "value": "內容始終隱藏"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内容は常に非表示"
+          }
         }
       }
     },
@@ -16495,6 +19434,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "灰色標籤"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "グレイのタグ"
           }
         }
       }
@@ -16537,6 +19482,12 @@
             "state": "translated",
             "value": "綠色標籤"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "緑のタグ"
+          }
         }
       }
     },
@@ -16577,6 +19528,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "在剪貼板面板中"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリップボードパネル内"
           }
         }
       }
@@ -16619,6 +19576,12 @@
             "state": "translated",
             "value": "暫無置頂項目"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ピン留めした項目はありません"
+          }
         }
       }
     },
@@ -16659,6 +19622,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "備註"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メモ"
           }
         }
       }
@@ -16701,6 +19670,12 @@
             "state": "translated",
             "value": "橙色標籤"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "オレンジのタグ"
+          }
         }
       }
     },
@@ -16741,6 +19716,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "貼上"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ペースト"
           }
         }
       }
@@ -16783,6 +19764,12 @@
             "state": "translated",
             "value": "置頂項目詳細資訊…"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ピン留めした項目の詳細…"
+          }
         }
       }
     },
@@ -16823,6 +19810,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "置頂項目"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ピン留めした項目"
           }
         }
       }
@@ -16865,6 +19858,12 @@
             "state": "translated",
             "value": "置頂項目顯示方式"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ピン留めした項目の表示方法"
+          }
         }
       }
     },
@@ -16905,6 +19904,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "置頂視窗配置"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ピン留めウインドウのレイアウト"
           }
         }
       }
@@ -16947,6 +19952,12 @@
             "state": "translated",
             "value": "紫色標籤"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "紫のタグ"
+          }
         }
       }
     },
@@ -16987,6 +19998,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "紅色標籤"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "赤のタグ"
           }
         }
       }
@@ -17029,6 +20046,12 @@
             "state": "translated",
             "value": "搜尋置頂項目"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ピン留めした項目を検索"
+          }
         }
       }
     },
@@ -17069,6 +20092,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "獨立視窗"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "別ウインドウ"
           }
         }
       }
@@ -17111,6 +20140,12 @@
             "state": "translated",
             "value": "顯示或隱藏置頂項目"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ピン留めした項目の表示を切り替え"
+          }
         }
       }
     },
@@ -17151,6 +20186,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "備註仍會顯示，拷貝與貼上仍使用原始內容。隱藏時無法完整預覽、編輯、拖移或線上預覽連結。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メモは表示され、コピーやペーストには元の内容が使われます。内容が非表示の間は、全体のプレビュー、編集、ドラッグ、オンラインでのリンクのプレビューは利用できません。"
           }
         }
       }
@@ -17193,6 +20234,12 @@
             "state": "translated",
             "value": "使用置頂項目的快速鍵或選單項目。剪貼板面板會切換到「置頂」，獨立視窗則只顯示置頂項目。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ピン留めした項目は、メニューまたはショートカットで開けます。クリップボードパネルでは「ピン留め済み」で絞り込み、別ウインドウではピン留めした項目だけが表示されます。"
+          }
         }
       }
     },
@@ -17233,6 +20280,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "游標旁的垂直清單"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ポインタの近くに縦に並べる"
           }
         }
       }
@@ -17275,6 +20328,12 @@
             "state": "translated",
             "value": "黃色標籤"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "黄色のタグ"
+          }
         }
       }
     },
@@ -17315,6 +20374,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "按行分割"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "行ごと"
           }
         }
       }
@@ -17357,6 +20422,12 @@
             "state": "translated",
             "value": "按段落分割"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "段落ごと"
+          }
         }
       }
     },
@@ -17397,6 +20468,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "按分隔符號分割"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "区切り文字ごと"
           }
         }
       }
@@ -17439,6 +20516,12 @@
             "state": "translated",
             "value": "選擇要分割的格式"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分割する形式を選択"
+          }
         }
       }
     },
@@ -17479,6 +20562,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "選擇原文或子項"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "元の内容または分割した部分を選択"
           }
         }
       }
@@ -17521,6 +20610,12 @@
             "state": "translated",
             "value": "逗號（, / ，）"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カンマ（, / ，）"
+          }
         }
       }
     },
@@ -17561,6 +20656,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "完整原文"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "元の内容全体"
           }
         }
       }
@@ -17603,6 +20704,12 @@
             "state": "translated",
             "value": "儲存前請確認移除較早的歷史記錄。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存する前に、古い履歴の削除を確認してください。"
+          }
         }
       }
     },
@@ -17643,6 +20750,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "自訂分隔符號（按字面符合）"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カスタム区切り文字（入力どおりの文字列）"
           }
         }
       }
@@ -17685,6 +20798,12 @@
             "state": "translated",
             "value": "頓號（、）"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "読点（、）"
+          }
         }
       }
     },
@@ -17725,6 +20844,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "擷取連結"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リンクを抽出"
           }
         }
       }
@@ -17767,6 +20892,12 @@
             "state": "translated",
             "value": "保留原卡並新增獨立卡片"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "元のカードを残して新しいカードを追加"
+          }
         }
       }
     },
@@ -17807,6 +20938,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "將分隔符號保留在前一段的結尾"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "各区切り文字を直前の部分の末尾に残す"
           }
         }
       }
@@ -17849,6 +20986,12 @@
             "state": "translated",
             "value": "結果超過 1000 條，請調整規則。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "結果が1,000件を超えています。別の分割方法を選んでください。"
+          }
         }
       }
     },
@@ -17889,6 +21032,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "沒有有效分割結果，請嘗試其他規則。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分割結果がありません。別の分割方法を試してください。"
           }
         }
       }
@@ -17931,6 +21080,12 @@
             "state": "translated",
             "value": "只擷取連結（關閉後會分開文字與連結）"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リンクのみ抽出（オフにすると本文とリンクを分ける）"
+          }
         }
       }
     },
@@ -17971,6 +21126,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "轉為純文字（丟棄格式）"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プレーンテキスト（書式を破棄）"
           }
         }
       }
@@ -18013,6 +21174,12 @@
             "state": "translated",
             "value": "替換原卡"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "元のカードを置き換える"
+          }
         }
       }
     },
@@ -18050,6 +21217,12 @@
           }
         },
         "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "結果"
+          }
+        },
+        "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "結果"
@@ -18095,6 +21268,12 @@
             "state": "translated",
             "value": "無法保留文字格式。請勾選「轉為純文字」以繼續。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "書式を保持できませんでした。「プレーンテキスト」をオンにして続けてください。"
+          }
         }
       }
     },
@@ -18135,6 +21314,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "儲存為卡片組"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カードグループとして保存"
           }
         }
       }
@@ -18177,6 +21362,12 @@
             "state": "translated",
             "value": "儲存方式"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存方法"
+          }
         }
       }
     },
@@ -18217,6 +21408,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "符合搜尋條件"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "検索に一致"
           }
         }
       }
@@ -18259,6 +21456,12 @@
             "state": "translated",
             "value": "請選擇分隔符號或輸入自訂分隔字串。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "区切り文字を選択するか、カスタム区切り文字を入力してください。"
+          }
         }
       }
     },
@@ -18299,6 +21502,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "請至少選擇一個結果。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "少なくとも1件の結果を選択してください。"
           }
         }
       }
@@ -18341,6 +21550,12 @@
             "state": "translated",
             "value": "多選子項按原文順序用換行合併。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択した部分は元の順序のまま、1行ずつ連結されます。"
+          }
         }
       }
     },
@@ -18381,6 +21596,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "分號（; / ；）"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "セミコロン（; / ；）"
           }
         }
       }
@@ -18423,6 +21644,12 @@
             "state": "translated",
             "value": "分割規則"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分割方法"
+          }
         }
       }
     },
@@ -18464,6 +21691,12 @@
             "state": "translated",
             "value": "此項目不支援分割。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この項目は分割できません。"
+          }
         }
       }
     },
@@ -18501,6 +21734,12 @@
           }
         },
         "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分割…"
+          }
+        },
+        "ja": {
           "stringUnit": {
             "state": "translated",
             "value": "分割…"
@@ -18546,6 +21785,12 @@
             "state": "translated",
             "value": "Tab 定位字元"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "タブ"
+          }
         }
       }
     },
@@ -18586,6 +21831,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "原卡片將被移除，未選取的內容不會儲存到新卡片中。可用「還原」取回原卡片。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "元のカードは選択した部分で置き換えられます。取り消すと元に戻せます。"
           }
         }
       }
@@ -18628,6 +21879,12 @@
             "state": "translated",
             "value": "儲存失敗，歷史記錄與分割草稿已保留。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "結果を保存できませんでした。履歴と下書きは残っています。"
+          }
         }
       }
     },
@@ -18668,6 +21925,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "所選結果超出歷史容量，請減少選擇或提高容量。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "結果が履歴の上限を超えています。選択件数を減らすか、上限を引き上げてください。"
           }
         }
       }
@@ -18710,6 +21973,12 @@
             "state": "translated",
             "value": "分隔符號會切斷一個組合字元。請改用其他分隔符號。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この区切り文字を使うと1つの文字が途中で分割されます。別の区切り文字を選んでください。"
+          }
         }
       }
     },
@@ -18750,6 +22019,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "原專案已修改或移除，請重新開啟分割。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "元の項目が変更または削除されました。続けるには「分割」を開き直してください。"
           }
         }
       }
@@ -18792,6 +22067,12 @@
             "state": "translated",
             "value": "內容超過分割大小上限。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "元の内容が分割できるサイズの上限を超えています。"
+          }
         }
       }
     },
@@ -18832,6 +22113,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "去除片段首尾空白"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前後の空白を取り除く"
           }
         }
       }
@@ -18874,6 +22161,12 @@
             "state": "translated",
             "value": "允許移除 %lld 條較早的歷史記錄"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "古い履歴%lld件の削除を許可"
+          }
         }
       }
     },
@@ -18914,6 +22207,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "重設類別"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リセットするカテゴリ"
           }
         }
       }
@@ -18956,6 +22255,12 @@
             "state": "translated",
             "value": "回復全域快速鍵的預設值，並關閉全域快速鍵。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "グローバルショートカットをデフォルトに戻し、無効にします。"
+          }
         }
       }
     },
@@ -18996,6 +22301,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "回復面板內快速鍵。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パネルのショートカットをデフォルトに戻します。"
           }
         }
       }
@@ -19038,6 +22349,12 @@
             "state": "translated",
             "value": "回復 Vim 按鍵，不改變 Vim 導覽開關。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vimのキー割り当てをデフォルトに戻します。Vimのキー操作のオン／オフは変わりません。"
+          }
         }
       }
     },
@@ -19078,6 +22395,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "只會重設勾選的類別。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択したカテゴリのみリセットされます。"
           }
         }
       }
@@ -19120,6 +22443,12 @@
             "state": "translated",
             "value": "快速鍵已重設"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ショートカットをリセットしました"
+          }
         }
       }
     },
@@ -19160,6 +22489,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "還原重設"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リセットを取り消す"
           }
         }
       }
@@ -19202,6 +22537,12 @@
             "state": "translated",
             "value": "可在 5 秒內還原"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5秒間取り消せます"
+          }
         }
       }
     },
@@ -19242,6 +22583,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "隱私模式下允許類型與標籤篩選"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プライバシーモード中に種類とタグでの絞り込みを許可"
           }
         }
       }
@@ -19284,6 +22631,12 @@
             "state": "translated",
             "value": "隱私模式下允許 App 篩選"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プライバシーモード中にアプリでの絞り込みを許可"
+          }
         }
       }
     },
@@ -19324,6 +22677,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "App 篩選會在篩選列顯示 App 名稱，可與卡片上的來源名稱分開設定。剪貼板內容仍會隱藏。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アプリフィルタを使うと、フィルタバーにアプリ名を表示できます。カード上のコピー元は別の設定で管理できます。クリップボードの内容は非表示のままです。"
           }
         }
       }
@@ -19366,6 +22725,12 @@
             "state": "translated",
             "value": "卡片可以拷貝，卻無法直接貼上"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コピーはできますが、直接ペーストできないのはなぜですか？"
+          }
         }
       }
     },
@@ -19406,6 +22771,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "一個好點子"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "いいアイデア"
           }
         }
       }
@@ -19448,6 +22819,12 @@
             "state": "translated",
             "value": "一點靈感"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ひらめきのメモ"
+          }
         }
       }
     },
@@ -19488,6 +22865,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "輔助使用"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アクセシビリティ"
           }
         }
       }
@@ -19530,6 +22913,12 @@
             "state": "translated",
             "value": "加入範例"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サンプルを追加"
+          }
         }
       }
     },
@@ -19570,6 +22959,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "準備就緒"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "準備完了"
           }
         }
       }
@@ -19612,6 +23007,12 @@
             "state": "translated",
             "value": "外觀與卡片尺寸"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "外観とカードサイズ"
+          }
         }
       }
     },
@@ -19652,6 +23053,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "上一步"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "戻る"
           }
         }
       }
@@ -19694,6 +23101,12 @@
             "state": "translated",
             "value": "重新檢查權限"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "許可状況を再確認"
+          }
         }
       }
     },
@@ -19734,6 +23147,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "剪貼板取用權限"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリップボードへのアクセス"
           }
         }
       }
@@ -19776,6 +23195,12 @@
             "state": "translated",
             "value": "已完成"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完了済み"
+          }
         }
       }
     },
@@ -19816,6 +23241,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "下一步"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "続ける"
           }
         }
       }
@@ -19858,6 +23289,12 @@
             "state": "translated",
             "value": "自訂全部快速鍵與 Vim 導覽"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ショートカットとVimのキー操作をカスタマイズ"
+          }
         }
       }
     },
@@ -19898,6 +23335,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "直接貼上"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "直接ペースト"
           }
         }
       }
@@ -19940,6 +23383,12 @@
             "state": "translated",
             "value": "啟用歷史面板快速鍵"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "履歴を開くショートカットをオンにする"
+          }
         }
       }
     },
@@ -19980,6 +23429,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "常用工具"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "便利な機能"
           }
         }
       }
@@ -20022,6 +23477,12 @@
             "state": "translated",
             "value": "歷史面板快速鍵"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "履歴のショートカット"
+          }
         }
       }
     },
@@ -20062,6 +23523,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "示意圖：將常用卡片置頂，並排列待貼上清單。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ピン留めしたカードと連続ペーストの順序を示すイラスト。"
           }
         }
       }
@@ -20104,6 +23571,12 @@
             "state": "translated",
             "value": "示意圖：按一下選單列圖示，開啟可以搜尋的剪貼板卡片面板。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メニューバーから検索できるクリップボードパネルを開くイラスト。"
+          }
         }
       }
     },
@@ -20144,6 +23617,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "示意圖：剪貼板已準備就緒，從選單列開始使用。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メニューバーのWhiskyMacアイコンのイラスト。"
           }
         }
       }
@@ -20186,6 +23665,12 @@
             "state": "translated",
             "value": "圖片"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "画像"
+          }
         }
       }
     },
@@ -20226,6 +23711,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "了解保護範圍"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保護の対象を確認"
           }
         }
       }
@@ -20268,6 +23759,12 @@
             "state": "translated",
             "value": "登入時啟動"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ログイン時に起動"
+          }
         }
       }
     },
@@ -20308,6 +23805,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "連結"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リンク"
           }
         }
       }
@@ -20350,6 +23853,12 @@
             "state": "translated",
             "value": "本機歷史記錄"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このMacの履歴"
+          }
         }
       }
     },
@@ -20390,6 +23899,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "給下一個靈感，留個位置。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コピーした内容を、次に使うときまで。"
           }
         }
       }
@@ -20432,6 +23947,12 @@
             "state": "translated",
             "value": "可用 Command-V 手動貼上"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌘Vで手動ペースト"
+          }
         }
       }
     },
@@ -20472,6 +23993,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "完全不記錄"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "記録しない"
           }
         }
       }
@@ -20514,6 +24041,12 @@
             "state": "translated",
             "value": "找不到符合的項目。試著輸入 Hello，或清除搜尋。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一致する項目がありません。「Hello」で検索するか、検索をクリアしてください。"
+          }
         }
       }
     },
@@ -20554,6 +24087,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "未啟用"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無効"
           }
         }
       }
@@ -20596,6 +24135,12 @@
             "state": "translated",
             "value": "歷史記錄裡沒有新內容"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新しい項目が履歴に表示されないのはなぜですか？"
+          }
         }
       }
     },
@@ -20636,6 +24181,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "未啟用"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "オフ"
           }
         }
       }
@@ -20678,6 +24229,12 @@
             "state": "translated",
             "value": "開啟輔助使用設定"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アクセシビリティ設定を開く"
+          }
         }
       }
     },
@@ -20718,6 +24275,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "開始使用"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリップボード履歴を開く"
           }
         }
       }
@@ -20760,6 +24323,12 @@
             "state": "translated",
             "value": "貼上範例"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サンプルをペースト"
+          }
         }
       }
     },
@@ -20800,6 +24369,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "權限準備"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アクセス許可"
           }
         }
       }
@@ -20842,6 +24417,12 @@
             "state": "translated",
             "value": "上手練習"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "練習"
+          }
         }
       }
     },
@@ -20882,6 +24463,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "練習便箋"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "練習用メモ"
           }
         }
       }
@@ -20924,6 +24511,12 @@
             "state": "translated",
             "value": "動手試一試"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "練習スペース"
+          }
         }
       }
     },
@@ -20964,6 +24557,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "開始設定"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定を始める"
           }
         }
       }
@@ -21006,6 +24605,12 @@
             "state": "translated",
             "value": "請按下快速鍵…"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ショートカットキーを押す…"
+          }
         }
       }
     },
@@ -21046,6 +24651,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "速查指南"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クイックガイド"
           }
         }
       }
@@ -21088,6 +24699,12 @@
             "state": "translated",
             "value": "已就緒"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "準備完了"
+          }
         }
       }
     },
@@ -21128,6 +24745,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "普通 App"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通常のアプリ"
           }
         }
       }
@@ -21170,6 +24793,12 @@
             "state": "translated",
             "value": "檢查權限"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "許可を確認"
+          }
         }
       }
     },
@@ -21210,6 +24839,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "搜尋剪貼板"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリップボードを検索"
           }
         }
       }
@@ -21252,6 +24887,12 @@
             "state": "translated",
             "value": "稍後設定"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "あとで設定"
+          }
         }
       }
     },
@@ -21292,6 +24933,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "可稍後設定"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "準備ができたら設定"
           }
         }
       }
@@ -21334,6 +24981,12 @@
             "state": "translated",
             "value": "重新練習"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最初からやり直す"
+          }
         }
       }
     },
@@ -21374,6 +25027,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "暫時工作階段"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一時セッション"
           }
         }
       }
@@ -21416,6 +25075,12 @@
             "state": "translated",
             "value": "文字"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テキスト"
+          }
         }
       }
     },
@@ -21456,6 +25121,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "這個快速鍵不可用或存在重複，請換一個組合。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このショートカットは使用できないか、すでに割り当てられています。別のキーの組み合わせを選んでください。"
           }
         }
       }
@@ -21498,6 +25169,12 @@
             "state": "translated",
             "value": "隨時可練習"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "いつでも試せます"
+          }
         }
       }
     },
@@ -21538,6 +25215,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "上手練習"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "試してみる"
           }
         }
       }
@@ -21580,6 +25263,12 @@
             "state": "translated",
             "value": "試試搜尋 Hello"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「Hello」で検索してみる"
+          }
         }
       }
     },
@@ -21620,6 +25309,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "從選單列開啟"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メニューバーから開く"
           }
         }
       }
@@ -21662,6 +25357,12 @@
             "state": "translated",
             "value": "前往對應設定"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定で表示"
+          }
         }
       }
     },
@@ -21702,6 +25403,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "歡迎指南"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ウェルカムガイド"
           }
         }
       }
@@ -21744,6 +25451,12 @@
             "state": "translated",
             "value": "在哪裡開啟設定和固定項目？"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定やピン留めした項目はどこから開けますか？"
+          }
         }
       }
     },
@@ -21784,6 +25497,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "常用的小片段"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "よく使うテキスト"
           }
         }
       }
@@ -21826,6 +25545,12 @@
             "state": "translated",
             "value": "範例內容會貼上到這裡。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ペーストしたサンプルがここに表示されます。"
+          }
         }
       }
     },
@@ -21866,6 +25591,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "進一步調整可見內容"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "表示する情報を調整"
           }
         }
       }
@@ -21908,6 +25639,12 @@
             "state": "translated",
             "value": "更多個性化選項"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "さらにカスタマイズ"
+          }
         }
       }
     },
@@ -21948,6 +25685,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "按一下錄製快速鍵。按 Esc 取消。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリックしてショートカットを登録します。取り消すにはEscキーを押します。"
           }
         }
       }
@@ -21990,6 +25733,12 @@
             "state": "translated",
             "value": "編輯範例"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サンプルを編集"
+          }
         }
       }
     },
@@ -22030,6 +25779,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "範例操作選單"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サンプルの操作"
           }
         }
       }
@@ -22072,6 +25827,12 @@
             "state": "translated",
             "value": "更多互動"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "その他の操作"
+          }
         }
       }
     },
@@ -22112,6 +25873,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "更多設定"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "その他の設定"
           }
         }
       }
@@ -22154,6 +25921,12 @@
             "state": "translated",
             "value": "按一下：%@ · 按兩下：%@"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "シングルクリック：%@ ／ ダブルクリック：%@"
+          }
         }
       }
     },
@@ -22194,6 +25967,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "這裡只展示範例的分割結果，不會儲存到歷史記錄。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "練習で分割した結果は履歴に保存されません。"
           }
         }
       }
@@ -22236,6 +26015,12 @@
             "state": "translated",
             "value": "第 %lld 步，共 %lld 步：%@"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld／%lldステップ：%@"
+          }
         }
       }
     },
@@ -22276,6 +26061,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "無法分割這個範例，請試試更短的文字。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このサンプルを分割できませんでした。もっと短いテキストを試してください。"
           }
         }
       }
@@ -22318,6 +26109,12 @@
             "state": "translated",
             "value": "Hello, WhiskyMac.\n留住一個好點子。\n隨時找回來。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hello, WhiskyMac.\nひらめきをメモ。\n必要なときに、もう一度。"
+          }
         }
       }
     },
@@ -22358,6 +26155,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "用於測試 WhiskyMac 的除錯工具。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WhiskyMacの動作確認に使うツールです。"
           }
         }
       }
@@ -22400,6 +26203,12 @@
             "state": "translated",
             "value": "除錯工具"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デバッグツール"
+          }
         }
       }
     },
@@ -22440,6 +26249,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "顯示初次使用指南"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "初回ガイドを開く"
           }
         }
       }
@@ -22482,6 +26297,12 @@
             "state": "translated",
             "value": "從頭開啟歡迎指南，保留先前的完成狀態。"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完了状況を保持したまま、ウェルカムガイドを最初から開きます。"
+          }
         }
       }
     },
@@ -22522,6 +26343,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "檔案路徑"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ファイルパス"
           }
         }
       }
@@ -22564,6 +26391,12 @@
             "state": "translated",
             "value": "接力，來源篩選"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Handoff、コピー元フィルタ"
+          }
         }
       }
     },
@@ -22604,6 +26437,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "要隱藏的來源"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "非表示にするコピー元"
           }
         }
       }
@@ -22646,6 +26485,12 @@
             "state": "translated",
             "value": "隱私模式下允許接力篩選"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プライバシーモード中にHandoffでの絞り込みを許可"
+          }
         }
       }
     },
@@ -22686,6 +26531,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "隱藏或顯示剪貼簿記錄"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリップボード履歴の表示を切り替え"
           }
         }
       }
@@ -22728,6 +26579,12 @@
             "state": "translated",
             "value": "按類型或來源隱藏或顯示"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "種類やコピー元で表示を切り替え"
+          }
         }
       }
     },
@@ -22768,6 +26625,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "按類型或來源隱藏"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "種類やコピー元で非表示"
           }
         }
       }
@@ -22810,6 +26673,12 @@
             "state": "translated",
             "value": "顯示隱藏的卡片"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "非表示のカードを表示"
+          }
         }
       }
     },
@@ -22850,6 +26719,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "隱藏所選時間之前建立且符合類型或接力來源的卡片。按一下選擇篩選條件和時間，再按一下即可顯示隱藏的卡片。"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "指定した日時までのカードを、種類やHandoffのコピー元で絞って非表示にします。クリックで条件と日時を選択し、もう一度クリックで非表示にしたカードを表示します。"
           }
         }
       }
@@ -22892,6 +26767,12 @@
             "state": "translated",
             "value": "%@ gestisce la cronologia degli appunti del Mac e si basa su %@."
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@は%2$@をベースにしたクリップボード履歴アプリです。"
+          }
         }
       }
     },
@@ -22932,6 +26813,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Chiaro"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ライト"
           }
         }
       }
@@ -22974,6 +26861,12 @@
             "state": "translated",
             "value": "Scuro"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ダーク"
+          }
         }
       }
     },
@@ -23014,6 +26907,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Aspetto della finestra delle impostazioni"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定ウインドウの外観"
           }
         }
       }
@@ -23056,6 +26955,12 @@
             "state": "translated",
             "value": "Aspetto degli appunti"
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリップボードの外観"
+          }
         }
       }
     },
@@ -23096,6 +27001,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "scuro chiaro tema sistema aspetto"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ダーク ライト テーマ システム 外観"
           }
         }
       }
@@ -23138,6 +27049,12 @@
             "state": "translated",
             "value": "Ritrova e riusa ciò che copi."
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コピーした内容を、いつでも見つけて再利用できます。"
+          }
         }
       }
     },
@@ -23178,6 +27095,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Salva le nuove copie nella cronologia. Se richiesto, consenti di incollare, poi scegli Consenti per WhiskyMac in Incolla da altre app."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新しくコピーした内容を履歴に記録します。確認画面が出たら「ペーストを許可」を選び、「ほかのアプリからペースト」でWhiskyMacを「許可」に設定してください。"
           }
         }
       }
@@ -23220,6 +27143,12 @@
             "state": "translated",
             "value": "Attiva WhiskyMac in Accessibilità per incollare direttamente. Puoi anche copiare una scheda e premere ⌘V."
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "直接ペーストするには「アクセシビリティ」でWhiskyMacを許可してください。カードをコピーして⌘Vを押すこともできます。"
+          }
         }
       }
     },
@@ -23260,6 +27189,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Fissa i preferiti"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "よく使う項目をピン留め"
           }
         }
       }
@@ -23302,6 +27237,12 @@
             "state": "translated",
             "value": "Fissa dal menu di una scheda. Gli elementi fissati restano quando cancelli la cronologia."
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カードのメニューからピン留めできます。ピン留めした項目は履歴を消去しても残ります。"
+          }
         }
       }
     },
@@ -23342,6 +27283,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Incolla in ordine"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "順番にペースト"
           }
         }
       }
@@ -23384,6 +27331,12 @@
             "state": "translated",
             "value": "Aggiungi schede alla pila di incolla e attiva la scorciatoia per incollarle in ordine."
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カードを連続ペーストに追加し、ショートカットをオンにすると、順番にペーストできます。"
+          }
         }
       }
     },
@@ -23424,6 +27377,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Modifica e dividi il testo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テキストを編集・分割"
           }
         }
       }
@@ -23466,6 +27425,12 @@
             "state": "translated",
             "value": "Modifica o dividi il contenuto dal menu di una scheda di testo."
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テキストカードのメニューから内容を編集、分割できます。"
+          }
         }
       }
     },
@@ -23506,6 +27471,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cerca e filtra"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "検索と絞り込み"
           }
         }
       }
@@ -23548,6 +27519,12 @@
             "state": "translated",
             "value": "Filtra la cronologia per app, tipo o tag."
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "履歴をアプリ、種類、タグで絞り込めます。"
+          }
         }
       }
     },
@@ -23588,6 +27565,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Condivisione dello schermo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "画面共有"
           }
         }
       }
@@ -23630,6 +27613,12 @@
             "state": "translated",
             "value": "Le nuove copie restano brevemente in memoria. Le app escluse non vengono registrate. La cronologia esistente viene conservata."
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新しくコピーした内容は短時間だけメモリに保持されます。除外したアプリの内容は記録されません。記録済みの履歴はそのままです。"
+          }
         }
       }
     },
@@ -23670,6 +27659,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "La protezione automatica rileva solo le sessioni di condivisione supportate di Zoom e Teams."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自動保護で検出できるのは、対応するZoomとTeamsの共有だけです。"
           }
         }
       }
@@ -23712,6 +27707,12 @@
             "state": "translated",
             "value": "Fai clic sulla scorciatoia per cambiarla. Premi Esc per annullare."
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ショートカットをクリックして変更します。取り消すにはEscキーを押します。"
+          }
         }
       }
     },
@@ -23752,6 +27753,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ridurre i limiti può eliminare subito gli elementi non fissati."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上限を下げると、ピン留めしていない履歴がすぐに削除されることがあります。"
           }
         }
       }
@@ -23794,6 +27801,12 @@
             "state": "translated",
             "value": "Copia qualcosa, poi apri la cronologia."
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "何かをコピーして、履歴を開いてみましょう。"
+          }
         }
       }
     },
@@ -23834,6 +27847,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Fai pratica con esempi senza modificare gli appunti."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サンプルで安全に試せます。"
           }
         }
       }
@@ -23876,6 +27895,12 @@
             "state": "translated",
             "value": "Scegli cosa resta visibile e quali clic sono consentiti."
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "表示する情報や、許可するクリック操作を設定します。"
+          }
         }
       }
     },
@@ -23916,6 +27941,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Copia qualcosa di nuovo. Se non appare, verifica l’accesso agli appunti, lo stato della registrazione e le app escluse."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新しく何かをコピーしてください。表示されない場合は、クリップボードへのアクセス許可、記録の状態、除外設定を確認してください。"
           }
         }
       }
@@ -23958,6 +27989,12 @@
             "state": "translated",
             "value": "Seleziona un campo nell’app di destinazione e verifica Accessibilità. Puoi anche copiare la scheda e premere ⌘V."
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ペースト先の入力欄を選び、「アクセシビリティ」の許可を確認してください。カードをコピーして⌘Vを押すこともできます。"
+          }
         }
       }
     },
@@ -23998,6 +28035,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Fai clic destro sull’icona nella barra dei menu per aprire le impostazioni o gli elementi fissati."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メニューバーアイコンを右クリックすると、設定やピン留めした項目を開けます。"
           }
         }
       }
@@ -24040,6 +28083,12 @@
             "state": "translated",
             "value": "Continua dal menu della scheda o con una scorciatoia."
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カードのメニューかショートカットで操作を続けられます。"
+          }
         }
       }
     },
@@ -24080,6 +28129,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Esempio copiato."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サンプルをコピーしました。"
           }
         }
       }
@@ -24122,6 +28177,12 @@
             "state": "translated",
             "value": "Esempio incollato."
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サンプルをペーストしました。"
+          }
         }
       }
     },
@@ -24162,6 +28223,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Esempio aggiornato."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サンプルを更新しました。"
           }
         }
       }
@@ -24204,6 +28271,12 @@
             "state": "translated",
             "value": "Attiva la modalità Privacy prima di condividere. I contenuti mostrati o incollati possono comunque apparire sullo schermo."
           }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "画面を共有する前にプライバシーモードをオンにしてください。表示した項目やペーストした内容は共有画面に映ることがあります。"
+          }
         }
       }
     },
@@ -24244,6 +28317,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Comandi degli appunti"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリップボードの操作"
           }
         }
       }

@@ -175,6 +175,7 @@ final class HistoryPresenter {
     func present(
         items: [ClipboardItem],
         query: String,
+        searchMatchMode: SearchMatchMode = .fuzzy,
         now: Date,
         selectedID: UUID? = nil,
         stack: [UUID] = [],
@@ -193,7 +194,7 @@ final class HistoryPresenter {
         previewPruned = false
         timePruned = false
         let accessPrompt = Self.accessPrompt(for: clipboardAccess)
-        let words = ParsedQuery(query).words
+        let parsedQuery = ParsedQuery(query, mode: searchMatchMode)
         let groups = preparedGroups ?? RichTextGroups.groups(items)
         var labels = CardLabels()
         let stackPositions = Dictionary(zip(stack, 1...), uniquingKeysWith: { first, _ in first })
@@ -202,12 +203,13 @@ final class HistoryPresenter {
                 let item = group[0]
                 var result = card(
                     for: item, now: now, isSelected: group.contains { $0.id == selectedID },
-                    stackPosition: stackPositions[item.id], words: words, labels: &labels)
+                    stackPosition: stackPositions[item.id], query: parsedQuery, labels: &labels)
                 result.variantIDs = group.map(\.id)
                 return result
             },
             countLabel: countLabel(groups.count),
             query: query,
+            searchMatchMode: searchMatchMode,
             selectedID: selectedID,
             stackCount: stack.count,
             filters: filterBar(from: filters),
@@ -258,7 +260,7 @@ final class HistoryPresenter {
     }
 
     private func card(
-        for item: ClipboardItem, now: Date, isSelected: Bool, stackPosition: Int?, words: [FuzzyMatch.Pattern],
+        for item: ClipboardItem, now: Date, isSelected: Bool, stackPosition: Int?, query: ParsedQuery,
         labels: inout CardLabels
     ) -> CardViewState {
         let kind = labels.kind(item.category)
@@ -292,7 +294,7 @@ final class HistoryPresenter {
                 return true
             }(),
             sourceKey: item.source?.filterKey,
-            matches: hidden ? [] : Self.matchSpans(of: words, in: item),
+            matches: hidden ? [] : Self.matchSpans(of: query, in: item),
             preview: cardPreview,
             pinnedMetadata: item.pinnedMetadata, splitCount: item.splitGroup?.parts.count ?? 0,
             richText: !hidden && item.category != .image ? item.richText : nil
@@ -311,11 +313,16 @@ final class HistoryPresenter {
     /// Card layout and highlights share an excerpt; explicit actions keep the full payload.
     private static let textPreviewLimit = 1024
 
-    private static func matchSpans(of words: [FuzzyMatch.Pattern], in item: ClipboardItem) -> [MatchSpan] {
-        guard !words.isEmpty, case .text(let value) = item.payload else { return [] }
+    private static func matchSpans(of query: ParsedQuery, in item: ClipboardItem) -> [MatchSpan] {
+        guard query.hasText, case .text(let value) = item.payload else { return [] }
         let scanned = value.prefix(textPreviewLimit)
+        if let phrase = query.phrase {
+            let visibleRange = NSRange(location: 0, length: scanned.utf16.count)
+            guard let hit = phrase.firstMatch(in: value, within: visibleRange) else { return [] }
+            return [MatchSpan(start: hit.location, length: hit.length)]
+        }
         var hits: Set<Int> = []
-        for word in words {
+        for word in query.words {
             if let positions = word.match(in: scanned)?.positions {
                 hits.formUnion(positions)
             }

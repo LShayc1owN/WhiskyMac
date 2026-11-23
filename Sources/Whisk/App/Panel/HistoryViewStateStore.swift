@@ -65,6 +65,7 @@ final class HistoryViewStateStore: ObservableObject {
     func appearanceDidChange() { appearanceRevision += 1 }
     @Published private(set) var focusRevision = 0
     @Published private(set) var closeRevision = 0
+    private(set) var historyVisibilityRevision = 0
 
     /// Vim navigation splits the panel into two input modes: SEARCH is the
     /// field with focus, NORMAL frees the letters to act as commands. With
@@ -91,15 +92,27 @@ final class HistoryViewStateStore: ObservableObject {
     @Published private(set) var privacyShowsSourceApps = false
     @Published private(set) var protectedQuery = ""
     var protectedSearch: ((String) -> Void)?
+    var searchMatchModeChanged: ((SearchMatchMode, String) -> Void)?
+    var searchMatchMode: SearchMatchMode { latestState.searchMatchMode }
+
+    func selectSearchMatchMode(_ mode: SearchMatchMode, query: String = "", whileProtected: Bool = false) {
+        guard panelVisible, isProtected == whileProtected, searchMatchMode != mode,
+            !whileProtected || privacyAllowsSearch
+        else { return }
+        if whileProtected { protectedSearchDebounce.cancel() }
+        searchMatchModeChanged?(mode, whileProtected ? protectedQuery : query)
+    }
     enum ProtectedFilterAction {
         case toggleApp(String), selectApp(String), toggleKind(String), selectKind(String), reset
     }
     var protectedFilter: ((ProtectedFilterAction) -> Void)?
 
+    private var allowsProtectedFiltering: Bool {
+        privacyAllowsFiltering || privacyAllowsAppFiltering || privacyAllowsHandoffFiltering
+    }
+
     var protectedFilters: FilterBarViewState {
-        guard isProtected, privacyAllowsFiltering || privacyAllowsAppFiltering || privacyAllowsHandoffFiltering else {
-            return .empty
-        }
+        guard isProtected, allowsProtectedFiltering else { return .empty }
         let filters = latestState.filters
         return FilterBarViewState(
             all: filters.all, pinned: privacyAllowsFiltering ? filters.pinned : [],
@@ -504,6 +517,11 @@ final class HistoryViewStateStore: ObservableObject {
 
     func update(_ newState: HistoryViewState) {
         cachedProtectedRows = nil
+        if newState.isHistoryHidden != isHistoryHidden || newState.historyHidingCutoff != historyHidingCutoff
+            || newState.typeHidingRule != typeHidingRule
+        {
+            historyVisibilityRevision += 1
+        }
         if newState.selectedID != latestState.selectedID { pendingAction = nil; expandedVersions = false }
         latestState = newState
         validateSplitSessions()
@@ -550,6 +568,10 @@ final class HistoryViewStateStore: ObservableObject {
     var isTypeHistoryHidden: Bool { latestState.isTypeHistoryHidden }
     var historyHidingCutoff: Date? { latestState.historyHidingCutoff }
     var typeHidingRule: HistoryHidingRule? { latestState.typeHidingRule }
+
+    var reservesHiddenFilterRow: Bool {
+        (isHistoryHidden || isTypeHistoryHidden) && (!isProtected || allowsProtectedFiltering)
+    }
 
     var canToggleHistoryVisibility: Bool {
         panelVisible && !isPinnedWorkspace && editing == nil && !pinMetadataEditing && !cardMenuOpen

@@ -110,8 +110,6 @@
 	<string>Base64-dekodiert</string>
 	<key>Base64-encoded</key>
 	<string>Base64-kodiert</string>
-	<key>Based on Whisk. Includes Kenney UI Audio, SFX Kit and the Neovim icon.</key>
-	<string>Basiert auf Whisk. Enthält Kenney UI Audio, SFX Kit und das Neovim-Symbol.</string>
 	<key>Beta and Release</key>
 	<string>Beta- und stabile Versionen</string>
 	<key>Beta only</key>
@@ -200,6 +198,8 @@
 	<string>Bestätigen</string>
 	<key>Confirm removal of older history before saving.</key>
 	<string>Entfernen älterer Verlaufseinträge vor dem Speichern bestätigen.</string>
+	<key>Containing</key>
+	<string>An beliebiger Stelle</string>
 	<key>Content always hidden</key>
 	<string>Inhalt immer ausgeblendet</string>
 	<key>Content hidden by Privacy Mode</key>
@@ -254,6 +254,8 @@
 	<string>Auswahl löschen</string>
 	<key>Dependencies and credits</key>
 	<string>Abhängigkeiten und Mitwirkende</string>
+	<key>Deselect all</key>
+	<string>Auswahl aufheben</string>
 	<key>Detection coverage</key>
 	<string>Umfang der Erkennung</string>
 	<key>Detection is uncertain. Content is hidden as a precaution.</key>
@@ -300,6 +302,8 @@
 	<string>Kurzbefehl für den Verlauf aktivieren</string>
 	<key>Enable this global shortcut</key>
 	<string>Diesen globalen Kurzbefehl aktivieren</string>
+	<key>Ending With</key>
+	<string>Am Textende</string>
 	<key>Enter 1–1440 minutes. Shortening the limit also applies to existing sensitive copies; increasing it only affects new copies.</key>
 	<string>Gib 1–1440 Minuten ein. Eine kürzere Dauer gilt auch für vorhandene Einträge, eine längere nur für neue.</string>
 	<key>Enumeration comma (、)</key>
@@ -356,6 +360,8 @@
 	<string>Format %lld</string>
 	<key>Formatted JSON</key>
 	<string>Formatiertes JSON</string>
+	<key>Fuzzy Match</key>
+	<string>Unscharfe Suche</string>
 	<key>GNU General Public License</key>
 	<string>GNU General Public License</string>
 	<key>General</key>
@@ -502,6 +508,8 @@ Bereit, wenn du sie brauchst.</string>
 	<string>Manueller Privatmodus</string>
 	<key>Manual privacy: hover to reveal a small area</key>
 	<string>Manueller Schutz: Kleinen Bereich beim Verweilen einblenden</string>
+	<key>Matching Word</key>
+	<string>Ganzes Wort</string>
 	<key>Menu bar and Dock</key>
 	<string>Menüleiste und Dock</string>
 	<key>Menu bar icon click</key>
@@ -810,8 +818,6 @@ Bereit, wenn du sie brauchst.</string>
 	<string>Bildschirmschutz</string>
 	<key>Screen sharing</key>
 	<string>Bildschirmfreigabe</string>
-	<key>Search</key>
-	<string>Suchen</string>
 	<key>Search SF Symbols by name</key>
 	<string>SF Symbols nach Namen suchen</string>
 	<key>Search and filter</key>
@@ -820,6 +826,8 @@ Bereit, wenn du sie brauchst.</string>
 	<string>Zwischenablageverlauf durchsuchen</string>
 	<key>Search match</key>
 	<string>Suchtreffer</string>
+	<key>Search match mode</key>
+	<string>Suchmodus</string>
 	<key>Search mode</key>
 	<string>Suchmodus</string>
 	<key>Search pinned items</key>
@@ -944,6 +952,8 @@ Bereit, wenn du sie brauchst.</string>
 	<string>Neu beginnen</string>
 	<key>Start setup</key>
 	<string>Einrichtung starten</string>
+	<key>Starting With</key>
+	<string>Am Textanfang</string>
 	<key>Startup and loading</key>
 	<string>Start und Laden</string>
 	<key>Step %lld of %lld: %@</key>
@@ -1112,6 +1122,8 @@ Bereit, wenn du sie brauchst.</string>
 	<string>Willkommensanleitung</string>
 	<key>Where are settings and my pinned items?</key>
 	<string>Wo sind Einstellungen und angeheftete Einträge?</string>
+	<key>Whisk is the upstream project for WhiskyMac.</key>
+	<string>Whisk ist das Projekt, auf dem WhiskyMac basiert.</string>
 	<key>WhiskyMac Settings</key>
 	<string>WhiskyMac-Einstellungen</string>
 	<key>WhiskyMac exception</key>
@@ -1136,6 +1148,8 @@ Bereit, wenn du sie brauchst.</string>
 	<string>Das eingefügte Beispiel erscheint hier.</string>
 	<key>You’re up to date.</key>
 	<string>WhiskyMac ist auf dem neuesten Stand.</string>
+	<key>adds soft clicks, taps, snaps, and bubbles to the copy sound options.</key>
+	<string>ergänzt die Kopiertöne um sanfte Klick-, Tipp-, Schnapp- und Blasengeräusche.</string>
 	<key>clear history delete history empty history</key>
 	<string>Verlauf löschen Verlauf leeren</string>
 	<key>code</key>
@@ -1150,6 +1164,8 @@ Bereit, wenn du sie brauchst.</string>
 	<string>global</string>
 	<key>image</key>
 	<string>Bild</string>
+	<key>is the source of the code category icon in the original Whisk.</key>
+	<string>ist das Projekt, dessen Logo im ursprünglichen Whisk als Symbol für die Kategorie „Code“ diente.</string>
 	<key>key %lld</key>
 	<string>Taste %lld</string>
 	<key>link</key>
@@ -1160,6 +1176,8 @@ Bereit, wenn du sie brauchst.</string>
 	<string>gerade eben</string>
 	<key>path</key>
 	<string>Dateipfad</string>
+	<key>provides click and switch sounds for clipboard copy feedback.</key>
+	<string>liefert Klick- und Schaltergeräusche als Rückmeldung beim Kopieren.</string>
 	<key>pt</key>
 	<string>pt</string>
 	<key>sidebar tabs navigation</key>

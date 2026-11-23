@@ -108,6 +108,7 @@ import Testing
             ("it", "Copia", "1 elemento"),
             ("zh-Hans", "拷贝", "1 项"),
             ("zh-Hant", "拷貝", "1 項"),
+            ("ja", "コピー", "1件"),
         ] {
             let selected = AppLocalization.selectedBundle(in: .module, language: language)
             #expect(selected.bundleURL.pathExtension == "lproj")
@@ -121,6 +122,7 @@ import Testing
         #expect(AppLanguage.french.code == "fr")
         #expect(AppLanguage.german.code == "de")
         #expect(AppLanguage.italian.code == "it")
+        #expect(AppLanguage.japanese.code == "ja")
     }
 
     @Test func settings_pages_render_both_layouts_with_custom_color_privacy_and_shortcuts() throws {

@@ -99,7 +99,7 @@ struct HistoryCardRail: View {
                     switch entry {
                     case .card(let index, _):
                         card(store.state.cards[index])
-                            .transition(.opacity.combined(with: .scale(scale: 0.98)))
+                            .transition(.opacity)
                     case .gap(let range):
                         gap(range)
                     }
@@ -188,7 +188,7 @@ struct HistoryCardRail: View {
             card: card, actions: actions, keyBindings: keyBindings,
             showsSelection: !store.cursorOnSearch, side: store.cardSide, interactions: store.interactions,
             isPanelVisible: store.panelVisible, hoverEnabled: !store.cardMenuOpen && !store.pinMetadataEditing,
-            canExport: { !store.isProtected },
+            canExport: { !store.isProtected && store.state.cards.contains { $0.id == card.id } },
             onInteraction: { action in store.interact(card, action: action, actions: actions) },
             onHoverPreview: { store.hoverPreview(card, actions: actions) },
             onHoverChanged: { inside in store.cardHoverChanged(card.id, inside: inside) }

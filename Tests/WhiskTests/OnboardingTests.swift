@@ -123,7 +123,7 @@ import Testing
             URL(fileURLWithPath: $0)
         }
         if let directory { try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true) }
-        for language in capturing ? ["zh-Hans", "zh-Hant", "en", "fr", "de", "it"] : [oldLanguage ?? "en"] {
+        for language in capturing ? ["zh-Hans", "zh-Hant", "en", "fr", "de", "it", "ja"] : [oldLanguage ?? "en"] {
             if capturing { AppLocalization.language = language }
             let state = OnboardingState(
                 defaults: sandbox.defaults, readClipboardAccess: { .requiresConsent }, readAccessibility: { false })

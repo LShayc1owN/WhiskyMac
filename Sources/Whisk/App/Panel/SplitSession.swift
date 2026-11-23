@@ -128,18 +128,19 @@ final class SplitGroupSession: ObservableObject {
     let action: CardAction
     let plain: Bool
     let query: String
-    private let words: [FuzzyMatch.Pattern]
+    private let parsedQuery: ParsedQuery
     private let current: (UUID) -> ClipboardItem?
     private let allowed: () -> Bool
     private let export: (ClipboardItem, Set<UUID>, Bool, Bool, Bool) throws -> Void
     var completed: () -> Void = {}
     init(
         source: ClipboardItem, action: CardAction, plain: Bool, query: String,
+        searchMatchMode: SearchMatchMode = .fuzzy,
         current: @escaping (UUID) -> ClipboardItem?, allowed: @escaping () -> Bool,
         export: @escaping (ClipboardItem, Set<UUID>, Bool, Bool, Bool) throws -> Void
     ) {
         self.source = source; self.action = action; self.plain = plain; self.query = query
-        words = ParsedQuery(query).words
+        parsedQuery = ParsedQuery(query, mode: searchMatchMode)
         self.current = current; self.allowed = allowed; self.export = export
         selected = source.splitGroup?.parts.first.map { [$0.id] } ?? []
     }
@@ -152,7 +153,7 @@ final class SplitGroupSession: ObservableObject {
         if enabled { selected.insert(id) } else { selected.remove(id) }
     }
     func matches(_ part: SplitPart) -> Bool {
-        !words.isEmpty && words.allSatisfy { $0.score(in: part.text) != nil }
+        parsedQuery.matchesText(part.text)
     }
     func invalidateIfNeeded() { if !valid { invalidate() } }
     func invalidate() { source = nil; selected = []; original = false; error = SplitFailure.stale.message }

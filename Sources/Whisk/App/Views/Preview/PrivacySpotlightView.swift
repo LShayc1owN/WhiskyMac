@@ -18,10 +18,13 @@ struct PrivacySpotlightView: View {
     @State private var appScope = FilterAppScope(visibleSourceKeys: [])
     @State private var viewport = Viewport()
     @StateObject private var imageThumbnails = ImageThumbnailStore(byteLimit: 0)
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.layoutDirection) private var layoutDirection
     var body: some View {
         let ids = store.protectedCardIDs
         let filters = store.protectedFilters
+        let cardHeight = store.cardSide + (store.privacyShowsSourceApps ? 26 : 0)
+        let railHeight = cardHeight + PanelLayout.railVerticalPadding
         VStack(spacing: PanelLayout.contentSpacing) {
             Label(
                 store.allowsSpotlight && store.privacyInteractions.hover == .preview
@@ -29,30 +32,41 @@ struct PrivacySpotlightView: View {
                     : localized("Content hidden by Privacy Mode"), systemImage: "eye.slash"
             )
             .font(.caption).foregroundStyle(.secondary)
-            HStack(spacing: 10) {
-                if store.privacyAllowsSearch {
+            if store.privacyAllowsSearch {
+                let prompt = localized("Search in \(ids.count) items")
+                let metrics = ClipboardSearchMetrics(prompt: prompt, expanded: !store.protectedQuery.isEmpty)
+                ClipboardSearchToolbarLayout(field: metrics) {
                     HStack(spacing: 10) {
                         Image(systemName: "magnifyingglass").foregroundStyle(.secondary).accessibilityHidden(true)
                         TextField(
                             localized("Search clipboard history"),
                             text: Binding(
-                                get: { store.protectedQuery }, set: { store.searchWhileProtected($0) })
+                                get: { store.protectedQuery }, set: { store.searchWhileProtected($0) }),
+                            prompt: Text(verbatim: prompt)
                         )
                         .textFieldStyle(.plain)
-                        .font(.system(size: 14))
+                        .font(.system(size: ClipboardSearchMetrics.fontSize))
+                        .frame(minWidth: 0, idealWidth: metrics.preferredWidth, maxWidth: metrics.preferredWidth)
+                        SearchMatchPicker(mode: store.searchMatchMode) { mode in
+                            store.selectSearchMatchMode(mode, whileProtected: true)
+                        }
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
                     .frame(height: 36)
                     .background(ClipboardSearchBackground())
-                    .frame(maxWidth: 480)
-                } else {
-                    Spacer(minLength: 0)
+                    HStack { HistoryToolbarActions(store: store, actions: actions) }
                 }
-                HistoryToolbarActions(store: store, actions: actions)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 16)
+            } else {
+                HStack(spacing: 10) {
+                    Spacer(minLength: 0)
+                    HistoryToolbarActions(store: store, actions: actions)
+                }
+                .frame(maxWidth: 704)
+                .padding(.horizontal, 16)
             }
-            .frame(maxWidth: 660)
-            .padding(.horizontal, 16)
             if !filters.isEmpty {
                 FilterBarView(
                     filters: filters, tagScale: store.filterTagScale,
@@ -64,6 +78,9 @@ struct PrivacySpotlightView: View {
                     onToggleApp: { store.filterWhileProtected(.toggleApp($0)) },
                     onToggleKind: { store.filterWhileProtected(.toggleKind($0)) },
                     onFocusApp: { _ in }, onFocusKind: { _ in })
+            } else if store.reservesHiddenFilterRow {
+                Color.clear.frame(height: FilterTagMetrics(scale: store.filterTagScale).totalRowHeight)
+                    .accessibilityHidden(true)
             }
             ScrollView([.horizontal, .vertical], showsIndicators: false) {
                 LazyHStack(spacing: HistoryViewStateStore.cardGap) {
@@ -75,7 +92,8 @@ struct PrivacySpotlightView: View {
                             }
                             SpotlightCard(store: store, id: id, imageThumbnails: imageThumbnails)
                         }
-                        .frame(height: store.cardSide + (store.privacyShowsSourceApps ? 26 : 0), alignment: .bottom)
+                        .frame(height: cardHeight, alignment: .bottom)
+                        .transition(.opacity)
                     }
                 }
                 .padding(.horizontal, PanelLayout.contentMargin)
@@ -90,12 +108,16 @@ struct PrivacySpotlightView: View {
             .onReceive(store.$state) { _ in updateAppScope(refresh: true) }
             .onChange(of: store.privacyAllowsAppFiltering) { _, _ in updateAppScope(refresh: true) }
             .onChange(of: store.cardSide) { _, _ in updateAppScope() }
-            .frame(
-                minHeight: 0, idealHeight: store.cardSide + (store.privacyShowsSourceApps ? 34 : 8),
-                maxHeight: store.cardSide + (store.privacyShowsSourceApps ? 34 : 8))
-            if store.privacyAllowsSearch, ids.isEmpty {
-                Text(localized("No matches")).font(.caption).foregroundStyle(.secondary)
+            .frame(minHeight: 0, idealHeight: railHeight, maxHeight: railHeight)
+            .overlay {
+                if store.privacyAllowsSearch, ids.isEmpty {
+                    Text(localized("No matches")).font(.caption).foregroundStyle(.secondary)
+                        .transition(.opacity)
+                }
             }
+            .animation(
+                reduceMotion || !store.panelVisible ? nil : .easeInOut(duration: 0.18),
+                value: store.historyVisibilityRevision)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
         .padding(.bottom, PanelLayout.bottomPadding)

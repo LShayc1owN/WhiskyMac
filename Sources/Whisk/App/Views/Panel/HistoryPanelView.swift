@@ -23,10 +23,12 @@ struct CardRailWindow: Equatable {
 
 struct RailFilter: Equatable {
     let query: String
+    let searchMatchMode: SearchMatchMode
     let activeChips: [String]
 
     init(_ state: HistoryViewState) {
         query = state.query
+        searchMatchMode = state.searchMatchMode
         activeChips = state.filters.activeChipIDs
     }
 }
@@ -47,7 +49,7 @@ struct HistoryPanelView: View {
     /// would set 400-character lines, and the empty-state slab would be a
     /// 3400-point plate for one sentence.
     static let editorMaxWidth: CGFloat = 960
-    /// The search capsule's expanded width, so the two read as one column.
+    /// The width of the placeholder below the search controls.
     static let emptyStateMaxWidth: CGFloat = 680
 
     /// The field echoes keystrokes instantly; the controller's query only
@@ -98,17 +100,18 @@ struct HistoryPanelView: View {
     }
 
     private var historyBody: some View {
-        VStack(alignment: .leading, spacing: PanelLayout.contentSpacing) {
-            // The landing page's layout, mirrored: a centered search capsule
-            // of bounded width, the filter chips centered right below it.
-            HStack(spacing: 10) {
-                returnToLatestButton
-                toolbar
-                HistoryToolbarActions(store: store, actions: actions)
+        let prompt = localized("Search in \(store.state.cards.count) items")
+        let metrics = ClipboardSearchMetrics(prompt: prompt, expanded: searchExpanded)
+        return VStack(alignment: .leading, spacing: PanelLayout.contentSpacing) {
+            ClipboardSearchToolbarLayout(field: metrics) {
+                HStack(spacing: 10) {
+                    returnToLatestButton
+                    toolbar(prompt: prompt, fieldWidth: metrics.preferredWidth)
+                }
+                HStack { HistoryToolbarActions(store: store, actions: actions) }
             }
             // Keep the capsule shadows within the toolbar width.
             .padding(.horizontal, scheme == .light ? 6 : 0)
-            .frame(maxWidth: searchExpanded ? 680 : 600)
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 16)
             .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.8), value: searchExpanded)
@@ -140,6 +143,9 @@ struct HistoryPanelView: View {
                     onFocusApp: { if !store.cardMenuOpen { actions.focusSourceChip($0) } },
                     onFocusKind: { if !store.cardMenuOpen { actions.focusCategoryChip($0) } }
                 )
+            } else if store.reservesHiddenFilterRow {
+                Color.clear.frame(height: FilterTagMetrics(scale: store.filterTagScale).totalRowHeight)
+                    .accessibilityHidden(true)
             }
             if !store.isPinnedWorkspace { SensitiveSessionView(session: store.sensitiveSession) }
             content
@@ -200,34 +206,34 @@ struct HistoryPanelView: View {
         }
     }
 
-    private var toolbar: some View {
+    private func toolbar(prompt: String, fieldWidth: CGFloat) -> some View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
-            if store.vimEnabled && !store.searchActive {
-                // NORMAL mode: the letters are commands, the field is out
-                // of the loop — the persisted query stays readable.
-                Text(
-                    searchText.isEmpty
-                        ? String(format: localized("Press %@ to search"), store.vimSearchKey)
-                        : searchText
-                )
-                .font(.system(size: 14))
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .linkPointer()
-            } else {
-                let placeholder = searchExpanded ? localized("Search clipboard history") : localized("Search")
-                TextField(
-                    placeholder, text: queryBinding,
-                    prompt: scheme == .light ? Text(placeholder).foregroundStyle(.secondary) : nil
-                )
-                .textFieldStyle(.plain)
-                .font(.system(size: 14))
-                .focused($searchFocused)
+            Group {
+                if store.vimEnabled && !store.searchActive {
+                    // NORMAL mode leaves the persisted query readable while the field is inactive.
+                    Text(
+                        searchText.isEmpty
+                            ? String(format: localized("Press %@ to search"), store.vimSearchKey)
+                            : searchText
+                    )
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .linkPointer()
+                } else {
+                    let promptText = Text(verbatim: prompt)
+                    TextField(
+                        localized("Search clipboard history"), text: queryBinding,
+                        prompt: scheme == .light ? promptText.foregroundStyle(.secondary) : promptText
+                    )
+                    .textFieldStyle(.plain)
+                    .focused($searchFocused)
+                }
             }
-            Spacer(minLength: 0)
+            .font(.system(size: ClipboardSearchMetrics.fontSize))
+            .frame(minWidth: 0, idealWidth: fieldWidth, maxWidth: fieldWidth, alignment: .leading)
             if store.state.stackCount > 0 {
                 Label("\(store.state.stackCount)", systemImage: "square.stack.3d.up.fill")
                     .font(.caption.monospacedDigit())
@@ -235,9 +241,12 @@ struct HistoryPanelView: View {
                     .help(localized("Paste stack — pop with the global shortcut"))
                     .accessibilityLabel(localized("\(store.state.stackCount) in the paste stack"))
             }
-            Text(store.state.countLabel)
-                .font(.caption.monospacedDigit())
-                .foregroundStyle(.secondary)
+            if !searchText.isEmpty || (store.vimEnabled && !store.searchActive) {
+                Text(store.state.countLabel)
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+                    .fixedSize()
+            }
             if store.vimEnabled {
                 Text(store.searchActive ? localized("SEARCH") : localized("NORMAL"))
                     .font(.system(size: 9, weight: .bold))
@@ -246,6 +255,9 @@ struct HistoryPanelView: View {
                     .padding(.vertical, 2)
                     .overlay(Capsule().strokeBorder(.secondary.opacity(0.4), lineWidth: 1))
                     .accessibilityLabel(store.searchActive ? localized("Search mode") : localized("Normal mode"))
+            }
+            SearchMatchPicker(mode: store.searchMatchMode) { mode in
+                store.selectSearchMatchMode(mode, query: searchText)
             }
         }
         .padding(.horizontal, 16)
@@ -285,14 +297,22 @@ struct HistoryPanelView: View {
             accessPrompt(prompt)
                 .frame(maxWidth: Self.emptyStateMaxWidth)
                 .frame(maxWidth: .infinity)
-        } else if let message = store.state.emptyMessage {
-            emptyState(message)
-                .frame(maxWidth: Self.emptyStateMaxWidth)
-                .frame(maxWidth: .infinity)
         } else {
             HistoryCardRail(
                 store: store, actions: actions, keyBindings: keyBindings,
-                returnToLatestRevision: returnToLatestRevision, appScope: appScope)
+                returnToLatestRevision: returnToLatestRevision, appScope: appScope
+            )
+            .overlay {
+                if let message = store.state.emptyMessage {
+                    emptyState(message)
+                        .frame(maxWidth: Self.emptyStateMaxWidth)
+                        .padding(.bottom, PanelLayout.railVerticalPadding)
+                        .transition(.opacity)
+                }
+            }
+            .animation(
+                reduceMotion || !store.panelVisible ? nil : .easeInOut(duration: 0.18),
+                value: store.historyVisibilityRevision)
         }
     }
 

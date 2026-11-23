@@ -1,7 +1,7 @@
 <p align="center"><img src="Assets/icon.png" width="112" alt="WhiskyMac-App-Symbol"></p>
 <h1 align="center">WhiskyMac</h1>
 <p align="center">Kopierte Inhalte schnell wiederfinden.<br>Zwischenablagenverlauf für macOS 15 und neuer.</p>
-<p align="center"><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.it.md">Italiano</a></p>
+<p align="center"><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.it.md">Italiano</a></p>
 
 > [!NOTE]
 > WhiskyMac ist eine unabhängige Bearbeitung von [Whisk](https://github.com/nathan-poncet/whisk). Das Projekt befindet sich in Entwicklung: Dieses Repository ist privat; öffentliche App-Downloads sind noch nicht eingerichtet. Die folgenden Schritte gelten für einen Build aus dieser Projektkopie.
@@ -13,7 +13,7 @@
 - **Aufteilen und ordnen.** Text nach Zeilen, Absätzen oder Trennzeichen aufteilen oder HTTP(S)-Links extrahieren. Teile prüfen und anschließend als neue Karten, Ersatz oder dauerhafte Gruppe speichern. Beim Kopieren und Einfügen Original oder einzelne Gruppenteile auswählen.
 - **Wichtiges behalten.** Pins bieten durchsuchbare Notizen, sieben Farbmarkierungen und auf Wunsch dauerhaft verdeckten Inhalt. Sie erscheinen im Verlauf oder in einem eigenen Fenster. Aufbewahrungsdauer und Kapazität nicht angehefteter Einträge sind einstellbar; Löschen lässt sich rückgängig machen.
 - **Anzeige kontrollieren.** Der manuelle Datenschutzmodus verdeckt Inhalte. Die optionale Erkennung von Zoom-/Teams-Freigabe-Symbolleisten ist begrenzt. Suche, Filter und Sichtbereich am Mauszeiger lassen sich getrennt einschalten. Sensible Apps verwenden einen ablaufenden Speicherbereich; ausgeschlossene Apps werden nicht erfasst.
-- **Persönlich einstellen.** Kartengröße, matte Oberfläche, Menüleistensymbol, Interaktionen, Tastenkürzel und optionale Kopiergeräusche lassen sich anpassen. Einstellungssuche und Rückgängig nach dem Zurücksetzen von Kürzeln helfen dabei. Der Übungsbereich beim ersten Start verändert weder die echte Zwischenablage noch den Verlauf. Die Oberfläche ist auf Englisch, Französisch, Deutsch, Italienisch und vereinfachtem Chinesisch verfügbar.
+- **Persönlich einstellen.** Kartengröße, matte Oberfläche, Menüleistensymbol, Interaktionen, Tastenkürzel und optionale Kopiergeräusche lassen sich anpassen. Einstellungssuche und Rückgängig nach dem Zurücksetzen von Kürzeln helfen dabei. Der Übungsbereich beim ersten Start verändert weder die echte Zwischenablage noch den Verlauf. Die Oberfläche ist auf Englisch, Französisch, Deutsch, Italienisch, vereinfachtem und traditionellem Chinesisch sowie Japanisch verfügbar.
 
 Genaues Verhalten und Grenzen stehen im [Projektumfang](docs/PROJECT.md) und [Änderungsprotokoll](CHANGELOG.md).
 

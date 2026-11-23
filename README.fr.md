@@ -1,7 +1,7 @@
 <p align="center"><img src="Assets/icon.png" width="112" alt="Icône de WhiskyMac"></p>
 <h1 align="center">WhiskyMac</h1>
 <p align="center">Retrouvez facilement ce que vous avez copié.<br>Un gestionnaire de presse-papiers pour macOS 15 et versions ultérieures.</p>
-<p align="center"><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.it.md">Italiano</a></p>
+<p align="center"><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.it.md">Italiano</a></p>
 
 > [!NOTE]
 > WhiskyMac est une modification indépendante de [Whisk](https://github.com/nathan-poncet/whisk). Ce projet est en cours de développement : le dépôt est privé et aucun téléchargement public de l'application n'est encore configuré. Les instructions ci-dessous concernent la compilation depuis cette copie du projet.
@@ -13,7 +13,7 @@
 - **Découper et organiser.** Découpez par ligne, paragraphe ou séparateur, ou extrayez des liens HTTP(S). Vérifiez les parties, puis ajoutez des cartes, remplacez l'original ou créez un groupe persistant. Choisissez l'original ou certaines parties lors de la copie ou du collage.
 - **Garder l'essentiel.** Ajoutez aux épingles des notes consultables, sept étiquettes de couleur et un masquage permanent facultatif. Affichez-les dans l'historique ou dans une fenêtre distincte. Réglez la durée et la capacité des éléments non épinglés ; leur effacement est annulable.
 - **Maîtriser l'affichage.** Le mode de confidentialité manuel masque le contenu. La détection facultative des barres de partage Zoom/Teams a une portée limitée. Recherche, filtres et révélation près du pointeur s'activent séparément. Les applications sensibles utilisent une session temporaire en mémoire ; les applications exclues ne sont pas enregistrées.
-- **Personnaliser.** Modifiez la taille des cartes, l'aspect dépoli, l'icône de la barre des menus, les interactions, les raccourcis et les sons de copie facultatifs. Les réglages sont consultables par recherche et l'annulation suit la réinitialisation des raccourcis. L'exercice du guide initial ne touche pas au vrai presse-papiers ni à l'historique. L'interface existe en anglais, français, allemand, italien et chinois simplifié.
+- **Personnaliser.** Modifiez la taille des cartes, l'aspect dépoli, l'icône de la barre des menus, les interactions, les raccourcis et les sons de copie facultatifs. Les réglages sont consultables par recherche et l'annulation suit la réinitialisation des raccourcis. L'exercice du guide initial ne touche pas au vrai presse-papiers ni à l'historique. L'interface existe en anglais, français, allemand, italien, chinois simplifié, chinois traditionnel et japonais.
 
 Pour les comportements précis et les limites, consultez le [périmètre du projet](docs/PROJECT.md) et le [journal des changements](CHANGELOG.md).
 

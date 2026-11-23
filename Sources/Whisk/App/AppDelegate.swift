@@ -119,6 +119,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             clock: SystemClock(),
             retention: generalSettings.policy,
             initialItems: opened.items,
+            searchMatchMode: defaults.string(forKey: "searchMatchMode").flatMap(SearchMatchMode.init(rawValue:))
+                ?? .fuzzy,
             logger: logger
         ) { [weak self] state in
             stateStore.update(state)
@@ -189,6 +191,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Filtering re-renders a screenful of glass cards, so keystrokes
         // coalesce: only the last query of a typing burst runs.
         let searchDebounce = Debouncer(delay: 0.18)
+        stateStore.searchMatchModeChanged = { [weak clipboard, defaults] mode, query in
+            searchDebounce.cancel()
+            defaults.set(mode.rawValue, forKey: "searchMatchMode")
+            clipboard?.setSearchMatchMode(mode, query: query)
+        }
         let actions = PanelWiring.actions(
             for: clipboard,
             searchDebounce: searchDebounce,
@@ -247,6 +254,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             stateStore.closeSplitSessions()
             let session = SplitGroupSession(
                 source: item, action: paste ? .paste : .copy, plain: plain, query: stateStore.state.query,
+                searchMatchMode: stateStore.searchMatchMode,
                 current: { [weak clipboard] in clipboard?.item(for: $0) },
                 allowed: { [weak stateStore] in stateStore?.isProtected == false && stateStore?.panelVisible == true },
                 export: { [weak clipboard] item, selected, original, plain, paste in
@@ -454,6 +462,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         precondition(localized("Copy") == "Copia")
         appearance.language = .traditionalChinese
         precondition(localized("Copy") == "拷貝")
+        appearance.language = .japanese
+        precondition(localized("Copy") == "コピー")
         appearance.language = .simplifiedChinese
         precondition(localized("Copy") == "拷贝")
         precondition(settingsWindow == nil)

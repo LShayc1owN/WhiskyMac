@@ -139,6 +139,17 @@ import Testing
         #expect(!fixture.state.isTypeHistoryHidden)
     }
 
+    @Test func bulk_type_selection_toggles_without_changing_handoff_selection() {
+        var draft = HistoryHidingDraft(categories: [.text], includesHandoff: true)
+        #expect(!draft.allTypesSelected)
+        draft.toggleAllTypes()
+        #expect(draft.allTypesSelected)
+        #expect(draft.categories == Set(ContentCategory.allCases))
+        draft.toggleAllTypes()
+        #expect(!draft.allTypesSelected && draft.categories.isEmpty)
+        #expect(draft.includesHandoff)
+    }
+
     @Test func hiding_draft_does_not_apply_until_confirmed_and_now_is_the_confirmation_time() throws {
         let fixture = Fixture()
         let now = fixture.clock.now()
@@ -258,8 +269,78 @@ import Testing
         #expect(fixture.disk.saveCount == 0 && fixture.board.written.isEmpty)
     }
 
-    @Test func buttons_have_separate_surfaces_outside_search_and_remain_visible_in_privacy() async throws {
+    @Test(arguments: [false, true])
+    func hiding_and_restoring_keep_the_card_rail_and_toolbar_in_place(inPrivacy: Bool) async throws {
         _ = NSApplication.shared
+        let fixture = Fixture()
+        fixture.state.configureCards(side: 250)
+        fixture.state.configureFilterTags(scale: 1.5)
+        fixture.state.setPrivacyPermissions(allowSearch: true, showSourceApps: true, allowFiltering: true)
+        fixture.state.setPrivacy(inPrivacy)
+        let host = NSHostingView(rootView: HistoryPanelView(store: fixture.state, actions: fixture.actions))
+        host.sizingOptions = []
+        let window = NSWindow(
+            contentRect: NSRect(x: -10000, y: 0, width: 900, height: 510),
+            styleMask: .borderless, backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        window.contentView = host
+        window.orderFront(nil)
+        defer { window.contentView = nil; window.close() }
+
+        func descendants(_ view: NSView) -> [NSView] { [view] + view.subviews.flatMap(descendants) }
+
+        func frames(searchableCount: Int) async throws -> (rail: NSRect, search: NSRect) {
+            try await Task.sleep(for: .milliseconds(300))
+            host.layoutSubtreeIfNeeded()
+            let views = descendants(host)
+            let rail = try #require(
+                views.compactMap { $0 as? NSScrollView }.max { $0.frame.height < $1.frame.height })
+            let search = try #require(views.compactMap { $0 as? NSTextField }.first)
+            #expect(
+                (search.placeholderAttributedString?.string ?? search.placeholderString)
+                    == localized("Search in \(searchableCount) items"))
+            return (rail.convert(rail.bounds, to: host), search.convert(search.bounds, to: host))
+        }
+
+        let visible = try await frames(searchableCount: 2)
+        #expect(visible.rail.height >= fixture.state.cardSide)
+        for hideByType in [false, true] {
+            if hideByType {
+                fixture.state.setHistoryHiding(
+                    HistoryHidingRule(cutoff: fixture.clock.now(), categories: [.text]), actions: fixture.actions)
+            } else {
+                fixture.state.toggleHistoryVisibility(actions: fixture.actions)
+            }
+            let hidden = try await frames(searchableCount: 0)
+            #expect((inPrivacy ? fixture.state.protectedCardCount : fixture.state.state.cards.count) == 0)
+            #expect(hidden.rail == visible.rail)
+            #expect(abs(hidden.search.midY - visible.search.midY) < 1)
+            if !inPrivacy {
+                let slab = try #require(
+                    descendants(host).compactMap { $0 as? BackdropView }.first {
+                        $0.bounds.width > 500 && $0.bounds.height > 100
+                    })
+                #expect(abs(slab.bounds.height - fixture.state.zoomedCardSide) < 1)
+            }
+
+            if hideByType {
+                fixture.state.clearTypeHistoryHiding(actions: fixture.actions)
+            } else {
+                fixture.state.toggleHistoryVisibility(actions: fixture.actions)
+            }
+            let restored = try await frames(searchableCount: 2)
+            #expect((inPrivacy ? fixture.state.protectedCardCount : fixture.state.state.cards.count) == 2)
+            #expect(restored.rail == visible.rail)
+            #expect(abs(restored.search.midY - visible.search.midY) < 1)
+        }
+    }
+
+    @Test(arguments: ["en", "it", "fr", "de", "zh-Hans", "zh-Hant", "ja"])
+    func localized_search_fits_its_prompt_and_keeps_the_hiding_buttons_outside(language: String) async throws {
+        _ = NSApplication.shared
+        let previousLanguage = AppLocalization.language
+        AppLocalization.language = language
+        defer { AppLocalization.language = previousLanguage }
         let fixture = Fixture()
         let host = NSHostingView(
             rootView: HistoryPanelView(store: fixture.state, actions: fixture.actions).transaction {
@@ -267,7 +348,7 @@ import Testing
             })
         host.sizingOptions = []
         let window = NSWindow(
-            contentRect: NSRect(x: -10000, y: 0, width: 900, height: 430),
+            contentRect: NSRect(x: -10000, y: 0, width: 820, height: 430),
             styleMask: .borderless, backing: .buffered, defer: false)
         window.isReleasedWhenClosed = false
         window.contentView = host
@@ -281,7 +362,7 @@ import Testing
             try await Task.sleep(for: .milliseconds(350))
             host.layoutSubtreeIfNeeded()
             let surfaces = descendants(host).compactMap { $0 as? BackdropView }.map { $0.convert($0.bounds, to: host) }
-            let buttons = surfaces.filter { abs($0.height - 36) < 0.5 && $0.width < 180 }.sorted { $0.minX < $1.minX }
+            let buttons = surfaces.filter { abs($0.height - 36) < 0.5 }.sorted { $0.minX < $1.minX }
             #expect(buttons.count == (protected ? 2 : 3), "privacy=\(protected), surfaces=\(surfaces)")
             let lastButtons = Array(buttons.suffix(2))
             let hide = try #require(lastButtons.first)
@@ -291,7 +372,13 @@ import Testing
             #expect(fixture.state.canToggleHistoryVisibility)
             let field = try #require(descendants(host).compactMap { $0 as? NSTextField }.first)
             let search = field.convert(field.bounds, to: host)
-            #expect(search.maxX < hide.minX)
+            let prompt = localized("Search in \(2) items")
+            let promptWidth = prompt.size(withAttributes: [.font: NSFont.systemFont(ofSize: 14)]).width
+            #expect(search.width > promptWidth, "\(language), privacy=\(protected), search=\(search.width)")
+            if language == "fr", !protected {
+                #expect(abs(search.midY - hide.midY) > 36)
+            }
+            #expect(byType.maxX <= host.bounds.maxX - PanelLayout.contentMargin)
             #expect(!surfaces.contains { $0.intersects(search) })
             if protected {
                 let rail = try #require(
@@ -305,8 +392,9 @@ import Testing
                 try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
                 let bitmap = try #require(host.bitmapImageRepForCachingDisplay(in: host.bounds))
                 host.cacheDisplay(in: host.bounds, to: bitmap)
-                try bitmap.representation(using: .png, properties: [:])?.write(
-                    to: directory.appendingPathComponent("history-toolbar-\(protected ? "privacy" : "normal").png"))
+                let mode = protected ? "privacy" : "normal"
+                let file = directory.appendingPathComponent("history-toolbar-\(language)-\(mode).png")
+                try bitmap.representation(using: .png, properties: [:])?.write(to: file)
             }
         }
     }

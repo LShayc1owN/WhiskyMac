@@ -1,7 +1,7 @@
 <p align="center"><img src="Assets/icon.png" width="112" alt="WhiskyMac 應用程式圖示"></p>
 <h1 align="center">WhiskyMac</h1>
 <p align="center">隨時找回複製過的內容。<br>適用於 macOS 15 及更新版本的剪貼簿管理工具。</p>
-<p align="center"><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.it.md">Italiano</a></p>
+<p align="center"><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.it.md">Italiano</a></p>
 
 > [!NOTE]
 > WhiskyMac 是以[原始專案 Whisk](https://github.com/nathan-poncet/whisk) 為基礎的獨立修改版本，目前仍在開發中。此儲存庫為私人儲存庫，尚未提供公開下載；以下步驟適用於從本機專案目錄自行建置。
@@ -13,7 +13,7 @@
 - **拆分與整理。** 依行、段落或分隔符號拆分文字，也可擷取 HTTP(S) 連結。預覽結果後，可新增卡片、取代原卡片，或儲存為持續保留的群組；複製或貼上時可選擇原文或群組中的個別部分。
 - **保留重要內容。** 釘選項目可加入可搜尋的備註、七種顏色標籤，並可設定為始終遮蔽內容；可在歷史紀錄中檢視，或開啟獨立視窗。未釘選的歷史紀錄可設定保留期限與容量，清除後可復原。
 - **掌控內容顯示。** 手動隱私模式會遮蔽面板內容；選用的 Zoom／Teams 分享工具列偵測有其範圍限制。搜尋、篩選及指標附近的局部顯示可分別開啟。敏感應用程式的內容只會暫存在記憶體中，並於設定時間後過期；排除的應用程式不會被記錄。
-- **依喜好調整。** 可調整卡片尺寸、霧面外觀、選單列圖示、互動方式、快速鍵與選用的複製音效。設定頁可搜尋，重設快速鍵後也可復原。初次啟動的練習區不會讀取或修改真正的剪貼簿與歷史紀錄。應用程式介面目前支援英文、法文、德文、義大利文及簡體中文；本頁提供繁體中文說明文件。
+- **依喜好調整。** 可調整卡片尺寸、霧面外觀、選單列圖示、互動方式、快速鍵與選用的複製音效。設定頁可搜尋，重設快速鍵後也可復原。初次啟動的練習區不會讀取或修改真正的剪貼簿與歷史紀錄。應用程式介面支援英文、法文、德文、義大利文、簡體中文、繁體中文及日文。
 
 詳細行為與限制請參閱[專案範圍](docs/PROJECT.md)和[更新紀錄](CHANGELOG.md)。
 

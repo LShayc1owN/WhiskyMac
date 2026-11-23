@@ -1,7 +1,7 @@
 <p align="center"><img src="Assets/icon.png" width="112" alt="WhiskyMac app icon"></p>
 <h1 align="center">WhiskyMac</h1>
 <p align="center">Keep what you copy close at hand.<br>Clipboard history for macOS 15 and later.</p>
-<p align="center"><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.it.md">Italiano</a></p>
+<p align="center"><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.it.md">Italiano</a></p>
 
 > [!NOTE]
 > WhiskyMac is an independent modification of [Whisk](https://github.com/nathan-poncet/whisk). It is in development: this repository is private, and public app downloads are not configured yet. The instructions below are for building from this checkout.
@@ -13,7 +13,7 @@
 - **Split and organize.** Split text by lines, paragraphs or separators, or extract HTTP(S) links. Review the parts, then add cards, replace the original or save a group. Choose the original or individual group parts when copying or pasting.
 - **Keep important items.** Pins can have searchable notes, seven color tags and permanently masked content. View pins in history or a separate window. Set retention and capacity for unpinned history; clearing it supports Undo.
 - **Control what appears.** Manual Privacy Mode masks the panel. Optional Zoom/Teams sharing-toolbar detection has limited coverage. Search, filters and a pointer-area reveal can be enabled separately while content stays masked. Sensitive apps use an expiring memory-only session; excluded apps are not captured.
-- **Make it yours.** Customize card size, frosted appearance, status icon, interactions, shortcuts and optional copy sounds. Settings search and shortcut-reset Undo simplify changes. A first-run practice space leaves your real clipboard and history untouched. The interface supports English, French, German, Italian and Simplified Chinese.
+- **Make it yours.** Customize card size, frosted appearance, status icon, interactions, shortcuts and optional copy sounds. Settings search and shortcut-reset Undo simplify changes. A first-run practice space leaves your real clipboard and history untouched. The interface supports English, French, German, Italian, Simplified Chinese, Traditional Chinese and Japanese.
 
 For detailed behavior and limits, see the [project scope](docs/PROJECT.md) and [changelog](CHANGELOG.md).
 

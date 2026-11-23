@@ -11,6 +11,7 @@ struct HistoryViewState: Equatable {
     private(set) var cards: [CardViewState]
     let countLabel: String
     let query: String
+    let searchMatchMode: SearchMatchMode
     private(set) var selectedID: UUID?
     private(set) var selectedCardIndex: Int?
     let stackCount: Int
@@ -32,6 +33,7 @@ struct HistoryViewState: Equatable {
         cards: [CardViewState],
         countLabel: String,
         query: String,
+        searchMatchMode: SearchMatchMode = .fuzzy,
         selectedID: UUID?,
         stackCount: Int = 0,
         filters: FilterBarViewState,
@@ -46,6 +48,7 @@ struct HistoryViewState: Equatable {
         self.cards = cards
         self.countLabel = countLabel
         self.query = query
+        self.searchMatchMode = searchMatchMode
         self.selectedID = selectedID
         selectedCardIndex = cards.firstIndex(where: \.isSelected)
         self.stackCount = stackCount

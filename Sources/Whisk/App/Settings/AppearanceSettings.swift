@@ -9,7 +9,7 @@ import SwiftUI
 
 enum AppLanguage: String, CaseIterable, Identifiable {
     case system, english = "en", french = "fr", german = "de", italian = "it",
-        simplifiedChinese = "zh-Hans", traditionalChinese = "zh-Hant"
+        simplifiedChinese = "zh-Hans", traditionalChinese = "zh-Hant", japanese = "ja"
     var id: String { rawValue }
     var code: String? { self == .system ? nil : rawValue }
     var label: String {
@@ -21,6 +21,7 @@ enum AppLanguage: String, CaseIterable, Identifiable {
         case .italian: "Italiano"
         case .simplifiedChinese: "简体中文"
         case .traditionalChinese: "繁體中文"
+        case .japanese: "日本語"
         }
     }
 }

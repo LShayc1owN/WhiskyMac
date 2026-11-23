@@ -63,7 +63,7 @@ import Testing
         let previous = AppLocalization.language
         defer { AppLocalization.language = previous }
         let date = Date(timeIntervalSince1970: 1_795_037_400)
-        for language in ["zh-Hans", "zh-Hant", "en", "fr", "de", "it"] {
+        for language in ["zh-Hans", "zh-Hant", "en", "fr", "de", "it", "ja"] {
             AppLocalization.language = language
             for types in [false, true] {
                 let content = HistoryHidingOptions(

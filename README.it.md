@@ -1,7 +1,7 @@
 <p align="center"><img src="Assets/icon.png" width="112" alt="Icona di WhiskyMac"></p>
 <h1 align="center">WhiskyMac</h1>
 <p align="center">Ritrova subito ciò che hai copiato.<br>Cronologia degli appunti per macOS 15 e successivi.</p>
-<p align="center"><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.it.md">Italiano</a></p>
+<p align="center"><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.it.md">Italiano</a></p>
 
 > [!NOTE]
 > WhiskyMac è una modifica indipendente di [Whisk](https://github.com/nathan-poncet/whisk). Il progetto è in fase di sviluppo: questo repository è privato e i download pubblici dell'app non sono ancora configurati. Le istruzioni seguenti servono a compilare questa copia del progetto.
@@ -13,7 +13,7 @@
 - **Dividere e organizzare.** Dividi il testo per righe, paragrafi o separatori, oppure estrai i link HTTP(S). Controlla le parti e salvale come nuove schede, sostituzione dell'originale o gruppo persistente. Durante copia e incolla scegli l'originale o singole parti del gruppo.
 - **Conservare l'importante.** Gli elementi fissati possono avere note ricercabili, sette etichette colorate e contenuto sempre oscurato. Mostrali nella cronologia o in una finestra separata. Imposta durata e capienza degli elementi non fissati; la cancellazione si può annullare.
 - **Controllare la visualizzazione.** La modalità privacy manuale oscura i contenuti. Il rilevamento facoltativo delle barre di condivisione Zoom/Teams ha copertura limitata. Ricerca, filtri e area visibile presso il puntatore si attivano separatamente. Le app sensibili usano una sessione temporanea in memoria; le app escluse non vengono registrate.
-- **Personalizzare.** Regola dimensione delle schede, aspetto satinato, icona nella barra dei menu, interazioni, scorciatoie e suoni di copia facoltativi. Puoi cercare nelle impostazioni e annullare il ripristino delle scorciatoie. L'esercizio della guida iniziale non tocca gli appunti o la cronologia reali. L'interfaccia supporta inglese, francese, tedesco, italiano e cinese semplificato.
+- **Personalizzare.** Regola dimensione delle schede, aspetto satinato, icona nella barra dei menu, interazioni, scorciatoie e suoni di copia facoltativi. Puoi cercare nelle impostazioni e annullare il ripristino delle scorciatoie. L'esercizio della guida iniziale non tocca gli appunti o la cronologia reali. L'interfaccia supporta inglese, francese, tedesco, italiano, cinese semplificato, cinese tradizionale e giapponese.
 
 Per comportamenti e limiti dettagliati, consulta l'[ambito del progetto](docs/PROJECT.md) e il [registro modifiche](CHANGELOG.md).
 

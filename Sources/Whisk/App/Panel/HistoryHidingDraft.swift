@@ -7,10 +7,18 @@ import Foundation
 
 /// The selection is applied only on confirmation. "Now" is evaluated then.
 struct HistoryHidingDraft {
+    private static let allTypes = Set(ContentCategory.allCases)
+
     var usesNow = true
     var date = Date()
     var categories: Set<ContentCategory> = []
     var includesHandoff = false
+
+    var allTypesSelected: Bool { categories == Self.allTypes }
+
+    mutating func toggleAllTypes() {
+        categories = allTypesSelected ? [] : Self.allTypes
+    }
 
     func rule(includingTypes: Bool, now: Date) -> HistoryHidingRule? {
         guard !includingTypes || !categories.isEmpty || includesHandoff, date.timeIntervalSince1970.isFinite else {

@@ -6,6 +6,7 @@ import Foundation
 /// across facets).
 struct HistoryFilter: Equatable {
     var query: String
+    var searchMatchMode: SearchMatchMode
     var sources: [SourceApp]
     var categories: Set<ContentCategory>
     var pinnedOnly: Bool
@@ -14,6 +15,7 @@ struct HistoryFilter: Equatable {
 
     init(
         query: String = "",
+        searchMatchMode: SearchMatchMode = .fuzzy,
         sources: [SourceApp] = [],
         categories: Set<ContentCategory> = [],
         pinnedOnly: Bool = false,
@@ -21,6 +23,7 @@ struct HistoryFilter: Equatable {
         handoffOnly: Bool = false
     ) {
         self.query = query
+        self.searchMatchMode = searchMatchMode
         self.sources = sources
         self.categories = categories
         self.pinnedOnly = pinnedOnly
@@ -48,8 +51,8 @@ struct FilterHistory {
 
     func callAsFunction(_ history: History, filter: HistoryFilter) -> [ClipboardItem] {
         guard filter != HistoryFilter() else { return history.items }
-        let query = ParsedQuery(filter.query)
-        if query.words.isEmpty {
+        let query = ParsedQuery(filter.query, mode: filter.searchMatchMode)
+        if !query.ranksMatches {
             return history.items.filter { filter.includes($0) && query.score($0) != nil }
         }
         var scored: [(item: ClipboardItem, score: Int, recency: Int)] = []
@@ -66,14 +69,19 @@ struct FilterHistory {
 
 /// `app:slack type:code pinned keyboard` → app terms, type terms, the
 /// pinned gate, free words.
-struct ParsedQuery: Equatable {
+struct ParsedQuery {
     private(set) var appTerms: [String] = []
     private(set) var typeTerms: [String] = []
     private(set) var pinnedOnly = false
     private(set) var words: [FuzzyMatch.Pattern] = []
+    let phrase: LiteralSearch?
 
-    init(_ raw: String) {
-        for token in raw.split(separator: " ") {
+    var ranksMatches: Bool { !words.isEmpty }
+    var hasText: Bool { ranksMatches || phrase != nil }
+
+    init(_ raw: String, mode: SearchMatchMode = .fuzzy) {
+        var literalTerms: [Substring] = []
+        for token in raw.split(separator: " ", omittingEmptySubsequences: mode == .fuzzy) {
             let lowered = token.lowercased()
             if lowered.hasPrefix("app:") {
                 let term = String(lowered.dropFirst(4))
@@ -83,10 +91,19 @@ struct ParsedQuery: Equatable {
                 if !term.isEmpty { typeTerms.append(term) }
             } else if lowered == "pinned" {
                 pinnedOnly = true
-            } else {
+            } else if mode == .fuzzy {
                 words.append(FuzzyMatch.Pattern(String(token)))
+            } else {
+                literalTerms.append(token)
             }
         }
+        let text = literalTerms.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+        phrase = text.isEmpty ? nil : LiteralSearch(text, mode: mode)
+    }
+
+    func matchesText(_ value: String) -> Bool {
+        if let phrase { return phrase.firstMatch(in: value) != nil }
+        return ranksMatches && words.allSatisfy { $0.score(in: value) != nil }
     }
 
     /// nil means no match; a larger score ranks earlier. Operators are
@@ -100,8 +117,22 @@ struct ParsedQuery: Equatable {
         for term in typeTerms where !item.category.rawValue.hasPrefix(term) {
             return nil
         }
-        guard !words.isEmpty else { return 0 }
+        guard hasText else { return 0 }
         let source = sourceText(item)
+        if let phrase {
+            if phrase.firstMatch(in: item.pinnedMetadata.note) != nil
+                || source.flatMap({ phrase.firstMatch(in: $0) }) != nil
+            {
+                return 0
+            }
+            guard !item.pinnedMetadata.hidesContent else { return nil }
+            if item.payload.searchableText.flatMap({ phrase.firstMatch(in: $0) }) != nil
+                || item.splitGroup?.parts.contains(where: { phrase.firstMatch(in: $0.text) != nil }) == true
+            {
+                return 0
+            }
+            return nil
+        }
         var text = item.pinnedMetadata.hidesContent ? nil : item.payload.searchableText
         if !item.pinnedMetadata.hidesContent, let group = item.splitGroup {
             text = ([text].compactMap { $0 } + group.parts.map(\.text)).joined(separator: "\n")

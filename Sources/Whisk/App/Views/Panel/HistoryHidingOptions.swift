@@ -22,8 +22,10 @@ struct HistoryHidingOptions: View {
                 HStack {
                     Text(localized("Types to hide")).font(.headline)
                     Spacer()
-                    Button(localized("Select all types")) { draft.categories = Set(ContentCategory.allCases) }
-                        .buttonStyle(.borderless)
+                    Button(draft.allTypesSelected ? localized("Deselect all") : localized("Select all types")) {
+                        draft.toggleAllTypes()
+                    }
+                    .buttonStyle(.borderless)
                 }
                 ScrollView {
                     VStack(spacing: 2) {

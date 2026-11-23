@@ -110,8 +110,6 @@
 	<string>Base64 解码</string>
 	<key>Base64-encoded</key>
 	<string>Base64 编码</string>
-	<key>Based on Whisk. Includes Kenney UI Audio, SFX Kit and the Neovim icon.</key>
-	<string>基于 Whisk，包含 Kenney UI Audio、SFX Kit 音效和 Neovim 图标。</string>
 	<key>Beta and Release</key>
 	<string>Beta 和 Release</string>
 	<key>Beta only</key>
@@ -200,6 +198,8 @@
 	<string>确定</string>
 	<key>Confirm removal of older history before saving.</key>
 	<string>保存前请确认移除较早的历史记录。</string>
+	<key>Containing</key>
+	<string>被包含</string>
 	<key>Content always hidden</key>
 	<string>内容始终隐藏</string>
 	<key>Content hidden by Privacy Mode</key>
@@ -254,6 +254,8 @@
 	<string>删除所选项目</string>
 	<key>Dependencies and credits</key>
 	<string>依赖与致谢</string>
+	<key>Deselect all</key>
+	<string>取消全选</string>
 	<key>Detection coverage</key>
 	<string>检测范围与限制</string>
 	<key>Detection is uncertain. Content is hidden as a precaution.</key>
@@ -300,6 +302,8 @@
 	<string>启用历史面板快捷键</string>
 	<key>Enable this global shortcut</key>
 	<string>启用此全局快捷键</string>
+	<key>Ending With</key>
+	<string>为结尾</string>
 	<key>Enter 1–1440 minutes. Shortening the limit also applies to existing sensitive copies; increasing it only affects new copies.</key>
 	<string>可输入 1–1440 分钟。缩短时限也会应用于已有敏感拷贝；延长时限仅影响新拷贝。</string>
 	<key>Enumeration comma (、)</key>
@@ -356,6 +360,8 @@
 	<string>格式 %lld</string>
 	<key>Formatted JSON</key>
 	<string>格式化 JSON</string>
+	<key>Fuzzy Match</key>
+	<string>模糊匹配</string>
 	<key>GNU General Public License</key>
 	<string>GNU 通用公共许可证</string>
 	<key>General</key>
@@ -502,6 +508,8 @@ Ready when you are.</key>
 	<string>手动隐私模式</string>
 	<key>Manual privacy: hover to reveal a small area</key>
 	<string>手动隐私：悬停可局部显现</string>
+	<key>Matching Word</key>
+	<string>整词匹配</string>
 	<key>Menu bar and Dock</key>
 	<string>菜单栏与程序坞</string>
 	<key>Menu bar icon click</key>
@@ -810,8 +818,6 @@ Ready when you are.</key>
 	<string>屏幕隐私保护</string>
 	<key>Screen sharing</key>
 	<string>屏幕共享</string>
-	<key>Search</key>
-	<string>搜索</string>
 	<key>Search SF Symbols by name</key>
 	<string>按名称搜索 SF Symbols</string>
 	<key>Search and filter</key>
@@ -820,6 +826,8 @@ Ready when you are.</key>
 	<string>搜索剪贴板历史记录</string>
 	<key>Search match</key>
 	<string>匹配搜索内容</string>
+	<key>Search match mode</key>
+	<string>搜索匹配方式</string>
 	<key>Search mode</key>
 	<string>搜索模式</string>
 	<key>Search pinned items</key>
@@ -944,6 +952,8 @@ Ready when you are.</key>
 	<string>重新练习</string>
 	<key>Start setup</key>
 	<string>开始设置</string>
+	<key>Starting With</key>
+	<string>为开头</string>
 	<key>Startup and loading</key>
 	<string>启动与加载</string>
 	<key>Step %lld of %lld: %@</key>
@@ -1112,6 +1122,8 @@ Ready when you are.</key>
 	<string>欢迎指南</string>
 	<key>Where are settings and my pinned items?</key>
 	<string>在哪里打开设置和固定项目？</string>
+	<key>Whisk is the upstream project for WhiskyMac.</key>
+	<string>Whisk 是 WhiskyMac 的上游项目。</string>
 	<key>WhiskyMac Settings</key>
 	<string>WhiskyMac 设置</string>
 	<key>WhiskyMac exception</key>
@@ -1136,6 +1148,8 @@ Ready when you are.</key>
 	<string>示例内容会粘贴到这里。</string>
 	<key>You’re up to date.</key>
 	<string>当前已是最新版本。</string>
+	<key>adds soft clicks, taps, snaps, and bubbles to the copy sound options.</key>
+	<string>为拷贝音效新增轻点声、轻敲声、弹响声和气泡声。</string>
 	<key>clear history delete history empty history</key>
 	<string>清空历史 删除历史 清除历史</string>
 	<key>code</key>
@@ -1150,6 +1164,8 @@ Ready when you are.</key>
 	<string>全局</string>
 	<key>image</key>
 	<string>图像</string>
+	<key>is the source of the code category icon in the original Whisk.</key>
+	<string>的标志曾被原版 Whisk 用作代码分类图标。</string>
 	<key>key %lld</key>
 	<string>按键 %lld</string>
 	<key>link</key>
@@ -1160,6 +1176,8 @@ Ready when you are.</key>
 	<string>刚刚</string>
 	<key>path</key>
 	<string>文件路径</string>
+	<key>provides click and switch sounds for clipboard copy feedback.</key>
+	<string>为剪贴板拷贝提供点击声和开关声。</string>
 	<key>pt</key>
 	<string>点</string>
 	<key>sidebar tabs navigation</key>

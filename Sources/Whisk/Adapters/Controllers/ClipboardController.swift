@@ -49,6 +49,7 @@ enum ArrowDirection {
 final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistoryStore, Log: Logger> {
     private var history: History
     private var query = ""
+    private var searchMatchMode: SearchMatchMode
     private var activeSourceKeys: Set<String> = []
     private var handoffOnly = false
     private var activeCategories: Set<ContentCategory> = []
@@ -141,6 +142,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         clock: Time,
         retention: RetentionPolicy = .standard,
         initialItems: [ClipboardItem]? = nil,
+        searchMatchMode: SearchMatchMode = .fuzzy,
         presenter: HistoryPresenter = HistoryPresenter(),
         logger: Log,
         present: @escaping (HistoryViewState) -> Void
@@ -152,6 +154,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         self.logger = logger
         self.present = present
         self.retention = retention
+        self.searchMatchMode = searchMatchMode
         presentedAccess = pasteboard.access
         capture = CaptureClipboardChange(pasteboard: pasteboard, clock: clock, store: store)
         selectItem = SelectItem(pasteboard: pasteboard, clock: clock, store: store)
@@ -285,6 +288,11 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         query = newQuery
         selectedID = nil
         refresh()
+    }
+
+    func setSearchMatchMode(_ mode: SearchMatchMode, query: String) {
+        searchMatchMode = mode
+        search(query)
     }
 
     /// Hover switches to one reachable application instead of accumulating filters.
@@ -960,6 +968,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     private func currentFilter(sources: [SourceApp]) -> HistoryFilter {
         HistoryFilter(
             query: query,
+            searchMatchMode: searchMatchMode,
             sources: sources,
             categories: activeCategories,
             pinnedOnly: pinnedOnly || pinnedWorkspace,
@@ -1079,6 +1088,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         let state = presenter.present(
             items: items,
             query: query,
+            searchMatchMode: searchMatchMode,
             now: now,
             // One cursor at a time: while the chip row holds it, no
             // card wears the ring — the selection itself survives for

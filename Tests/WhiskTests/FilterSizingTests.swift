@@ -52,7 +52,7 @@ import Vision
         _ = NSApplication.shared
         let previousLanguage = AppLocalization.language
         defer { AppLocalization.language = previousLanguage }
-        for language in ["zh-Hans", "zh-Hant", "en", "fr", "de", "it"] {
+        for language in ["zh-Hans", "zh-Hant", "en", "fr", "de", "it", "ja"] {
             AppLocalization.language = language
             let model = Model()
             let host = NSHostingView(rootView: Row(model: model))
