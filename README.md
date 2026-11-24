@@ -54,6 +54,8 @@ If WhiskyMac helps you, you can support its independent development with a volun
 
 <a href="https://www.buymeacoffee.com/funclinkrev"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&amp;emoji=&amp;slug=funclinkrev&amp;button_colour=FFDD00&amp;font_colour=000000&amp;font_family=Cookie&amp;outline_colour=000000&amp;coffee_colour=ffffff" alt="Buy me a coffee"></a>
 
+[WhiskyMac supporters](https://github.com/LShayc1owN/WhiskyMac-supporters)
+
 ## More information
 
 [Project scope](docs/PROJECT.md) · [Development](docs/DEVELOPMENT.md) · [Architecture](docs/ARCHITECTURE.md) · [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md)

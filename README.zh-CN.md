@@ -54,6 +54,8 @@ WhiskyMac 基于 [Whisk v1.0.3](https://github.com/nathan-poncet/whisk/tree/1ebc
 
 <a href="https://www.buymeacoffee.com/funclinkrev"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&amp;emoji=&amp;slug=funclinkrev&amp;button_colour=FFDD00&amp;font_colour=000000&amp;font_family=Cookie&amp;outline_colour=000000&amp;coffee_colour=ffffff" alt="请我喝杯咖啡 / Buy me a coffee"></a>
 
+[WhiskyMac 赞助者名单](https://github.com/LShayc1owN/WhiskyMac-supporters)
+
 ## 更多资料
 
 [项目说明](docs/PROJECT.md) · [开发文档](docs/DEVELOPMENT.md) · [架构](docs/ARCHITECTURE.md) · [更新日志](CHANGELOG.md) · [贡献指南](CONTRIBUTING.md)
