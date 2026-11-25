@@ -10,8 +10,8 @@
 
 **[Latest GitHub release](https://github.com/LShayc1owN/WhiskyMac/releases/latest)**
 
-1. Download the app ZIP, unzip it, and move `WhiskyMac.app` to Applications.
-2. Open WhiskyMac and follow the Welcome Guide. If macOS asks for clipboard permission, choose **Allow Clipboard Access…** from the WhiskyMac menu.
+1. Under **Assets**, download the `WhiskyMac-v*.zip` app package. Unzip it and move `WhiskyMac.app` to Applications.
+2. Open WhiskyMac and follow the Welcome Guide. If clipboard access is required, right-click the WhiskyMac icon in the menu bar and choose **Allow Clipboard Access…**.
 3. Copy something in another app, then click the WhiskyMac menu bar icon or choose **Show History** to find it. You can enable a global shortcut in Settings.
 
 ## Highlights
@@ -26,16 +26,6 @@
 - **Make it yours.** Adjust card size, the menu bar icon, card interactions, keyboard shortcuts and optional copy sounds. Search Settings or reset shortcuts by category with Undo. The interface supports English, French, German, Italian, Simplified Chinese, Traditional Chinese and Japanese.
 
 For detailed behavior and limits, see the [project scope](docs/PROJECT.md) and [changelog](CHANGELOG.md).
-
-## Build from source
-
-You need macOS 15 or later, the macOS 26 SDK and a full Xcode installation. From this checkout:
-
-```sh
-swift run Whisk
-swift test
-./scripts/localizations.sh check
-```
 
 ## Privacy and data
 
@@ -55,7 +45,7 @@ The [upstream App Store/TestFlight exception](LICENSE-EXCEPTION-APP-STORE.md) is
 
 ## Releases and support
 
-The automated release workflow validates the public source, support and privacy policy URLs in [release-config.json](release-config.json). Packaged apps include the license files under `Contents/Resources/Legal`. Open them from **Licenses and Notices…** in the WhiskyMac menu.
+Read the notes and find downloads for earlier versions on [GitHub Releases](https://github.com/LShayc1owN/WhiskyMac/releases). In the app, open the bundled legal notices from **Licenses and Notices…** in the WhiskyMac menu.
 
 If WhiskyMac helps you, you can support its independent development with a voluntary donation:
 
@@ -63,4 +53,4 @@ If WhiskyMac helps you, you can support its independent development with a volun
 
 ## More information
 
-[Project scope](docs/PROJECT.md) · [Development](docs/DEVELOPMENT.md) · [Architecture](docs/ARCHITECTURE.md) · [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md)
+[Project scope](docs/PROJECT.md) · [Development guide](docs/DEVELOPMENT.md) · [Architecture](docs/ARCHITECTURE.md) · [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md)

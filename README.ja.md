@@ -10,8 +10,8 @@
 
 **[最新リリース](https://github.com/LShayc1owN/WhiskyMac/releases/latest)**
 
-1. アプリの ZIP をダウンロードして展開し、`WhiskyMac.app` を「アプリケーション」フォルダに移動します。
-2. WhiskyMac を開き、「ウェルカムガイド」に従います。macOS がクリップボードへのアクセス許可を求めた場合は、メニューバーから「クリップボードへのアクセスを許可…」を選びます。
+1. リリースページの **Assets** からアプリ本体の `WhiskyMac-v*.zip` をダウンロードします。展開した `WhiskyMac.app` を「アプリケーション」フォルダに移動します。
+2. WhiskyMac を開き、ウェルカムガイドに従います。クリップボードのアクセス許可が必要な場合は、メニューバーの WhiskyMac アイコンを右クリックし、「クリップボードへのアクセスを許可…」を選びます。
 3. 別のアプリで内容をコピーしてから、WhiskyMac のメニューバーアイコンをクリックするか、メニューで「履歴を表示」を選びます。設定からグローバルショートカットも有効にできます。
 
 ## 主な機能
@@ -26,16 +26,6 @@
 - **自分好みに設定する。** カードのサイズ、メニューバーアイコン、カードの操作、ショートカット、オプションのコピー音を変更できます。設定項目を検索でき、ショートカットはカテゴリ別にリセットして取り消せます。表示言語は日本語、英語、フランス語、ドイツ語、イタリア語、簡体字中国語、繁体字中国語です。
 
 詳しい動作と制限は、[プロジェクトの対象範囲](docs/PROJECT.md)と[変更履歴](CHANGELOG.md)をご覧ください。
-
-## ソースからビルド
-
-macOS 15 以降、macOS 26 SDK、完全な Xcode インストールが必要です。この作業ツリーで実行します。
-
-```sh
-swift run Whisk
-swift test
-./scripts/localizations.sh check
-```
 
 ## プライバシーとデータ
 
@@ -55,7 +45,7 @@ WhiskyMac は [Whisk v1.0.3](https://github.com/nathan-poncet/whisk/tree/1ebcee1
 
 ## リリースと支援
 
-自動リリースでは [release-config.json](release-config.json) の公開ソース、サポート、プライバシーポリシーの URL を検証します。同梱のライセンス文書は `Contents/Resources/Legal` にあり、WhiskyMac のメニューバーの「ライセンスと通知…」から開けます。
+過去のバージョンのリリースノートとダウンロードは [GitHub Releases](https://github.com/LShayc1owN/WhiskyMac/releases) にあります。同梱のライセンス文書は WhiskyMac のメニューから「ライセンスと通知…」を選ぶと開けます。
 
 WhiskyMac が役に立った場合は、任意の寄付で独立した開発を支援できます。
 
@@ -63,4 +53,4 @@ WhiskyMac が役に立った場合は、任意の寄付で独立した開発を�
 
 ## 関連資料
 
-[プロジェクトの対象範囲](docs/PROJECT.md) · [開発](docs/DEVELOPMENT.md) · [アーキテクチャ](docs/ARCHITECTURE.md) · [変更履歴](CHANGELOG.md) · [貢献ガイド](CONTRIBUTING.md)
+[プロジェクトの対象範囲](docs/PROJECT.md) · [開発ガイド](docs/DEVELOPMENT.md) · [アーキテクチャ](docs/ARCHITECTURE.md) · [変更履歴](CHANGELOG.md) · [貢献ガイド](CONTRIBUTING.md)

@@ -10,8 +10,8 @@
 
 **[Aktuelle Version auf GitHub](https://github.com/LShayc1owN/WhiskyMac/releases/latest)**
 
-1. Lade das ZIP-Archiv der App herunter, entpacke es und verschiebe `WhiskyMac.app` in den Ordner „Programme“.
-2. Öffne WhiskyMac und folge der Willkommensanleitung. Falls macOS nach dem Zugriff auf die Zwischenablage fragt, wähle im Menü von WhiskyMac **Zwischenablagezugriff erlauben…**.
+1. Lade unter **Assets** das App-Archiv `WhiskyMac-v*.zip` herunter. Entpacke es und verschiebe `WhiskyMac.app` in den Ordner „Programme“.
+2. Öffne WhiskyMac und folge der Willkommensanleitung. Wenn Zugriff auf die Zwischenablage erforderlich ist, klicke mit der rechten Maustaste auf das WhiskyMac-Symbol in der Menüleiste und wähle **Zwischenablagezugriff erlauben…**.
 3. Kopiere etwas in einer anderen App. Klicke dann auf das WhiskyMac-Symbol in der Menüleiste oder wähle **Verlauf anzeigen**. In den Einstellungen kannst du ein globales Tastenkürzel aktivieren.
 
 ## Funktionen im Überblick
@@ -26,16 +26,6 @@
 - **Persönlich einstellen.** Passe Kartengröße, Menüleistensymbol, Kartenaktionen, Tastenkürzel und optionale Kopiergeräusche an. Durchsuche die Einstellungen oder setze Kürzel nach Kategorie zurück und mache das bei Bedarf rückgängig. Die Oberfläche ist auf Deutsch, Englisch, Französisch, Italienisch, vereinfachtem und traditionellem Chinesisch sowie Japanisch verfügbar.
 
 Genaues Verhalten und Grenzen stehen im [Projektumfang](docs/PROJECT.md) und [Änderungsprotokoll](CHANGELOG.md).
-
-## Aus dem Quellcode bauen
-
-Erforderlich sind macOS 15 oder neuer, das macOS 26 SDK und eine vollständige Xcode-Installation. In dieser Projektkopie ausführen:
-
-```sh
-swift run Whisk
-swift test
-./scripts/localizations.sh check
-```
 
 ## Datenschutz und Daten
 
@@ -55,7 +45,7 @@ Die [App-Store-/TestFlight-Ausnahme des Ursprungsprojekts](LICENSE-EXCEPTION-APP
 
 ## Veröffentlichung und Unterstützung
 
-Der automatische Veröffentlichungsablauf prüft die öffentlichen Adressen für Quellcode, Support und Datenschutzerklärung in [release-config.json](release-config.json). Die Lizenzdokumente liegen in `Contents/Resources/Legal` und lassen sich im WhiskyMac-Menü über **Lizenzen und Hinweise…** öffnen.
+Versionshinweise und Downloads für frühere Versionen findest du auf [GitHub Releases](https://github.com/LShayc1owN/WhiskyMac/releases). Die mitgelieferten Lizenzdokumente kannst du im WhiskyMac-Menü über **Lizenzen und Hinweise…** öffnen.
 
 Wenn WhiskyMac Ihnen hilft, können Sie die unabhängige Entwicklung freiwillig mit einer Spende unterstützen:
 
@@ -63,4 +53,4 @@ Wenn WhiskyMac Ihnen hilft, können Sie die unabhängige Entwicklung freiwillig 
 
 ## Weitere Informationen
 
-[Projektumfang](docs/PROJECT.md) · [Entwicklung](docs/DEVELOPMENT.md) · [Architektur](docs/ARCHITECTURE.md) · [Änderungsprotokoll](CHANGELOG.md) · [Mitwirken](CONTRIBUTING.md)
+[Projektumfang](docs/PROJECT.md) · [Entwicklungshandbuch](docs/DEVELOPMENT.md) · [Architektur](docs/ARCHITECTURE.md) · [Änderungsprotokoll](CHANGELOG.md) · [Mitwirken](CONTRIBUTING.md)

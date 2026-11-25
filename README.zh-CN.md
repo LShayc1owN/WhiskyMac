@@ -10,8 +10,8 @@
 
 **[下载最新版本](https://github.com/LShayc1owN/WhiskyMac/releases/latest)**
 
-1. 下载应用的 ZIP 压缩包，解压后将 `WhiskyMac.app` 移到「应用程序」。
-2. 打开 WhiskyMac，按「欢迎指南」操作。如果 macOS 要求授权，从 WhiskyMac 菜单选择「允许访问剪贴板…」。
+1. 在发行页面的 **Assets** 列表中下载 `WhiskyMac-v*.zip` 安装包。解压后，将 `WhiskyMac.app` 拖到「应用程序」文件夹。
+2. 打开 WhiskyMac，按欢迎指南操作。如果需要授予剪贴板权限，请右键点击 WhiskyMac 的菜单栏图标，选择「允许访问剪贴板…」。
 3. 在其他应用复制一段内容，然后点 WhiskyMac 的菜单栏图标，或从菜单选择「显示历史记录」。也可以在设置中启用全局快捷键。
 
 ## 功能亮点
@@ -26,16 +26,6 @@
 - **按喜好设置。** 可调整卡片大小、菜单栏图标、卡片交互、快捷键与可选的拷贝音效。设置支持搜索，也可按类别重置快捷键并撤销。界面支持简体中文、繁体中文、英语、法语、德语、意大利语和日语。
 
 详细行为和限制见[项目说明](docs/PROJECT.md)与[更新日志](CHANGELOG.md)。
-
-## 从源码构建
-
-需要 macOS 15 或更新版本、macOS 26 SDK，以及完整安装的 Xcode。在此项目目录中运行：
-
-```sh
-swift run Whisk
-swift test
-./scripts/localizations.sh check
-```
 
 ## 隐私与数据
 
@@ -55,7 +45,7 @@ WhiskyMac 基于 [Whisk v1.0.3](https://github.com/nathan-poncet/whisk/tree/1ebc
 
 ## 发布与支持
 
-自动发布流程会校验 [release-config.json](release-config.json) 中的公开源码、支持和隐私政策地址。应用包中的许可证文件位于 `Contents/Resources/Legal`，可从 WhiskyMac 菜单选择「许可证与声明…」打开。
+历次发行的说明和下载都可在 [GitHub Releases](https://github.com/LShayc1owN/WhiskyMac/releases) 查看。应用内的许可文件可从 WhiskyMac 菜单的「许可证与声明…」打开。
 
 如果 WhiskyMac 对你有帮助，可以自愿赞助这个独立项目的开发：
 
@@ -63,4 +53,4 @@ WhiskyMac 基于 [Whisk v1.0.3](https://github.com/nathan-poncet/whisk/tree/1ebc
 
 ## 更多资料
 
-[项目说明](docs/PROJECT.md) · [开发文档](docs/DEVELOPMENT.md) · [架构](docs/ARCHITECTURE.md) · [更新日志](CHANGELOG.md) · [贡献指南](CONTRIBUTING.md)
+[项目说明](docs/PROJECT.md) · [开发指南](docs/DEVELOPMENT.md) · [架构](docs/ARCHITECTURE.md) · [更新日志](CHANGELOG.md) · [贡献指南](CONTRIBUTING.md)

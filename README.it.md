@@ -10,8 +10,8 @@
 
 **[Ultima versione su GitHub](https://github.com/LShayc1owN/WhiskyMac/releases/latest)**
 
-1. Scarica il file ZIP dell’app, estrailo e sposta `WhiskyMac.app` nella cartella Applicazioni.
-2. Apri WhiskyMac e segui la guida di benvenuto. Se macOS richiede l’accesso agli appunti, scegli **Consenti accesso agli appunti…** dal menu di WhiskyMac.
+1. Nella sezione **Assets**, scarica il pacchetto dell’app `WhiskyMac-v*.zip`. Estrailo e sposta `WhiskyMac.app` nella cartella Applicazioni.
+2. Apri WhiskyMac e segui la guida di benvenuto. Se è necessario concedere l’accesso agli appunti, fai clic destro sull’icona di WhiskyMac nella barra dei menu e scegli **Consenti accesso agli appunti…**.
 3. Copia qualcosa in un’altra app, poi fai clic sull’icona di WhiskyMac nella barra dei menu o scegli **Mostra la cronologia**. Nelle impostazioni puoi attivare una scorciatoia globale.
 
 ## Funzioni principali
@@ -26,16 +26,6 @@
 - **Personalizzare i comandi.** Regola la dimensione delle schede, l’icona nella barra dei menu, le azioni, le scorciatoie e i suoni di copia facoltativi. Cerca nelle impostazioni o ripristina le scorciatoie per categoria con la possibilità di annullare. L’interfaccia è disponibile in italiano, inglese, francese, tedesco, cinese semplificato, cinese tradizionale e giapponese.
 
 Per comportamenti e limiti dettagliati, consulta l'[ambito del progetto](docs/PROJECT.md) e il [registro modifiche](CHANGELOG.md).
-
-## Compilare dai sorgenti
-
-Occorrono macOS 15 o successivo, l'SDK macOS 26 e un'installazione completa di Xcode. In questa copia del progetto esegui:
-
-```sh
-swift run Whisk
-swift test
-./scripts/localizations.sh check
-```
 
 ## Privacy e dati
 
@@ -55,7 +45,7 @@ L'[eccezione originale per App Store/TestFlight](LICENSE-EXCEPTION-APP-STORE.md)
 
 ## Versioni e sostegno
 
-La pubblicazione automatica verifica gli URL pubblici per sorgenti, assistenza e informativa sulla privacy in [release-config.json](release-config.json). Le licenze sono incluse in `Contents/Resources/Legal`. Puoi aprirle da **Licenze e note legali…** nel menu di WhiskyMac.
+Le note e i download delle versioni precedenti sono disponibili su [GitHub Releases](https://github.com/LShayc1owN/WhiskyMac/releases). I documenti legali inclusi nell’app si aprono da **Licenze e note legali…** nel menu di WhiskyMac.
 
 Se WhiskyMac ti è utile, puoi sostenere lo sviluppo indipendente con una donazione volontaria:
 
@@ -63,4 +53,4 @@ Se WhiskyMac ti è utile, puoi sostenere lo sviluppo indipendente con una donazi
 
 ## Altre informazioni
 
-[Ambito del progetto](docs/PROJECT.md) · [Sviluppo](docs/DEVELOPMENT.md) · [Architettura](docs/ARCHITECTURE.md) · [Registro modifiche](CHANGELOG.md) · [Contributi](CONTRIBUTING.md)
+[Ambito del progetto](docs/PROJECT.md) · [Guida allo sviluppo](docs/DEVELOPMENT.md) · [Architettura](docs/ARCHITECTURE.md) · [Registro modifiche](CHANGELOG.md) · [Contributi](CONTRIBUTING.md)
