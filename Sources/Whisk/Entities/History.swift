@@ -44,11 +44,7 @@ struct History: Equatable {
                 && (matches?($0) ?? ($0.payload == payload && $0.richText == rtf.map(BinaryContent.inline)))
         }) {
             let previous = next.items.remove(at: index)
-            let refreshed = ClipboardItem(
-                id: previous.id, payload: payload,
-                source: previous.source?.origin == source?.origin ? previous.source : source,
-                copiedAt: date, isPinned: previous.isPinned, rtf: rtf, pinnedMetadata: previous.pinnedMetadata,
-                splitSourceID: previous.splitSourceID)
+            let refreshed = previous.recopied(payload: payload, from: source, at: date)
             next.items.insert(refreshed, at: 0)
             return RecordingOutcome(
                 history: next, recordedID: previous.id, contentChanged: refreshed.source != previous.source)
@@ -121,14 +117,16 @@ struct History: Equatable {
     }
 
     private mutating func evictOverflow() {
-        var overflow = items.filter { !$0.isPinned }.count - capacity.value
-        guard overflow > 0 else { return }
-        var evicted: Set<UUID> = []
-        for item in items.reversed() where !item.isPinned {
-            guard overflow > 0 else { break }
-            evicted.insert(item.id)
-            overflow -= 1
-        }
-        items.removeAll { evicted.contains($0.id) }
+        guard items.count > capacity.value else { return }
+        var unpinned = 0
+        guard
+            let firstEvicted = items.firstIndex(where: { item in
+                guard !item.isPinned else { return false }
+                unpinned += 1
+                return unpinned > capacity.value
+            })
+        else { return }
+        let survivors = items[firstEvicted...].filter(\.isPinned)
+        items.replaceSubrange(firstEvicted..., with: survivors)
     }
 }

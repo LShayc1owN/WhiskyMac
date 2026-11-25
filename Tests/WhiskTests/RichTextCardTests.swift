@@ -23,6 +23,11 @@ import Testing
             ])
     }
 
+    private func decodeExcerpt(_ data: Data, fallback: String) -> NSAttributedString {
+        RichTextCardContent.decode(
+            data, fallback: fallback, defaultFont: .systemFont(ofSize: 12), defaultColor: .labelColor)
+    }
+
     @Test func cards_carry_opaque_rtf_while_plain_cards_and_protected_state_do_not() throws {
         let data = try #require(RichTextCodec.encode(formatted()))
         let item = ClipboardItem(
@@ -35,7 +40,7 @@ import Testing
         store.setPrivacy(true)
         #expect(store.state == .empty)
         #expect(store.state.cards.isEmpty)
-        let view = ItemCardView(card: state.cards[0], actions: PanelActionSpy().actions)
+        let view = MacOS15ItemCardView(card: state.cards[0], actions: PanelActionSpy().actions)
         let host = NSHostingView(rootView: view)
         host.frame = NSRect(x: 0, y: 0, width: 240, height: 240)
         host.layoutSubtreeIfNeeded()
@@ -44,7 +49,7 @@ import Testing
 
     @Test func bounded_excerpt_preserves_rich_attributes_and_falls_back_for_invalid_or_large_data() throws {
         let data = try #require(RichTextCodec.encode(formatted()))
-        let text = RichTextCardContent.decode(data, fallback: "Rich card")
+        let text = decodeExcerpt(data, fallback: "Rich card")
         #expect(text.string == "Rich card")
         let attributes = text.attributes(at: 0, effectiveRange: nil)
         #expect((attributes[.font] as? NSFont)?.pointSize == 18)
@@ -53,12 +58,12 @@ import Testing
         #expect(attributes[.link] != nil)
         #expect((attributes[.paragraphStyle] as? NSParagraphStyle)?.alignment == .right)
         for data in [Data("bad rtf".utf8), Data(count: RichTextCardContent.maximumBytes + 1)] {
-            let fallback = RichTextCardContent.decode(data, fallback: String(repeating: "a", count: 8000))
+            let fallback = decodeExcerpt(data, fallback: String(repeating: "a", count: 8000))
             #expect(fallback.length == RichTextCardContent.maximumUTF16)
             #expect(fallback.attribute(.font, at: 0, effectiveRange: nil) != nil)
         }
         let long = NSAttributedString(string: String(repeating: "a", count: 3999) + "😀tail")
-        let excerpt = RichTextCardContent.decode(try #require(RichTextCodec.encode(long)), fallback: "")
+        let excerpt = decodeExcerpt(try #require(RichTextCodec.encode(long)), fallback: "")
         #expect(excerpt.length == 3999)
         #expect(excerpt.string == String(repeating: "a", count: 3999))
     }
@@ -66,7 +71,7 @@ import Testing
     @Test func mounted_surface_reuses_decoding_clips_layout_and_releases_content() throws {
         _ = NSApplication.shared
         let data = try #require(RichTextCodec.encode(formatted()))
-        let surface = RichTextCardView.Surface(frame: NSRect(x: 0, y: 0, width: 160, height: 80))
+        let surface = MacOS15RichTextCardView.Surface(frame: NSRect(x: 0, y: 0, width: 160, height: 80))
         surface.update(data: data, fallback: "Rich card", matches: [])
         let first = try #require(surface.base)
         surface.update(data: data, fallback: "Rich card", matches: [MatchSpan(start: 0, length: 4)])

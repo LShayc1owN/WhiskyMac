@@ -167,9 +167,9 @@ final class PrivacyController: ObservableObject {
     }
 
     var statusText: String {
-        if isManuallyProtected { return localized("Privacy Mode is on (manual)") }
+        if isManuallyProtected { return localized("Privacy protection is on") }
         guard automaticEnabled else {
-            return localized("Automatic detection is off. Use manual protection before sharing.")
+            return localized("Automatic detection is off. Turn on privacy protection before sharing.")
         }
         switch report.state {
         case .active: return localized("Sharing toolbar detected. Content is hidden.")
@@ -179,7 +179,8 @@ final class PrivacyController: ObservableObject {
                 : localized("No supported toolbar detected. Other sharing or recording may still be active.")
         case .unknown:
             if !isProtected {
-                return localized("Automatic detection is limited. Use manual protection before important sharing.")
+                return localized(
+                    "Automatic detection is limited. Turn on privacy protection before sharing sensitive content.")
             }
             return report.reason == .accessibilityRequired
                 ? localized(

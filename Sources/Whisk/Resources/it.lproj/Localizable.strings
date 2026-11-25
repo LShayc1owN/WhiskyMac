@@ -28,6 +28,8 @@
 	<string>Una buona idea</string>
 	<key>A little inspiration</key>
 	<string>Un po’ di ispirazione</string>
+	<key>AI assistance</key>
+	<string>Assistenza dell’IA</string>
 	<key>About</key>
 	<string>Informazioni</string>
 	<key>About the developer</key>
@@ -46,8 +48,6 @@
 	<string>Aggiungi app…</string>
 	<key>Add cards to the paste stack and enable its shortcut to paste them in order.</key>
 	<string>Aggiungi schede alla pila di incolla e attiva la scorciatoia per incollarle in ordine.</string>
-	<key>Add example</key>
-	<string>Aggiungi esempio</string>
 	<key>Add sensitive app…</key>
 	<string>Aggiungi app sensibile…</string>
 	<key>Add to Paste Stack</key>
@@ -68,6 +68,8 @@
 	<string>Consenti il filtro Handoff in modalità privacy</string>
 	<key>Allow app filtering in Privacy Mode</key>
 	<string>Consenti filtri per app in modalità privacy</string>
+	<key>Allow clipboard access to see new copies in your history.</key>
+	<string>Consenti l’accesso agli appunti per vedere nella cronologia i nuovi elementi copiati.</string>
 	<key>Allow removal of %lld older history items</key>
 	<string>Consenti la rimozione di %lld elementi meno recenti</string>
 	<key>Allow search in Privacy Mode</key>
@@ -88,18 +90,18 @@
 	<string>Aspetto e dimensioni delle schede</string>
 	<key>Application observed on this Mac at capture time; source is not verified.</key>
 	<string>L’app era in primo piano al momento della registrazione. L’origine dell’elemento non è verificata.</string>
-	<key>Applies to manual and automatic protection. Search terms and enabled app names are visible on screen and in accessibility. Clipboard content stays hidden; automatic protection still blocks hover reveals.</key>
-	<string>Vale per la protezione manuale e automatica. I termini cercati e i nomi delle app autorizzate sono visibili sullo schermo e accessibili tramite le tecnologie assistive. Il contenuto degli appunti resta nascosto. Con la protezione automatica il puntatore non può mostrarlo.</string>
-	<key>Applies to manual privacy with Hover set to Preview. The blur softens the reveal edge. Revealed content can be recorded; automatic protection stays fully masked.</key>
-	<string>Si applica alla modalità privacy manuale se il puntatore è impostato su «Anteprima». La sfocatura ammorbidisce il bordo dell’area visibile. Una registrazione dello schermo può riprendere quell’area. La protezione automatica mantiene nascosto tutto il contenuto.</string>
-	<key>Automatic detection is limited. Use manual protection before important sharing.</key>
-	<string>Il rilevamento automatico è limitato. Attiva la protezione manuale prima di condivisioni importanti.</string>
-	<key>Automatic detection is off. Use manual protection before sharing.</key>
-	<string>Il rilevamento automatico è disattivato. Attiva la protezione manuale prima di condividere.</string>
-	<key>Automatic protection (limited detection)</key>
-	<string>Protezione automatica (rilevamento limitato)</string>
-	<key>Automatic protection only detects supported Zoom and Teams sharing sessions.</key>
-	<string>La protezione automatica rileva solo le sessioni di condivisione supportate di Zoom e Teams.</string>
+	<key>Applies when you turn on privacy protection and set Hover to Preview. Blur softens the edge of the visible area. Screen recordings can capture that area. Protection triggered by detection keeps all content hidden.</key>
+	<string>Si applica quando attivi la protezione della privacy e scegli «Anteprima» al passaggio del puntatore. La sfocatura ammorbidisce il bordo dell’area visibile, che può apparire in una registrazione dello schermo. Quando il rilevamento attiva la protezione, tutto il contenuto resta nascosto.</string>
+	<key>Apply interface font size to plain text</key>
+	<string>Applica la dimensione del testo dell’interfaccia al testo semplice</string>
+	<key>Automatic detection covers only supported Zoom and Teams screen sharing sessions.</key>
+	<string>Il rilevamento automatico copre solo le sessioni di condivisione schermo supportate di Zoom e Teams.</string>
+	<key>Automatic detection is limited. Turn on privacy protection before sharing sensitive content.</key>
+	<string>Il rilevamento automatico copre solo alcune condivisioni. Attiva la protezione della privacy prima di condividere contenuti sensibili.</string>
+	<key>Automatic detection is off. Turn on privacy protection before sharing.</key>
+	<string>Il rilevamento automatico è disattivato. Attiva la protezione della privacy prima di condividere lo schermo.</string>
+	<key>Automatically recognize secrets</key>
+	<string>Riconosci automaticamente i segreti</string>
 	<key>Available for 5 seconds</key>
 	<string>Puoi annullare entro 5 secondi</string>
 	<key>Back</key>
@@ -110,6 +112,8 @@
 	<string>Decodificato da Base64</string>
 	<key>Base64-encoded</key>
 	<string>Codificato in Base64</string>
+	<key>Basic settings</key>
+	<string>Impostazioni di base</string>
 	<key>Beta and Release</key>
 	<string>Beta e versioni stabili</string>
 	<key>Beta only</key>
@@ -130,6 +134,10 @@
 	<string>Dimensione delle schede</string>
 	<key>Cards from the bottom</key>
 	<string>Fila di schede in basso</string>
+	<key>Categorize secrets</key>
+	<string>Classifica i segreti</string>
+	<key>Category tag order</key>
+	<string>Ordine delle categorie</string>
 	<key>Changes are saved only when you choose Save current setting.</key>
 	<string>Seleziona «Salva impostazione attuale» per applicare le modifiche.</string>
 	<key>Check for updates</key>
@@ -140,8 +148,6 @@
 	<string>Ricontrolla i permessi</string>
 	<key>Checking for updates…</key>
 	<string>Ricerca aggiornamenti…</string>
-	<key>Checks Zoom and Teams sharing toolbar titles using Accessibility. Client versions and languages may not match. System sharing, remote desktop, recording and browser tabs are not covered. Enable manual protection before important sharing.</key>
-	<string>Usa Accessibilità per rilevare le barre di condivisione di Zoom e Teams. Il rilevamento può variare in base alla versione e alla lingua dell’app. Sono esclusi la condivisione di sistema, il desktop remoto, le registrazioni dello schermo e i pannelli del browser. Attiva la protezione manuale prima di condividere contenuti sensibili.</string>
 	<key>Choose a format to continue</key>
 	<string>Scegli un formato per continuare</string>
 	<key>Choose a format to split</key>
@@ -164,8 +170,12 @@
 	<string>Cancella la ricerca</string>
 	<key>Click a shortcut to record a new one — press Escape to cancel recording.</key>
 	<string>Fai clic su un’abbreviazione per registrarne una nuova. Premi Esc per annullare.</string>
+	<key>Click the WhiskyMac menu bar icon. If a menu opens, choose “%@”.</key>
+	<string>Fai clic sull’icona di WhiskyMac nella barra dei menu. Se si apre un menu, scegli «%@».</string>
 	<key>Click the shortcut to change it. Press Esc to cancel.</key>
 	<string>Fai clic sulla scorciatoia per cambiarla. Premi Esc per annullare.</string>
+	<key>Click to copy or paste. When you turn on privacy protection, use the card menu to show the full card or hover to see a small area. Protection triggered by detection keeps cards hidden.</key>
+	<string>Fai clic per copiare o incollare. Quando attivi la protezione della privacy, puoi mostrare l’intera scheda dal suo menu o vederne una piccola parte al passaggio del puntatore. Quando il rilevamento attiva la protezione, le schede restano nascoste.</string>
 	<key>Click to filter</key>
 	<string>Filtra con un clic</string>
 	<key>Click to record a shortcut. Escape cancels.</key>
@@ -176,8 +186,6 @@
 	<string>Aspetto degli appunti</string>
 	<key>Clipboard cards</key>
 	<string>Schede degli appunti</string>
-	<key>Clipboard controls</key>
-	<string>Comandi degli appunti</string>
 	<key>Close the panel</key>
 	<string>Chiudi il pannello</string>
 	<key>Collapse apps</key>
@@ -186,8 +194,6 @@
 	<string>Chiuso</string>
 	<key>Color tags</key>
 	<string>Etichette colorate</string>
-	<key>Colors</key>
-	<string>Colori</string>
 	<key>Comma (, / ，)</key>
 	<string>Virgola (, / ，)</string>
 	<key>Complete original</key>
@@ -214,8 +220,8 @@
 	<string>Gli elementi copiati dalle app escluse non vengono mai registrati.</string>
 	<key>Copy</key>
 	<string>Copia</string>
-	<key>Copy and paste require an explicit click. Full preview and editing stay disabled. Local reveal works only in manual privacy; automatic protection stays masked.</key>
-	<string>Fai clic per copiare o incollare. L’anteprima completa e la modifica restano disattivate. Solo in modalità privacy manuale puoi mostrare una piccola area. La protezione automatica mantiene nascosto tutto il contenuto.</string>
+	<key>Copy a little text in another app, such as TextEdit. Leave the cursor where you want to paste.</key>
+	<string>Copia un breve testo in un’altra app, come TextEdit. Posiziona il cursore dove vuoi incollarlo.</string>
 	<key>Copy something new. If it doesn’t appear, check clipboard access, capture status and app exclusions.</key>
 	<string>Copia qualcosa di nuovo. Se non appare, verifica l’accesso agli appunti, lo stato della registrazione e le app escluse.</string>
 	<key>Copy something to get started</key>
@@ -266,6 +272,8 @@
 	<string>Incolla direttamente</string>
 	<key>Disable Developer Mode</key>
 	<string>Disattiva modalità sviluppatore</string>
+	<key>Display and theme colors</key>
+	<string>Visualizzazione e colori del tema</string>
 	<key>Do nothing</key>
 	<string>Non fare nulla</string>
 	<key>Dock icon</key>
@@ -278,12 +286,12 @@
 	<string>Doppio clic</string>
 	<key>Download update on GitHub</key>
 	<string>Scarica aggiornamento su GitHub</string>
+	<key>Drag to reorder</key>
+	<string>Trascina per riordinare</string>
 	<key>Edge blur radius</key>
 	<string>Raggio di sfocatura del bordo</string>
 	<key>Edit and split text</key>
 	<string>Modifica e dividi il testo</string>
-	<key>Edit example</key>
-	<string>Modifica esempio</string>
 	<key>Edit the selection</key>
 	<string>Modifica la selezione</string>
 	<key>Editing %@</key>
@@ -296,8 +304,6 @@
 	<string>Abilita</string>
 	<key>Enable Developer Mode</key>
 	<string>Attiva modalità sviluppatore</string>
-	<key>Enable WhiskyMac in Accessibility to paste directly. You can also copy a card and press ⌘V.</key>
-	<string>Attiva WhiskyMac in Accessibilità per incollare direttamente. Puoi anche copiare una scheda e premere ⌘V.</string>
 	<key>Enable the history shortcut</key>
 	<string>Attiva abbreviazione della cronologia</string>
 	<key>Enable this global shortcut</key>
@@ -310,8 +316,6 @@
 	<string>Virgola ideografica (、)</string>
 	<key>Everyday tools</key>
 	<string>Strumenti quotidiani</string>
-	<key>Example actions</key>
-	<string>Azioni di esempio</string>
 	<key>Exclude %@</key>
 	<string>Escludi %@</string>
 	<key>Exclude the selection's application</key>
@@ -382,14 +386,6 @@
 	<string>Le etichette Handoff si basano su un indicatore degli appunti di sistema. Anche un elemento senza indicatore può provenire da un altro dispositivo. La cronologia esistente non può essere riclassificata.</string>
 	<key>Handoff, source filter</key>
 	<string>Handoff, filtro origine</string>
-	<key>Hello, WhiskyMac.
-A good idea.
-Ready when you are.</key>
-	<string>Hello, WhiskyMac.
-Una buona idea.
-Pronta quando serve.</string>
-	<key>Hidden — right-click to show temporarily</key>
-	<string>Nascosto: fai clic con il tasto destro per mostrarlo temporaneamente</string>
 	<key>Hide</key>
 	<string>Nascondi</string>
 	<key>Hide by type or source</key>
@@ -424,6 +420,8 @@ Pronta quando serve.</string>
 	<string>Filtra al passaggio del puntatore</string>
 	<key>How sensitive access works</key>
 	<string>Come vengono gestiti gli elementi sensibili</string>
+	<key>Human contributors</key>
+	<string>Collaboratori umani</string>
 	<key>Illustration: pin useful cards and arrange a paste stack.</key>
 	<string>Illustrazione di schede fissate e di una sequenza di incolla.</string>
 	<key>Illustration: the menu bar opens a searchable row of clipboard cards.</key>
@@ -442,6 +440,8 @@ Pronta quando serve.</string>
 	<string>Nel pannello degli appunti</string>
 	<key>Interactions</key>
 	<string>Interazioni</string>
+	<key>Interface font size</key>
+	<string>Dimensione del testo dell’interfaccia</string>
 	<key>Keep history for</key>
 	<string>Conserva la cronologia per</string>
 	<key>Keep original and add cards</key>
@@ -456,6 +456,8 @@ Pronta quando serve.</string>
 	<string>Licenza Kenney UI Audio</string>
 	<key>Kenney UI Audio source</key>
 	<string>Fonte di Kenney UI Audio</string>
+	<key>Keyboard shortcuts</key>
+	<string>Scorciatoie da tastiera</string>
 	<key>Know what protection covers</key>
 	<string>Conosci i limiti della protezione</string>
 	<key>Language</key>
@@ -476,6 +478,8 @@ Pronta quando serve.</string>
 	<string>Licenze e note legali…</string>
 	<key>Light</key>
 	<string>Chiaro</string>
+	<key>Light and dark appearance</key>
+	<string>Aspetto chiaro e scuro</string>
 	<key>Lightweight mode</key>
 	<string>Modalità leggera</string>
 	<key>Lightweight mode loads thumbnails only as needed when you open the clipboard panel. Closing the panel clears the thumbnail cache to reduce memory use.</key>
@@ -498,16 +502,12 @@ Pronta quando serve.</string>
 	<string>Fai spazio alla prossima idea.</string>
 	<key>Make the settings and clipboard cards feel at home.</key>
 	<string>Personalizza la disposizione delle impostazioni, il colore di accento e la dimensione delle schede.</string>
-	<key>Manage manual and automatic protection in Settings.</key>
-	<string>Gestisci la protezione manuale e automatica nelle Impostazioni.</string>
+	<key>Manage privacy protection and automatic detection in Settings.</key>
+	<string>Gestisci la protezione della privacy e il rilevamento automatico nelle Impostazioni.</string>
 	<key>Manage what stays visible and which clicks are allowed.</key>
 	<string>Scegli cosa resta visibile e quali clic sono consentiti.</string>
 	<key>Manual Command-V available</key>
 	<string>Incolla manualmente con Comando-V</string>
-	<key>Manual Privacy Mode</key>
-	<string>Modalità privacy manuale</string>
-	<key>Manual privacy: hover to reveal a small area</key>
-	<string>Privacy manuale: passa il puntatore per rivelare una piccola area</string>
 	<key>Matching Word</key>
 	<string>Parola intera</string>
 	<key>Menu bar and Dock</key>
@@ -518,24 +518,28 @@ Pronta quando serve.</string>
 	<string>Icone della barra dei menu</string>
 	<key>More apps</key>
 	<string>Altre app</string>
-	<key>More interactions</key>
-	<string>Altre interazioni</string>
 	<key>More settings and configuration</key>
 	<string>Altre impostazioni</string>
+	<key>More shortcuts</key>
+	<string>Altre scorciatoie</string>
 	<key>More than 1000 results. Choose a different rule.</key>
 	<string>Più di 1.000 risultati. Scegli un’altra regola di divisione.</string>
-	<key>More ways to make it yours</key>
-	<string>Altre personalizzazioni</string>
 	<key>Mouse press</key>
 	<string>Pressione del mouse</string>
 	<key>Mouse release</key>
 	<string>Rilascio del mouse</string>
+	<key>Move %@ down</key>
+	<string>Sposta %@ in basso</string>
+	<key>Move %@ up</key>
+	<string>Sposta %@ in alto</string>
 	<key>NORMAL</key>
 	<string>NORMALE</string>
 	<key>Never recorded</key>
 	<string>Mai registrati</string>
 	<key>Never show</key>
 	<string>Non mostrare mai</string>
+	<key>New copies can be saved to your history.</key>
+	<string>Le nuove copie possono essere salvate nella cronologia.</string>
 	<key>New copies stay in memory briefly. Excluded apps aren’t recorded. Existing history is kept.</key>
 	<string>Le nuove copie restano brevemente in memoria. Le app escluse non vengono registrate. La cronologia esistente viene conservata.</string>
 	<key>Newer cards stay visible. History is not deleted.</key>
@@ -544,8 +548,6 @@ Pronta quando serve.</string>
 	<string>Scheda o filtro seguente</string>
 	<key>No excluded apps added.</key>
 	<string>Nessuna app esclusa</string>
-	<key>No match. Try Hello or clear the search.</key>
-	<string>Nessun risultato. Prova Hello o cancella la ricerca.</string>
 	<key>No matches</key>
 	<string>Nessun risultato</string>
 	<key>No matching settings</key>
@@ -600,6 +602,10 @@ Pronta quando serve.</string>
 	<string>Apri il file originale</string>
 	<key>Open the selected link</key>
 	<string>Apri il link selezionato</string>
+	<key>Optional settings</key>
+	<string>Impostazioni facoltative</string>
+	<key>Optional. Turn on WhiskyMac in Accessibility to paste directly, or copy a card and press ⌘V.</key>
+	<string>Facoltativo. Abilita WhiskyMac in Accessibilità per incollare direttamente. Puoi anche copiare una scheda e premere ⌘V.</string>
 	<key>Orange tag</key>
 	<string>Etichetta arancione</string>
 	<key>Original Whisk on GitHub</key>
@@ -618,8 +624,6 @@ Pronta quando serve.</string>
 	<string>Incolla come testo semplice</string>
 	<key>Paste as…</key>
 	<string>Incolla come…</string>
-	<key>Paste example</key>
-	<string>Incolla esempio</string>
 	<key>Paste in order</key>
 	<string>Incolla in ordine</string>
 	<key>Paste next from the stack</key>
@@ -672,12 +676,6 @@ Pronta quando serve.</string>
 	<string>Riproduci un suono per i nuovi elementi registrati</string>
 	<key>Play a sound when copying from history</key>
 	<string>Riproduci un suono quando copi dalla cronologia</string>
-	<key>Practice</key>
-	<string>Esercitazione</string>
-	<key>Practice note</key>
-	<string>Nota di prova</string>
-	<key>Practice space</key>
-	<string>Spazio di prova</string>
 	<key>Press %@ to search</key>
 	<string>Premi %@ per cercare</string>
 	<key>Press a shortcut…</key>
@@ -694,16 +692,22 @@ Pronta quando serve.</string>
 	<string>Scheda o filtro precedente</string>
 	<key>Privacy</key>
 	<string>Privacy</string>
-	<key>Privacy Mode is on (manual)</key>
-	<string>La modalità privacy manuale è attiva</string>
+	<key>Privacy Mode is on</key>
+	<string>Modalità privacy attiva</string>
 	<key>Privacy mode</key>
 	<string>Modalità privacy</string>
 	<key>Privacy mode icon</key>
 	<string>Icona della modalità privacy</string>
+	<key>Privacy protection</key>
+	<string>Protezione della privacy</string>
+	<key>Privacy protection is on</key>
+	<string>La protezione della privacy è attiva</string>
 	<key>Project notice</key>
 	<string>Nota sul progetto</string>
 	<key>Protected clipboard item</key>
 	<string>Elemento degli appunti protetto</string>
+	<key>Protection mode options</key>
+	<string>Opzioni della modalità di protezione</string>
 	<key>Purple tag</key>
 	<string>Etichetta viola</string>
 	<key>Quick reference</key>
@@ -716,6 +720,8 @@ Pronta quando serve.</string>
 	<string>Modalità di lettura</string>
 	<key>Ready</key>
 	<string>Pronto</string>
+	<key>Recognition runs on this Mac and looks for common key, cookie, hash, and token formats.</key>
+	<string>Il riconoscimento avviene su questo Mac e cerca i formati comuni di chiavi, cookie, hash e token.</string>
 	<key>Recording settings</key>
 	<string>Registrazione della cronologia</string>
 	<key>Red tag</key>
@@ -748,6 +754,8 @@ Pronta quando serve.</string>
 	<string>Ripristina…</string>
 	<key>Restore Defaults</key>
 	<string>Ripristina le impostazioni predefinite</string>
+	<key>Restore default order</key>
+	<string>Ripristina l’ordine predefinito</string>
 	<key>Restore default size</key>
 	<string>Ripristina la dimensione predefinita</string>
 	<key>Restore default values</key>
@@ -766,6 +774,8 @@ Pronta quando serve.</string>
 	<string>Riprendi la registrazione</string>
 	<key>Return saves, Shift-Return breaks the line, Escape cancels.</key>
 	<string>Premi Invio per salvare, Maiuscole-Invio per andare a capo o Esc per annullare.</string>
+	<key>Reveal Secret</key>
+	<string>Mostra il segreto</string>
 	<key>Reveal a small area</key>
 	<string>Mostra una piccola area</string>
 	<key>Reveal in Finder</key>
@@ -778,6 +788,8 @@ Pronta quando serve.</string>
 	<string>Testo formattato</string>
 	<key>Rich text could not be preserved. Enable Plain text to continue.</key>
 	<string>Impossibile mantenere la formattazione. Attiva «Testo semplice» per continuare.</string>
+	<key>Rich text keeps its original font sizes.</key>
+	<string>Il testo formattato conserva le dimensioni originali.</string>
 	<key>Right click</key>
 	<string>Clic secondario</string>
 	<key>Right-click always opens the menu. Follow windows shows the Dock icon for Settings and welcome windows only.</key>
@@ -794,12 +806,6 @@ Pronta quando serve.</string>
 	<string>Licenza SFX Kit</string>
 	<key>SFX Kit source</key>
 	<string>Fonte di SFX Kit</string>
-	<key>Sample copied.</key>
-	<string>Esempio copiato.</string>
-	<key>Sample pasted.</key>
-	<string>Esempio incollato.</string>
-	<key>Sample updated.</key>
-	<string>Esempio aggiornato.</string>
 	<key>Save</key>
 	<string>Salva</string>
 	<key>Save As…</key>
@@ -814,10 +820,10 @@ Pronta quando serve.</string>
 	<string>Modalità di salvataggio</string>
 	<key>Save the selection as a file</key>
 	<string>Salva la selezione come file</string>
-	<key>Screen privacy</key>
-	<string>Privacy dello schermo</string>
 	<key>Screen sharing</key>
 	<string>Condivisione dello schermo</string>
+	<key>Screen sharing protection</key>
+	<string>Protezione durante la condivisione dello schermo</string>
 	<key>Search SF Symbols by name</key>
 	<string>Cerca i simboli SF per nome</string>
 	<key>Search and filter</key>
@@ -836,12 +842,20 @@ Pronta quando serve.</string>
 	<string>Cerca nelle impostazioni</string>
 	<key>Search your clipboard</key>
 	<string>Cerca negli appunti</string>
+	<key>Secret Recognition</key>
+	<string>Riconoscimento dei segreti</string>
+	<key>Secret masking</key>
+	<string>Mascheramento dei segreti</string>
 	<key>Select a delimiter or enter a custom separator.</key>
 	<string>Scegli un separatore o inseriscine uno personalizzato.</string>
 	<key>Select all types</key>
 	<string>Seleziona tutti i tipi</string>
 	<key>Select at least one result.</key>
 	<string>Seleziona almeno un risultato.</string>
+	<key>Select the card you just copied. Press %@ to copy it or %@ to paste it.</key>
+	<string>Seleziona la scheda appena copiata. Premi %@ per copiarla o %@ per incollarla.</string>
+	<key>Select the card you just copied. Press %@, then return to the text field and press ⌘V.</key>
+	<string>Seleziona la scheda appena copiata e premi %@. Poi torna al campo di testo e premi ⌘V.</string>
 	<key>Selected</key>
 	<string>Selezionato</string>
 	<key>Selected parts are combined in their original order with line breaks.</key>
@@ -890,6 +904,8 @@ Pronta quando serve.</string>
 	<string>Mostra la cronologia</string>
 	<key>Show by type or source</key>
 	<string>Mostra le schede nascoste</string>
+	<key>Show card</key>
+	<string>Mostra scheda</string>
 	<key>Show clipboard cards</key>
 	<string>Mostra le schede degli appunti</string>
 	<key>Show fewer formats</key>
@@ -912,8 +928,6 @@ Pronta quando serve.</string>
 	<string>Larghezza della barra laterale</string>
 	<key>Single click</key>
 	<string>Clic singolo</string>
-	<key>Single click: %@ · Double click: %@</key>
-	<string>Clic singolo: %@ · Doppio clic: %@</string>
 	<key>Single line</key>
 	<string>Riga singola</string>
 	<key>Small bubble</key>
@@ -938,8 +952,6 @@ Pronta quando serve.</string>
 	<string>Scegli data e ora</string>
 	<key>Split options</key>
 	<string>Opzioni di divisione</string>
-	<key>Split results are examples only and are not saved to history.</key>
-	<string>I risultati sono solo esempi e non vengono salvati nella cronologia.</string>
 	<key>Split rule</key>
 	<string>Regola di divisione</string>
 	<key>Splitting is unavailable for this item.</key>
@@ -948,8 +960,6 @@ Pronta quando serve.</string>
 	<string>Dividi…</string>
 	<key>Start a search</key>
 	<string>Avvia una ricerca</string>
-	<key>Start over</key>
-	<string>Ricomincia</string>
 	<key>Start setup</key>
 	<string>Inizia la configurazione</string>
 	<key>Starting With</key>
@@ -1002,6 +1012,10 @@ Pronta quando serve.</string>
 	<string>L’elemento originale è cambiato o è stato rimosso. Apri di nuovo «Dividi» per continuare.</string>
 	<key>The source exceeds the split size limit.</key>
 	<string>La fonte supera il limite di dimensione.</string>
+	<key>Theme color</key>
+	<string>Colore del tema</string>
+	<key>These options apply whenever protection is on. Search terms and allowed app names are visible on screen and accessible to assistive technologies. Clipboard content stays hidden. Protection triggered by detection blocks hover reveals.</key>
+	<string>Queste opzioni si applicano quando la protezione è attiva. I termini di ricerca e i nomi delle app consentite sono visibili sullo schermo e accessibili tramite tecnologie assistive. Il contenuto degli appunti resta nascosto. Quando il rilevamento attiva la protezione, il passaggio del puntatore non mostra alcun contenuto.</string>
 	<key>Third-party notices</key>
 	<string>Note legali di terze parti</string>
 	<key>This document lists third-party artwork and sounds, their licenses and sources.</key>
@@ -1010,8 +1024,6 @@ Pronta quando serve.</string>
 	<string>Questo documento riporta la provenienza e i dettagli di conversione dei suoni Kenney UI inclusi.</string>
 	<key>This document records the source and selected files for the bundled SFX Kit sounds.</key>
 	<string>Questo documento riporta la provenienza e i file selezionati dei suoni SFX Kit inclusi.</string>
-	<key>This example could not be split. Try a shorter text.</key>
-	<string>Impossibile dividere questo esempio. Prova un testo più breve.</string>
 	<key>This global shortcut could not be registered. Choose another binding.</key>
 	<string>Impossibile registrare questa abbreviazione globale. Scegli un’altra combinazione.</string>
 	<key>This notice names the original authors, WhiskyMac modifications and third-party materials.</key>
@@ -1020,8 +1032,8 @@ Pronta quando serve.</string>
 	<string>Questa abbreviazione non è disponibile o è duplicata. Scegli un’altra combinazione.</string>
 	<key>This shortcut is used by another action</key>
 	<string>Questa abbreviazione è già usata da un’altra azione</string>
-	<key>Toggle manual Privacy Mode</key>
-	<string>Attiva o disattiva la modalità privacy manuale</string>
+	<key>Toggle privacy protection</key>
+	<string>Attiva o disattiva la protezione della privacy</string>
 	<key>Toggle the selection in the paste stack</key>
 	<string>Aggiungi o rimuovi la selezione dalla sequenza di incolla</string>
 	<key>Tools for testing WhiskyMac.</key>
@@ -1034,20 +1046,18 @@ Pronta quando serve.</string>
 	<string>Rimuovi spazi iniziali e finali</string>
 	<key>Trimmed</key>
 	<string>Senza spazi iniziali e finali</string>
-	<key>Try it anytime</key>
-	<string>Prova quando vuoi</string>
 	<key>Try it out</key>
 	<string>Prova</string>
-	<key>Try it safely with sample content.</key>
-	<string>Fai pratica con esempi senza modificare gli appunti.</string>
-	<key>Try searching for Hello</key>
-	<string>Prova a cercare Hello</string>
-	<key>Turn off manual protection</key>
-	<string>Disattiva la protezione manuale</string>
+	<key>Try it with your own clipboard</key>
+	<string>Prova con i tuoi appunti</string>
+	<key>Turn off privacy protection</key>
+	<string>Disattiva la protezione della privacy</string>
 	<key>Turn on Privacy Mode before sharing. Revealed or pasted content can still appear on screen.</key>
 	<string>Attiva la modalità Privacy prima di condividere. I contenuti mostrati o incollati possono comunque apparire sullo schermo.</string>
-	<key>Turn on manual protection</key>
-	<string>Attiva la protezione manuale</string>
+	<key>Turn on privacy protection</key>
+	<string>Attiva la protezione della privacy</string>
+	<key>Turn on protection when screen sharing is detected</key>
+	<string>Attiva la protezione se viene rilevata la condivisione dello schermo</string>
 	<key>Two actions share the same shortcut.</key>
 	<string>Due azioni usano la stessa abbreviazione.</string>
 	<key>Type shortcut…</key>
@@ -1082,12 +1092,12 @@ Pronta quando serve.</string>
 	<string>Gli aggiornamenti vengono scaricati da GitHub.</string>
 	<key>Uppercase</key>
 	<string>Maiuscolo</string>
+	<key>Use Card size to resize clipboard cards.</key>
+	<string>Usa «Dimensione delle schede» per ridimensionare le schede degli appunti.</string>
 	<key>Use a text card’s menu to edit or split its contents.</key>
 	<string>Modifica o dividi il contenuto dal menu di una scheda di testo.</string>
 	<key>Use sidebar navigation</key>
 	<string>Usa la navigazione laterale</string>
-	<key>Use the card menu or a shortcut to continue.</key>
-	<string>Continua dal menu della scheda o con una scorciatoia.</string>
 	<key>Use the menu bar</key>
 	<string>Usa la barra dei menu</string>
 	<key>Use the pinned-items shortcut or menu item. In the clipboard panel it selects Pinned; a separate window only shows pinned items.</key>
@@ -1096,6 +1106,8 @@ Pronta quando serve.</string>
 	<string>Usa le etichette sopra le schede per filtrare la cronologia degli appunti.</string>
 	<key>Use top navigation</key>
 	<string>Usa la navigazione in alto</string>
+	<key>Uses Accessibility to detect Zoom and Teams sharing toolbars. Detection may vary by app version and language. System screen sharing, remote desktop, screen recording and browser tabs are outside its scope. Turn on privacy protection before sharing sensitive content.</key>
+	<string>Usa le funzioni di accessibilità per rilevare le barre di condivisione di Zoom e Teams. Il rilevamento può variare in base alla versione e alla lingua dell’app. La condivisione schermo di sistema, il desktop remoto, le registrazioni dello schermo e i pannelli del browser sono fuori dall’ambito di rilevamento. Attiva la protezione della privacy prima di condividere contenuti sensibili.</string>
 	<key>Uses the configured card action</key>
 	<string>Usa l’azione configurata per la scheda</string>
 	<key>Version</key>
@@ -1136,16 +1148,20 @@ Pronta quando serve.</string>
 	<string>WhiskyMac su GitHub</string>
 	<key>WhiskyMac uses the GNU GPL version 3 or later. Read the original for the complete terms.</key>
 	<string>WhiskyMac usa la GNU GPL versione 3 o successiva. La licenza disciplina uso, distribuzione, modifiche, disponibilità del codice sorgente e garanzie. Consulta il testo originale per le condizioni complete.</string>
+	<key>With the text field active, press %@ to open your clipboard history.</key>
+	<string>Con il campo di testo attivo, premi %@ per aprire la cronologia degli appunti.</string>
 	<key>Without accents</key>
 	<string>Senza accenti</string>
 	<key>Yellow tag</key>
 	<string>Etichetta gialla</string>
+	<key>You can continue and grant permissions later.</key>
+	<string>Puoi continuare e concedere le autorizzazioni in seguito.</string>
+	<key>You can paste directly into the active app.</key>
+	<string>Puoi incollare direttamente nell’app attiva.</string>
 	<key>Your Beta is newer than the latest Release. Waiting for a newer Release.</key>
 	<string>La beta installata è più recente dell’ultima versione stabile. Potrai aggiornare quando uscirà una versione stabile più recente.</string>
 	<key>Your everyday snippet</key>
 	<string>Il tuo frammento quotidiano</string>
-	<key>Your example lands here.</key>
-	<string>L’esempio incollato appare qui.</string>
 	<key>You’re up to date.</key>
 	<string>WhiskyMac è aggiornato.</string>
 	<key>adds soft clicks, taps, snaps, and bubbles to the copy sound options.</key>
@@ -1180,6 +1196,8 @@ Pronta quando serve.</string>
 	<string>fornisce suoni di clic e di interruttore come conferma della copia.</string>
 	<key>pt</key>
 	<string>pt</string>
+	<key>secret</key>
+	<string>segreto</string>
 	<key>sidebar tabs navigation</key>
 	<string>barra laterale schede navigazione</string>
 	<key>size width preview restore default</key>

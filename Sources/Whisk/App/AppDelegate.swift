@@ -9,10 +9,12 @@ import Combine
 import SwiftUI
 import UniformTypeIdentifiers
 
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private typealias Controller = ClipboardController<AppKitPasteboard, SystemClock, AnyHistoryStore, ConsoleLogger>
 
-    private let privacy = PrivacyController(startInDefaultMode: true)
+    private let uiFactory: any AppUIFactory
+    private let privacy: PrivacyController
     private let diagnostics: DiagnosticLogStore
     private let logger: ConsoleLogger
     private let defaults: UserDefaults
@@ -20,11 +22,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let keyBindings: KeyBindingsStore
     private let generalSettings: GeneralSettingsStore
     private let copySoundPlayer = CopySoundPlayer()
-    private let appearance = AppearanceSettingsStore()
-    private let vimKeymap = VimBindingsStore()
+    private let appearance: AppearanceSettingsStore
+    private let vimKeymap: VimBindingsStore
     private let loginItem = LoginItemManager()
     private let updateChecker: UpdateChecker
-    private var onboardingWindow: NSWindow?
+    private var onboardingUI: AppWindowHandle?
+    private var onboardingWindow: NSWindow? { onboardingUI?.window }
     private var onboardingState: OnboardingState?
     private var settingsObserver: AnyCancellable?
     private var privacyObserver: AnyCancellable?
@@ -37,10 +40,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var stackHotKey: HotKey?
     private var layoutObserver: NSObjectProtocol?
     private var bindingsObserver: AnyCancellable?
-    private var settingsWindow: NSWindow?
+    private var settingsUI: AppWindowHandle?
+    private var settingsWindow: NSWindow? { settingsUI?.window }
     private let settingsSearch = SettingsSearchModel()
-    // NSToolbar holds its delegate weakly.
-    private var settingsSearchToolbar: AnyObject?
     private var stateStore: HistoryViewStateStore?
     private var clipboard: Controller?
     private var thumbnailPreparation: PanelThumbnailPreparation?
@@ -51,16 +53,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var colorObserver: NSObjectProtocol?
     private var sessionObservers: [NSObjectProtocol] = []
 
-    override init() {
-        let defaults = AppIdentity.defaults
-        let build = AppBuildInfo.current
-        let diagnostics = DiagnosticLogStore(build: build) {
+    init(
+        uiFactory: any AppUIFactory, defaults: UserDefaults = AppIdentity.defaults,
+        diagnosticDirectory: @escaping @Sendable () throws -> URL = {
             try AppIdentity.dataDirectory().appendingPathComponent("Logs", isDirectory: true)
         }
+    ) {
+        self.uiFactory = uiFactory
+        let build = AppBuildInfo.current
+        let diagnostics = DiagnosticLogStore(build: build, directory: diagnosticDirectory)
         let smokeTest = CommandLine.arguments.contains("--smoke-test")
         let logger = ConsoleLogger(record: smokeTest ? nil : diagnostics.record)
         logger.log(.appStarted)
         self.defaults = defaults
+        privacy = PrivacyController(defaults: defaults, startInDefaultMode: true)
+        appearance = AppearanceSettingsStore(defaults: defaults)
+        vimKeymap = VimBindingsStore(defaults: defaults)
         self.diagnostics = diagnostics
         self.logger = logger
         developerMode = DeveloperModeStore(defaults: defaults, channel: build.channel)
@@ -74,9 +82,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         AppLocalization.language = appearance.language.code
         AppAccent.color = appearance.nsAccent
         appearance.changed = { [weak self] in self?.applyAppearance() }
-        windowObserver = NotificationCenter.default.addObserver(
-            forName: NSWindow.willCloseNotification, object: nil, queue: .main
-        ) { [weak self] note in
+        windowObserver = MainRunLoop.observe(NSWindow.willCloseNotification) { [weak self] note in
             guard let self, let window = note.object as? NSWindow,
                 window === self.settingsWindow || window === self.onboardingWindow
             else { return }
@@ -85,18 +91,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 NotificationCenter.default.post(name: .settingsWindowClosed, object: nil)
             } else {
                 self.keyBindings.endRecording()
-                self.onboardingWindow = nil
+                self.onboardingUI = nil
             }
             self.updateDockIcon(excluding: window)
         }
-        colorObserver = NotificationCenter.default.addObserver(
-            forName: NSColor.systemColorsDidChangeNotification, object: nil, queue: .main
-        ) { [weak self] _ in
+        colorObserver = MainRunLoop.observe(NSColor.systemColorsDidChangeNotification) { [weak self] _ in
             self?.applyAppearance(forceColor: true)
         }
         updateDockIcon()
         let opened = openStore()
         let stateStore = HistoryViewStateStore()
+        stateStore.interfaceTypography = appearance.interfaceTypography
         stateStore.setPrivacyPermissions(
             allowSearch: privacy.allowSearchWhileProtected,
             showSourceApps: privacy.showSourceAppsWhileProtected,
@@ -109,6 +114,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         stateStore.interactions = generalSettings.interactions
         stateStore.privacyInteractions = generalSettings.privacyInteractions
         stateStore.appFilterTrigger = generalSettings.appFilterTrigger
+        stateStore.secretRecognition = generalSettings.secretRecognition
         let clipboard = ClipboardController(
             pasteboard: AppKitPasteboard(didWrite: { [weak self] in
                 guard let self else { return }
@@ -122,6 +128,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             initialItems: opened.items,
             searchMatchMode: defaults.string(forKey: "searchMatchMode").flatMap(SearchMatchMode.init(rawValue:))
                 ?? .fuzzy,
+            secretRecognition: generalSettings.secretRecognition,
+            filterCategoryOrder: generalSettings.filterCategoryOrder,
             logger: logger
         ) { [weak self] state in
             stateStore.update(state)
@@ -148,7 +156,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         pressure.resume()
         memoryPressure = pressure
         clipboard.hiddenLinksChanged = { LinkPreviewStore.shared.setHiddenAddresses($0) }
-        LinkPreviewStore.shared.setHiddenAddresses(clipboard.hiddenLinkAddresses)
         clipboard.didRecord = { [weak self] in
             guard let self else { return }
             self.copySoundPlayer.play(
@@ -182,8 +189,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NSWorkspace.sessionDidResignActiveNotification,
         ] {
             sessionObservers.append(
-                sessionCenter.addObserver(forName: name, object: nil, queue: .main) {
-                    [weak stateStore] _ in stateStore?.sensitiveSession.clear()
+                MainRunLoop.observe(name, in: sessionCenter) { [weak self] _ in
+                    self?.stateStore?.sensitiveSession.clear()
                 })
         }
         stateStore.detailSource = { [weak clipboard] id in clipboard?.item(for: id) }
@@ -227,7 +234,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         stateStore.beginSplit = { [weak stateStore, weak clipboard] id in
             guard let stateStore, let clipboard, !stateStore.isProtected, stateStore.panelVisible,
                 let item = clipboard.item(for: id),
-                !item.pinnedMetadata.hidesContent, item.splitGroup == nil,
+                !stateStore.secretRecognition.hidesContent(of: item), item.splitGroup == nil,
                 item.payload.transformableText != nil
             else { return }
             stateStore.hidePreview?()
@@ -255,7 +262,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             stateStore.closeSplitSessions()
             let session = SplitGroupSession(
                 source: item, action: paste ? .paste : .copy, plain: plain, query: stateStore.state.query,
-                searchMatchMode: stateStore.searchMatchMode,
+                hideContent: stateStore.secretRecognition.masks(item), searchMatchMode: stateStore.searchMatchMode,
                 current: { [weak clipboard] in clipboard?.item(for: $0) },
                 allowed: { [weak stateStore] in stateStore?.isProtected == false && stateStore?.panelVisible == true },
                 export: { [weak clipboard] item, selected, original, plain, paste in
@@ -273,9 +280,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             stateStore.auxiliaryDidChange()
         }
         var guardedActions = actions
+        guardedActions.revealSecret = { [weak stateStore] in stateStore?.revealSecret($0) }
         guardedActions.split = { [weak stateStore, weak clipboard] id in
             guard let stateStore, let clipboard, !stateStore.isProtected else { return }
-            if let card = stateStore.state.cards.first(where: { $0.id == id }), card.variantIDs.count > 1 {
+            guard let card = stateStore.state.cards.first(where: { $0.id == id }), !card.contentHidden else { return }
+            if card.variantCount > 1 {
                 let candidates = clipboard.items(for: card.variantIDs)
                 stateStore.chooseSplitVersion(candidates)
             } else {
@@ -290,6 +299,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guardedActions.cardMenuChanged = { [weak stateStore] in stateStore?.cardMenuOpen = $0 }
         guardedActions = guardedActions.guarded { [weak stateStore] in stateStore?.isProtected != false }
         let panelController = PanelController(
+            uiFactory: uiFactory,
             stateStore: stateStore, actions: guardedActions, keyBindings: keyBindings,
             vimBindings: vimKeymap, appearanceMode: appearance.clipboardAppearance,
             vimMode: { [weak self] in self?.generalSettings.vimNavigation ?? false }
@@ -315,7 +325,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if protected { self?.copySoundPlayer.stop() }
             self?.thumbnailPreparation?.setPrivacy(protected)
             stateStore?.setPrivacy(protected)
-            self?.panelController?.privacyDidChange()
+            self?.panelController?.privacyDidChange(animated: true)
             LinkPreviewStore.shared.setPrivacy(protected)
             if protected { self?.clipboard?.releaseContentCache() }
             self?.updateStatusIcon(protected: protected)
@@ -380,6 +390,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 {
                     self.copySoundPlayer.stop()
                 }
+                let recognition = self.generalSettings.secretRecognition
+                if let state = self.stateStore, state.secretRecognition != recognition {
+                    state.secretRecognition = recognition
+                    self.clipboard?.setSecretRecognition(recognition)
+                }
+                self.clipboard?.setFilterCategoryOrder(self.generalSettings.filterCategoryOrder)
                 self.clipboard?.applyRetention(self.generalSettings.policy)
                 if let session = self.stateStore?.sensitiveSession,
                     session.retentionMinutes != self.generalSettings.sensitiveRetentionMinutes
@@ -470,7 +486,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         precondition(settingsWindow == nil)
         appearance.accentMode = .custom
         appearance.customAccent = AccentRGB(red: 0.85, green: 0.2, blue: 0.12)
-        precondition(NSColor.matcha == appearance.customAccent.nsColor)
+        precondition(AppAccent.color == appearance.customAccent.nsColor)
         appearance.dockIcon = .never
         precondition(NSApp.activationPolicy() == .accessory)
         appearance.dockIcon = .always
@@ -489,7 +505,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         precondition(appearance.statusClick.opensMenu(rightClick: true))
         appearance.language = .system
         appearance.accentMode = .system
-        precondition(NSColor.matcha == .controlAccentColor)
+        precondition(AppAccent.color == .controlAccentColor)
         print("preference smoke passed: runtime language, accent, Dock windows and menu mapping")
     }
 
@@ -557,21 +573,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func observeKeyboardLayoutChanges() {
-        layoutObserver = DistributedNotificationCenter.default().addObserver(
-            forName: NSNotification.Name(kTISNotifySelectedKeyboardInputSourceChanged as String),
-            object: nil,
-            queue: .main
+        layoutObserver = MainRunLoop.observe(
+            NSNotification.Name(kTISNotifySelectedKeyboardInputSourceChanged as String),
+            in: DistributedNotificationCenter.default()
         ) { [weak self] _ in
             self?.registerHotKey()
         }
     }
 
     private func startPolling(_ clipboard: Controller) {
-        let timer = Timer(timeInterval: 0.25, repeats: true) { _ in
-            clipboard.pollTick()
-        }
-        RunLoop.main.add(timer, forMode: .common)
-        pollTimer = timer
+        pollTimer?.invalidate()
+        // A paused tick only maintains permission status and expiry; no need
+        // to wake the UI and pasteboard worker at capture frequency.
+        pollTimer = MainRunLoop.timer(interval: isPaused ? 2 : 0.25, repeats: true) { clipboard.pollTick() }
+        pollTimer?.tolerance = isPaused ? 0.2 : 0.02
     }
 
     private func configureStatusItem() {
@@ -600,7 +615,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func togglePause() {
         isPaused.toggle()
-        clipboard?.setPaused(isPaused)
+        if let clipboard {
+            clipboard.setPaused(isPaused)
+            if pollTimer != nil { startPolling(clipboard) }
+        }
         updateStatusIcon(protected: privacy.isProtected)
     }
 
@@ -617,11 +635,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func presentMenu() {
         let menu = NSMenu()
-        menu.addItem(StatusMenuMessage.item(for: privacy.statusText))
+        let typography = appearance.interfaceTypography
+        if !typography.isStandard { menu.font = typography.menuFont }
+        menu.addItem(uiFactory.makeStatusMessage(for: privacy.statusText, typography: typography))
         menu.addItem(
             menuItem(
                 title: privacy.isManuallyProtected
-                    ? localized("Turn off manual protection") : localized("Turn on manual protection"),
+                    ? localized("Turn off privacy protection") : localized("Turn on privacy protection"),
                 action: #selector(togglePrivacy), shortcut: .togglePrivacy))
         menu.addItem(
             menuItem(
@@ -718,8 +738,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func closeOnboarding() {
         keyBindings.endRecording()
-        onboardingWindow?.close()
-        onboardingWindow = nil
+        onboardingUI?.release()
+        onboardingUI = nil
     }
 
     private func showOnboarding(fromBeginning: Bool = false) {
@@ -736,10 +756,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 readClipboardAccess: { [weak self] in self?.clipboard?.clipboardAccess ?? .requiresConsent })
         onboardingState = state
         if fromBeginning { state.restart() }
-        let hosting = NSHostingController(
-            rootView: OnboardingView(
-                state: state, bindings: keyBindings, general: generalSettings,
-                appearance: appearance, loginItem: loginItem,
+        let handle = uiFactory.makeOnboardingWindow(
+            context: OnboardingUIContext(
+                state: state, bindings: keyBindings, general: generalSettings, appearance: appearance,
+                loginItem: loginItem,
                 actions: OnboardingActions(
                     allowClipboard: { [weak self] in
                         self?.clipboard?.requestClipboardAccess()
@@ -760,13 +780,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     finish: { [weak self] in
                         self?.closeOnboarding()
                         self?.panelController?.show()
-                    }))
-        )
-        let window = NSWindow(contentViewController: hosting)
-        OnboardingWindowConfiguration.apply(to: window)
-        let visible = NSScreen.main?.visibleFrame.size ?? NSSize(width: 1100, height: 800)
-        window.setContentSize(NSSize(width: min(980, visible.width - 60), height: min(700, visible.height - 80)))
-        onboardingWindow = window
+                    })))
+        onboardingUI = handle
+        let window = handle.window
         window.center()
         NSApp.activate(ignoringOtherApps: true)
         updateDockIcon()
@@ -803,7 +819,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         try await diagnostics.export(to: destination)
     }
 
-    private func makeSettingsWindow(initialPage: SettingsPage) -> NSWindow {
+    func makeSettingsWindow(initialPage: SettingsPage) -> AppWindowHandle {
         let clearHistory: () -> Void = { [weak self] in self?.clipboard?.clear() }
         let showWelcomeGuide = { [weak self] in
             guard let self, self.developerMode.showsTools else { return }
@@ -816,44 +832,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let cancelClipboardPreview: () -> Void = { [weak self] in self?.panelController?.cancelSizePreview() }
         let canFocusSearch = { [weak self] in self?.keyBindings.recordingAction == nil }
 
-        let window: NSWindow
-        if #available(macOS 26, *) {
-            window = MainActor.assumeIsolated {
-                MacOS26SettingsWindow.make(
-                    rootView: MacOS26SettingsView(
-                        store: keyBindings, general: generalSettings, loginItem: loginItem,
-                        vimBindings: vimKeymap, privacy: privacy, clearHistory: clearHistory,
-                        showWelcomeGuide: showWelcomeGuide, exportDiagnostics: exportDiagnostics,
-                        previewClipboard: previewClipboard, cancelClipboardPreview: cancelClipboardPreview,
-                        appearance: appearance, updateChecker: updateChecker, search: settingsSearch,
-                        developerMode: developerMode, selectedPage: initialPage)
-                )
-            }
-            settingsSearchToolbar = MacOS26SettingsToolbar(
-                window: window, search: settingsSearch, appearance: appearance, canFocus: canFocusSearch)
-        } else {
-            let hosting = NSHostingController(
-                rootView: SettingsView(
-                    store: keyBindings, general: generalSettings, loginItem: loginItem,
-                    vimBindings: vimKeymap, privacy: privacy, clearHistory: clearHistory,
-                    showWelcomeGuide: showWelcomeGuide, exportDiagnostics: exportDiagnostics,
-                    previewClipboard: previewClipboard, cancelClipboardPreview: cancelClipboardPreview,
-                    appearance: appearance, updateChecker: updateChecker, search: settingsSearch,
-                    developerMode: developerMode, selectedPage: initialPage)
-            )
-            window = NSWindow(contentViewController: hosting)
-            // SwiftUI sizing is lazy: without this the window materializes
-            // at 1×32 points and is effectively invisible.
-            window.setContentSize(hosting.view.fittingSize)
-            window.styleMask.remove([.resizable, .miniaturizable])
-            SettingsWindowConfiguration.apply(to: window)
-            settingsSearchToolbar = SettingsSearchToolbar(
-                window: window, search: settingsSearch, appearance: appearance, canFocus: canFocusSearch)
-        }
-        window.appearance = appearance.settingsAppearance.nsAppearance
-        window.title = localized("WhiskyMac Settings")
-        window.isReleasedWhenClosed = false
-        return window
+        return uiFactory.makeSettingsWindow(
+            context: SettingsUIContext(
+                bindings: keyBindings, general: generalSettings, loginItem: loginItem, vimBindings: vimKeymap,
+                privacy: privacy, appearance: appearance, updateChecker: updateChecker, search: settingsSearch,
+                developerMode: developerMode, clearHistory: clearHistory, showWelcomeGuide: showWelcomeGuide,
+                exportDiagnostics: exportDiagnostics, previewClipboard: previewClipboard,
+                cancelClipboardPreview: cancelClipboardPreview, canFocusSearch: canFocusSearch),
+            initialPage: initialPage)
     }
 
     private func showSettings(destination requested: SettingsDestination?) {
@@ -862,16 +848,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 ? $0 : nil
         }
         if settingsWindow == nil {
-            settingsWindow = makeSettingsWindow(initialPage: destination?.page ?? .general)
+            settingsUI = makeSettingsWindow(initialPage: destination?.page ?? .general)
         }
-        if let window = settingsWindow {
-            let chrome = window.frame.height - window.contentRect(forFrameRect: window.frame).height
-            let visibleHeight =
-                (window.screen ?? NSScreen.main)?.visibleFrame.height
-                ?? (SettingsWindowSize.height + chrome + 2 * SettingsWindowSize.margin)
-            window.setContentSize(
-                SettingsWindowSize.content(visibleHeight: visibleHeight, chromeHeight: chrome))
-        }
+        settingsUI?.prepareForPresentation()
         settingsWindow?.center()
         if appearance.dockIcon != .never { NSApp.setActivationPolicy(.regular) }
         NSApp.activate(ignoringOtherApps: true)
@@ -902,7 +881,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         AppLocalization.language = appearance.language.code
         AppAccent.color = appearance.nsAccent
         settingsWindow?.appearance = appearance.settingsAppearance.nsAppearance
+        onboardingWindow?.appearance = appearance.settingsAppearance.nsAppearance
         panelController?.appearanceMode = appearance.clipboardAppearance
+        if let stateStore, stateStore.interfaceTypography != appearance.interfaceTypography {
+            stateStore.interfaceTypography = appearance.interfaceTypography
+            panelController?.cardSizeDidChange()
+        }
         if languageChanged { clipboard?.refreshLocalization() }
         if languageChanged || accentChanged || forceColor {
             stateStore?.appearanceDidChange()
@@ -910,8 +894,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         settingsWindow?.title = localized("WhiskyMac Settings")
         if languageChanged, let window = onboardingWindow, window.isVisible {
-            window.close()
-            onboardingWindow = nil
+            onboardingUI?.release()
+            onboardingUI = nil
             showOnboarding()
         }
         updateStatusIcon(protected: privacy.isProtected)
@@ -936,6 +920,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        settingsUI?.release()
+        onboardingUI?.release()
         copySoundPlayer.stop()
         if CommandLine.arguments.contains("--smoke-test") {
             defaults.removePersistentDomain(forName: AppIdentity.smokeDefaultsDomain)

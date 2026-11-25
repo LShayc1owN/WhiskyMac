@@ -295,7 +295,7 @@ extension SQLiteHistoryStore {
                     contentStorage.reference(key: key, byteCount: Int(sqlite3_column_int64(statement, 3))))
             }
             let group = try columnBlob(statement, 4).map(decodeGroup)
-            compacted[index] = item.withStoredContent(payload: payload, richText: richText, splitGroup: group)
+            compacted[index] = item.withContentRepresentation(payload: payload, richText: richText, splitGroup: group)
         }
         return compacted
     }

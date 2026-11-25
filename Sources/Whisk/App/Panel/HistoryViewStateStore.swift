@@ -11,6 +11,35 @@ import Foundation
 /// nothing below the views knows this exists.
 final class HistoryViewStateStore: ObservableObject {
     let sensitiveSession = SensitiveSessionStore()
+    @Published var interfaceTypography = InterfaceTypography.standard
+    @Published private(set) var revealedSecret: String?
+    private var revealedSecretID: UUID?
+    var hasAuxiliaryContent: Bool {
+        revealedSecret != nil || splitSession != nil || splitGroupSession != nil || !splitVersions.isEmpty
+    }
+    var secretRecognition = SecretRecognition() {
+        didSet {
+            guard oldValue != secretRecognition else { return }
+            dismissPreview()
+            endEditing()
+            closeSplitSessions()
+        }
+    }
+
+    func revealSecret(_ id: UUID) {
+        guard !isProtected, panelVisible,
+            state.cards.contains(where: { $0.id == id && $0.secretMasked }),
+            let item = detailSource?(id), secretRecognition.masks(item), !item.pinnedMetadata.hidesContent,
+            let original = item.payload.transformableText
+        else { return }
+        dismissPreview()
+        endEditing()
+        closeSplitSessions()
+        revealedSecretID = id
+        revealedSecret = original
+        auxiliaryDidChange()
+    }
+
     @Published var splitSession: SplitSession?
     @Published var splitGroupSession: SplitGroupSession?
     @Published var splitVersions: [ClipboardItem] = []
@@ -18,13 +47,16 @@ final class HistoryViewStateStore: ObservableObject {
         guard !isProtected, panelVisible else { return }
         hidePreview?()
         closeSplitSessions()
-        splitVersions = versions.filter { !$0.pinnedMetadata.hidesContent && $0.splitGroup == nil }
+        splitVersions = versions.filter { !secretRecognition.hidesContent(of: $0) && $0.splitGroup == nil }
         auxiliaryDidChange()
     }
     var beginSplit: (UUID) -> Void = { _ in }
     var auxiliaryDidChange: () -> Void = {}
 
     func closeSplitSessions() {
+        guard hasAuxiliaryContent else { return }
+        revealedSecretID = nil
+        if revealedSecret != nil { revealedSecret = nil }
         splitSession?.invalidate(); splitGroupSession?.invalidate()
         splitSession = nil; splitGroupSession = nil; splitVersions = []
         auxiliaryDidChange()
@@ -291,6 +323,7 @@ final class HistoryViewStateStore: ObservableObject {
         if !visible {
             cachedProtectedRows = nil
             if historyHidingOptionsOpen { historyHidingOptions = nil }
+            if revealedSecret != nil { closeSplitSessions() }
         }
         panelVisible = visible
         contentCacheVisibility(visible)
@@ -303,7 +336,8 @@ final class HistoryViewStateStore: ObservableObject {
 
     func protectedRevealPayload(for id: UUID) -> Payload? {
         guard isProtected, allowsSpotlight, panelVisible, containsProtectedCard(id) else { return nil }
-        guard let item = detailSource?(id), !item.pinnedMetadata.hidesContent else { return nil }
+        guard let item = detailSource?(id), !item.pinnedMetadata.hidesContent, !secretRecognition.recognizes(item)
+        else { return nil }
         return item.payload
     }
     @Published private(set) var previewItems: [ClipboardItem] = []
@@ -318,7 +352,7 @@ final class HistoryViewStateStore: ObservableObject {
     func protectedVersions(for id: UUID) -> [UUID] {
         guard isProtected, panelVisible, let index = protectedRows.indices[id] else { return [] }
         let card = latestState.cards[index]
-        return card.variantIDs.isEmpty ? [id] : card.variantIDs
+        return card.variantIDs
     }
 
     func exportWhileProtected(cardID: UUID, versionID: UUID, action: CardAction) {
@@ -370,9 +404,9 @@ final class HistoryViewStateStore: ObservableObject {
         previewVisible = true
         if previewOrigin == nil { previewOrigin = .explicit }
         guard let card = previewCard, !card.contentHidden else { dismissPreview(); return }
-        let ids = card.variantIDs.isEmpty ? [card.id] : card.variantIDs
+        let ids = card.variantIDs
         previewItems = (detailsSource?(ids) ?? ids.compactMap { detailSource?($0) }).filter {
-            !$0.pinnedMetadata.hidesContent
+            !secretRecognition.hidesContent(of: $0)
         }
     }
 
@@ -389,7 +423,7 @@ final class HistoryViewStateStore: ObservableObject {
         guard !isProtected else { return }
         let hidden = latestState.cards.first(where: { $0.id == card.id })?.contentHidden ?? card.contentHidden
         if hidden, action == .preview || action == .edit { return }
-        if card.variantIDs.count > 1, [.paste, .copy, .edit].contains(action) {
+        if !hidden, card.variantCount > 1, [.paste, .copy, .edit].contains(action) {
             actions.highlight(card.id)
             pendingAction = action
             cancelPreviewClose()
@@ -454,7 +488,7 @@ final class HistoryViewStateStore: ObservableObject {
 
     func beginEditing(_ card: CardViewState) {
         guard !isProtected, !card.isSplitGroup, !card.contentHidden,
-            detailSource?(card.id)?.pinnedMetadata.hidesContent != true,
+            detailSource?(card.id).map(secretRecognition.hidesContent) != true,
             card.transformable
         else { return }
         do {
@@ -493,7 +527,7 @@ final class HistoryViewStateStore: ObservableObject {
     }
 
     /// The card's side in points; the selected card grows by the zoom.
-    @Published private(set) var cardSide: CGFloat = 200
+    @Published private(set) var cardSide = CGFloat(GeneralSettingsStore.defaultCardSide)
     @Published private(set) var filterTagScale: Double = GeneralSettingsStore.defaultFilterTagScale
     static let selectionZoom: CGFloat = 1.05
     /// The room the rail gives one card: the zoomed slot plus the gap.
@@ -524,6 +558,12 @@ final class HistoryViewStateStore: ObservableObject {
         }
         if newState.selectedID != latestState.selectedID { pendingAction = nil; expandedVersions = false }
         latestState = newState
+        if let id = revealedSecretID,
+            !newState.cards.contains(where: { $0.id == id && $0.secretMasked })
+                || detailSource?(id)?.payload.transformableText != revealedSecret
+        {
+            closeSplitSessions()
+        }
         validateSplitSessions()
         if let id = editingID, newState.cards.first(where: { $0.id == id })?.contentHidden != false { endEditing() }
         state = isProtected ? .empty : newState

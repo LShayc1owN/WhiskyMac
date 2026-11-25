@@ -61,7 +61,7 @@ enum SettingsPage: String, CaseIterable, Identifiable {
         case .history: "clock"
         case .interactions: "cursorarrow.click"
         case .privacy: "hand.raised.fill"
-        case .shortcuts: "keyboard"
+        case .shortcuts: "command"
         case .about: "info.circle"
         }
     }
@@ -72,7 +72,7 @@ enum SettingsSectionID: String, CaseIterable, Identifiable {
     case statusIcons, navigation, colors, cards, filterTags
     case retention, clearHistory
     case filters, normalInteractions, privacyInteractions, pinnedItems
-    case screenPrivacy, privacyVisibility, sensitiveAccess, network
+    case screenSharingProtection, sensitiveAccess, secretRecognition, network
     case globalShortcuts, panelShortcuts, vim, resetShortcuts
     case aboutApp, aboutDeveloper, licenses
     case debugging
@@ -86,7 +86,7 @@ enum SettingsSectionID: String, CaseIterable, Identifiable {
         case .statusIcons, .navigation, .colors, .cards, .filterTags: .appearance
         case .retention, .clearHistory: .history
         case .filters, .normalInteractions, .privacyInteractions, .pinnedItems: .interactions
-        case .screenPrivacy, .privacyVisibility, .sensitiveAccess, .network: .privacy
+        case .screenSharingProtection, .sensitiveAccess, .secretRecognition, .network: .privacy
         case .globalShortcuts, .panelShortcuts, .vim, .resetShortcuts: .shortcuts
         case .aboutApp, .aboutDeveloper, .licenses: .about
         }
@@ -101,7 +101,7 @@ enum SettingsSectionID: String, CaseIterable, Identifiable {
         case .sounds: settingsSearchText("Sounds and effects")
         case .statusIcons: settingsSearchText("Menu bar icons")
         case .navigation: settingsSearchText("Settings navigation")
-        case .colors: settingsSearchText("Colors")
+        case .colors: settingsSearchText("Display and theme colors")
         case .cards: settingsSearchText("Clipboard cards")
         case .filterTags: settingsSearchText("Filter tags")
         case .retention: settingsSearchText("Recording settings")
@@ -110,9 +110,9 @@ enum SettingsSectionID: String, CaseIterable, Identifiable {
         case .filters: settingsSearchText("Filters")
         case .normalInteractions: settingsSearchText("Normal mode")
         case .privacyInteractions: settingsSearchText("Privacy mode")
-        case .screenPrivacy: settingsSearchText("Screen privacy")
-        case .privacyVisibility: settingsSearchText("Visible during protection")
+        case .screenSharingProtection: settingsSearchText("Screen sharing protection")
         case .sensitiveAccess: settingsSearchText("Sensitive access")
+        case .secretRecognition: settingsSearchText("Secret Recognition")
         case .network: settingsSearchText("Online content")
         case .globalShortcuts: settingsSearchText("Global shortcuts")
         case .panelShortcuts: settingsSearchText("Inside the clipboard panel")

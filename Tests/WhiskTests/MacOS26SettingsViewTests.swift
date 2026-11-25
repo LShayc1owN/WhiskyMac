@@ -9,7 +9,8 @@ import Testing
 @MainActor
 @Suite(.serialized)
 struct MacOS26SettingsViewTests {
-    @Test func both_layouts_mount_each_available_section_and_keep_search_destinations() async throws {
+    @Test(.enabled(if: ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 26))
+    func both_layouts_mount_each_available_section_and_keep_search_destinations() async throws {
         guard #available(macOS 26, *) else { return }
         _ = NSApplication.shared
         let sandbox = try IsolatedDefaults()

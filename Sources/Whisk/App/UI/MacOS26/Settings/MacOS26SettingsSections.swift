@@ -6,7 +6,6 @@
 import AppKit
 import ApplicationServices
 import SwiftUI
-import UniformTypeIdentifiers
 
 @available(macOS 26, *)
 extension MacOS26SettingsView {
@@ -28,11 +27,12 @@ extension MacOS26SettingsView {
         case .navigation:
             navigationSection
         case .colors:
-            colorsSection
+            displayAndThemeSections
         case .cards:
             cardsSection
         case .filterTags:
             filterTagsSection
+            filterCategoryOrderSection
         case .retention:
             recordingSettingsSection
         case .clearHistory:
@@ -46,12 +46,12 @@ extension MacOS26SettingsView {
                 title: localized("Privacy mode"), bindings: $general.privacyInteractions, privacyMode: true)
         case .pinnedItems:
             pinnedItemsSection
-        case .screenPrivacy:
-            screenPrivacySection
-        case .privacyVisibility:
-            privacyVisibilitySection
+        case .screenSharingProtection:
+            screenSharingProtectionSection
         case .sensitiveAccess:
             sensitiveAccessSection
+        case .secretRecognition:
+            secretRecognitionSection
         case .network:
             networkSection
         case .globalShortcuts:
@@ -75,11 +75,13 @@ extension MacOS26SettingsView {
 
     private var debugSection: some View {
         Section {
-            Button(localized("Show first-launch guide")) {
+            Button(localized("Show first-launch guide"), systemImage: "book") {
                 if developerMode.showsTools { showWelcomeGuide() }
             }
+            .macOS26SettingsAction()
             .macOS26SettingsSearchAnchor("showWelcomeGuide")
-            Button(localized("Export logs…"), action: requestDiagnosticsExport)
+            Button(localized("Export logs…"), systemImage: "square.and.arrow.up", action: requestDiagnosticsExport)
+                .macOS26SettingsAction()
                 .disabled(exportingDiagnostics)
                 .macOS26SettingsSearchAnchor("exportDiagnostics")
         } header: {
@@ -104,26 +106,22 @@ extension MacOS26SettingsView {
 
     private var startupSection: some View {
         Section {
-            Toggle(isOn: Binding(get: { loginItem.isEnabled }, set: { loginItem.setEnabled($0) })) {
-                MacOS26SettingLabel(localized("Launch WhiskyMac at login"), symbol: "power", tint: .green)
-            }
+            Toggle(
+                localized("Launch WhiskyMac at login"),
+                isOn: Binding(get: { loginItem.isEnabled }, set: { loginItem.setEnabled($0) })
+            )
             .macOS26SettingsSearchAnchor("launch")
             if let error = loginItem.lastError {
                 Text(error)
-                    .font(.caption)
+                    .font(typography.font(.caption))
                     .foregroundStyle(.red)
             }
             if distribution.checksForUpdates {
-                Toggle(isOn: $general.checkForUpdates) {
-                    MacOS26SettingLabel(
-                        localized("Check for updates at launch"), symbol: "arrow.triangle.2.circlepath", tint: .blue)
-                }
-                .macOS26SettingsSearchAnchor("startupUpdates")
+                Toggle(localized("Check for updates at launch"), isOn: $general.checkForUpdates)
+                    .macOS26SettingsSearchAnchor("startupUpdates")
             }
-            Toggle(isOn: $general.lightweightMode) {
-                MacOS26SettingLabel(localized("Lightweight mode"), symbol: "leaf", tint: .green)
-            }
-            .macOS26SettingsSearchAnchor("lightweightMode")
+            Toggle(localized("Lightweight mode"), isOn: $general.lightweightMode)
+                .macOS26SettingsSearchAnchor("lightweightMode")
         } header: {
             Text(localized("Startup and loading"))
         } footer: {
@@ -136,11 +134,11 @@ extension MacOS26SettingsView {
 
     private var menuAndDockSection: some View {
         Section {
-            MacOS26MenuRow(localized("Menu bar icon click"), selection: $appearance.statusClick) {
+            MacOS26MenuRow(localized("Menu bar icon click"), selection: $appearance.statusClick, display: \.label) {
                 ForEach(StatusClickAction.allCases) { option in Text(option.label).tag(option) }
             }
             .macOS26SettingsSearchAnchor("statusClick")
-            MacOS26MenuRow(localized("Dock icon"), selection: $appearance.dockIcon) {
+            MacOS26MenuRow(localized("Dock icon"), selection: $appearance.dockIcon, display: \.label) {
                 ForEach(DockIconMode.allCases) { option in Text(option.label).tag(option) }
             }
             .macOS26SettingsSearchAnchor("dockIcon")
@@ -156,7 +154,7 @@ extension MacOS26SettingsView {
 
     private var languageSection: some View {
         Section {
-            MacOS26MenuRow(localized("Language"), selection: $appearance.language) {
+            MacOS26MenuRow(localized("Language"), selection: $appearance.language, display: \.label) {
                 ForEach(AppLanguage.allCases) { option in Text(option.label).tag(option) }
             }
             .macOS26SettingsSearchAnchor("language")
@@ -171,7 +169,7 @@ extension MacOS26SettingsView {
                 .macOS26SettingsSearchAnchor("captureSound")
             Toggle(localized("Play a sound when copying from history"), isOn: $general.copySound.onHistoryCopy)
                 .macOS26SettingsSearchAnchor("historySound")
-            MacOS26MenuRow(localized("Copy sound"), selection: $general.copySound.sound) {
+            MacOS26MenuRow(localized("Copy sound"), selection: $general.copySound.sound, display: \.label) {
                 ForEach(CopySound.Collection.allCases) { collection in
                     Section(collection.rawValue) {
                         ForEach(collection.sounds) { sound in Text(sound.label).tag(sound) }
@@ -183,7 +181,10 @@ extension MacOS26SettingsView {
                 Text(localized("Sound volume"))
                 Slider(value: $general.copySound.volume, in: 0...1)
                     .accessibilityLabel(localized("Sound volume"))
-                Button(localized("Preview sound")) { copySoundPlayer.preview(general.copySound) }
+                Button(localized("Preview sound"), systemImage: "play.fill") {
+                    copySoundPlayer.preview(general.copySound)
+                }
+                .macOS26SettingsAction()
             }
             .macOS26SettingsSearchAnchor("volume")
         } header: {
@@ -215,7 +216,7 @@ extension MacOS26SettingsView {
 
     private var navigationSection: some View {
         Section {
-            MacOS26MenuRow(localized("Settings layout"), selection: $appearance.navigation) {
+            MacOS26MenuRow(localized("Settings layout"), selection: $appearance.navigation, display: \.label) {
                 ForEach(SettingsNavigation.allCases) { option in Text(option.label).tag(option) }
             }
             .macOS26SettingsSearchAnchor("navigation")
@@ -224,17 +225,25 @@ extension MacOS26SettingsView {
         }
     }
 
-    private var colorsSection: some View {
+    @ViewBuilder private var displayAndThemeSections: some View {
         Section {
-            MacOS26MenuRow(localized("Settings window appearance"), selection: $appearance.settingsAppearance) {
+            MacOS26MenuRow(
+                localized("Settings window appearance"), selection: $appearance.settingsAppearance, display: \.label
+            ) {
                 ForEach(AppearanceMode.allCases) { option in Text(option.label).tag(option) }
             }
             .macOS26SettingsSearchAnchor("settingsAppearance")
-            MacOS26MenuRow(localized("Clipboard appearance"), selection: $appearance.clipboardAppearance) {
+            MacOS26MenuRow(
+                localized("Clipboard appearance"), selection: $appearance.clipboardAppearance, display: \.label
+            ) {
                 ForEach(AppearanceMode.allCases) { option in Text(option.label).tag(option) }
             }
             .macOS26SettingsSearchAnchor("clipboardAppearance")
-            MacOS26MenuRow(localized("Accent color"), selection: $appearance.accentMode) {
+        } header: {
+            Text(localized("Light and dark appearance"))
+        }
+        Section {
+            MacOS26MenuRow(localized("Accent color"), selection: $appearance.accentMode, display: \.label) {
                 ForEach(AccentMode.allCases) { option in Text(option.label).tag(option) }
             }
             .macOS26SettingsSearchAnchor("accent")
@@ -253,20 +262,61 @@ extension MacOS26SettingsView {
                 .macOS26SettingsSearchAnchor("customAccent")
             }
         } header: {
-            Text(localized("Colors"))
+            Text(localized("Theme color"))
         } footer: {
             Text(localized("The accent color also highlights the selected clipboard card."))
+        }
+        interfaceTextSection
+    }
+
+    private var interfaceTextSection: some View {
+        let range = InterfaceTypography.percentRange
+        let size = Binding(
+            get: { Double(appearance.interfaceTypography.percent) },
+            set: { appearance.setInterfaceFontPercent(Int($0.rounded())) })
+        return Section {
+            HStack(spacing: 12) {
+                Slider(value: size, in: Double(range.lowerBound)...Double(range.upperBound), step: 5) {
+                    Text(localized("Interface font size"))
+                }
+                .labelsHidden()
+                Text((size.wrappedValue / 100).formatted(.percent.locale(AppLocalization.interfaceLocale)))
+                    .monospacedDigit()
+                    .fixedSize(horizontal: true, vertical: false)
+                    .frame(minWidth: 50, alignment: .trailing)
+            }
+            .macOS26SettingsSearchAnchor("interfaceFontSize")
+            Button(localized("Restore default size")) {
+                appearance.setInterfaceFontPercent(InterfaceTypography.standard.percent)
+            }
+            .macOS26SettingsAction()
+            .disabled(appearance.interfaceTypography.isStandard)
+            Toggle(
+                localized("Apply interface font size to plain text"),
+                isOn: Binding(
+                    get: { appearance.interfaceTypography.appliesToPlainText },
+                    set: appearance.setPlainTextFollowsInterface)
+            )
+            .macOS26SettingsSearchAnchor("interfaceFontPlainText")
+        } header: {
+            Text(localized("Interface font size"))
+        } footer: {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(localized("Use Card size to resize clipboard cards."))
+                Text(localized("Rich text keeps its original font sizes."))
+            }
         }
     }
 
     private var cardsSection: some View {
         Section {
             MacOS26SizeSettingEditor(
-                title: localized("Card size"), symbol: "rectangle.3.group", savedValue: general.cardSide,
+                title: localized("Card size"), savedValue: general.cardSide,
                 defaultValue: GeneralSettingsStore.defaultCardSide, range: GeneralSettingsStore.cardSideRange,
                 draft: $cardSizeDraft, save: general.setCardSide, previewOnScreen: previewSizingOnScreen
             ) {
                 MacOS26CardSizeSample(side: CGFloat(cardSizeDraft.value(saved: general.cardSide)))
+                    .interfaceType(.standard)
                     .environment(\.colorScheme, appearance.clipboardAppearance.colorScheme ?? systemColorScheme)
             }
             .macOS26SettingsSearchAnchor("cardSize")
@@ -280,7 +330,7 @@ extension MacOS26SettingsView {
     private var filterTagsSection: some View {
         Section {
             MacOS26SizeSettingEditor(
-                title: localized("Tag size"), symbol: "tag", savedValue: general.filterTagScale,
+                title: localized("Tag size"), savedValue: general.filterTagScale,
                 defaultValue: GeneralSettingsStore.defaultFilterTagScale,
                 range: GeneralSettingsStore.filterTagScaleRange,
                 usesPercentage: true, draft: $tagSizeDraft, save: general.setFilterTagScale,
@@ -297,6 +347,17 @@ extension MacOS26SettingsView {
         }
     }
 
+    private var filterCategoryOrderSection: some View {
+        Section {
+            MacOS26FilterCategoryOrderEditor(
+                settings: general, previewScheme: appearance.clipboardAppearance.colorScheme ?? systemColorScheme
+            )
+            .macOS26SettingsSearchAnchor("filterCategoryOrder")
+        } header: {
+            Text(localized("Category tag order"))
+        }
+    }
+
     private func previewSizingOnScreen() {
         previewClipboard(
             cardSizeDraft.value(saved: general.cardSide), tagSizeDraft.value(saved: general.filterTagScale))
@@ -304,7 +365,7 @@ extension MacOS26SettingsView {
 
     private var filtersSection: some View {
         Section {
-            MacOS26MenuRow(localized("Filter trigger"), selection: $general.appFilterTrigger) {
+            MacOS26MenuRow(localized("Filter trigger"), selection: $general.appFilterTrigger, display: \.label) {
                 ForEach(AppFilterTrigger.allCases) { trigger in Text(trigger.label).tag(trigger) }
             }
             .macOS26SettingsSearchAnchor("filterTrigger")
@@ -335,8 +396,13 @@ extension MacOS26SettingsView {
             .macOS26SettingsSearchAnchor(privacyMode ? "private.double" : "normal.double")
             interactionPicker(localized("Right click"), key: \.rightClick, bindings: bindings, privacyMode: privacyMode)
                 .macOS26SettingsSearchAnchor(privacyMode ? "private.right" : "normal.right")
-            Text(localized("Hover preview")).font(.caption).foregroundStyle(.secondary)
-            MacOS26MenuRow(localized("Hover after a short delay"), selection: bindings.hover) {
+            Text(localized("Hover preview")).font(typography.font(.caption)).foregroundStyle(.secondary)
+            MacOS26MenuRow(
+                localized("Hover after a short delay"), selection: bindings.hover,
+                display: { action in
+                    privacyMode && action == .preview ? localized("Reveal a small area") : action.label
+                }
+            ) {
                 Text(CardAction.none.label).tag(CardAction.none)
                 Text(privacyMode ? localized("Reveal a small area") : CardAction.preview.label).tag(CardAction.preview)
             }
@@ -346,7 +412,9 @@ extension MacOS26SettingsView {
                     Text(localized("Hover delay (seconds)"))
                     Spacer()
                     TextField("", value: bindings.hoverDelay, format: .number.precision(.fractionLength(1)))
-                        .multilineTextAlignment(.trailing).frame(width: 64)
+                        .textFieldStyle(.plain)
+                        .font(typography.font(.body).monospacedDigit())
+                        .multilineTextAlignment(.trailing).frame(width: typography.room(48))
                     Stepper("", value: bindings.hoverDelay, in: 0.1...5, step: 0.1).labelsHidden()
                 }
                 .macOS26SettingsSearchAnchor(privacyMode ? "private.delay" : "normal.delay")
@@ -360,7 +428,7 @@ extension MacOS26SettingsView {
             if privacyMode {
                 Text(
                     localized(
-                        "Copy and paste require an explicit click. Full preview and editing stay disabled. Local reveal works only in manual privacy; automatic protection stays masked."
+                        "Click to copy or paste. When you turn on privacy protection, use the card menu to show the full card or hover to see a small area. Protection triggered by detection keeps cards hidden."
                     ))
             } else {
                 Text(localized("Pasting needs Accessibility permission. Without it, use Command-V after copying."))
@@ -373,61 +441,76 @@ extension MacOS26SettingsView {
         _ title: String, key: WritableKeyPath<InteractionBindings, CardAction>,
         bindings: Binding<InteractionBindings>, privacyMode: Bool
     ) -> some View {
-        MacOS26MenuRow(
+        func display(_ action: CardAction) -> String {
+            if privacyMode && action == .preview {
+                return key == \.rightClick ? localized("Show card") : localized("Reveal a small area")
+            }
+            return action.label
+        }
+        return MacOS26MenuRow(
             title,
             selection: Binding(
                 get: { bindings.wrappedValue[keyPath: key] },
                 set: { bindings.wrappedValue[keyPath: key] = $0 }
-            )
+            ), display: display
         ) {
             ForEach(CardAction.allCases.filter { !privacyMode || ($0 != .edit && $0 != .split) }, id: \.rawValue) {
                 action in
-                Text(privacyMode && action == .preview ? localized("Reveal a small area") : action.label).tag(action)
+                Text(display(action)).tag(action)
             }
         }
     }
 
-    private var screenPrivacySection: some View {
+    @ViewBuilder private var screenSharingProtectionSection: some View {
         Section {
             Toggle(
-                localized("Manual Privacy Mode"),
-                isOn: Binding(
-                    get: { privacy.isManuallyProtected }, set: { privacy.setProtected($0) })
+                localized("Privacy protection"),
+                isOn: Binding(get: { privacy.isManuallyProtected }, set: { privacy.setProtected($0) })
             )
             .macOS26SettingsSearchAnchor("manualPrivacy")
             Toggle(
-                localized("Automatic protection (limited detection)"),
+                localized("Turn on protection when screen sharing is detected"),
                 isOn: Binding(get: { privacy.automaticEnabled }, set: { privacy.setAutomaticEnabled($0) })
             )
             .macOS26SettingsSearchAnchor("automaticPrivacy")
-            VStack(alignment: .leading, spacing: 8) {
-                Label(privacy.statusText, systemImage: privacy.isProtected ? "lock.shield.fill" : "shield")
-                    .font(.callout).foregroundStyle(privacy.isProtected ? Color.accentColor : Color.secondary)
-                Text(localized("Automatic detection is limited. Use manual protection before important sharing."))
-                    .font(.caption).foregroundStyle(.secondary)
-                DisclosureGroup(localized("Detection coverage"), isExpanded: $detectionCoverageExpanded) {
-                    Text(
-                        localized(
-                            "Checks Zoom and Teams sharing toolbar titles using Accessibility. Client versions and languages may not match. System sharing, remote desktop, recording and browser tabs are not covered. Enable manual protection before important sharing."
-                        )
+            sharingProtectionStatus
+            DisclosureGroup(localized("Detection coverage"), isExpanded: $detectionCoverageExpanded) {
+                Text(
+                    localized(
+                        "Uses Accessibility to detect Zoom and Teams sharing toolbars. Detection may vary by app version and language. System screen sharing, remote desktop, screen recording and browser tabs are outside its scope. Turn on privacy protection before sharing sensitive content."
                     )
-                    .font(.caption).foregroundStyle(.secondary)
-                }
+                )
+                .font(typography.font(.callout))
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
             }
+            .disclosureGroupStyle(MacOS26DisclosureRowStyle())
             .macOS26SettingsSearchAnchor("detection")
             if privacy.automaticEnabled {
-                Button(localized("Allow Accessibility for toolbar detection…")) {
+                HStack(spacing: 10) {
+                    MacOS26SettingLabel(
+                        localized("Allow Accessibility for toolbar detection…"), symbol: "accessibility",
+                        tint: accent
+                    )
+                    .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 8)
+                    Image(systemName: "arrow.up.right")
+                        .font(typography.font(.caption).weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .accessibilityHidden(true)
+                }
+                .contentShape(Rectangle())
+                .beButton {
                     let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
                     _ = AXIsProcessTrustedWithOptions(options)
                 }
+                .buttonStyle(.plain)
                 .macOS26SettingsSearchAnchor("accessibility")
             }
         } header: {
-            Text(localized("Screen privacy"))
+            Text(SettingsSectionID.screenSharingProtection.title.localized)
         }
-    }
 
-    private var privacyVisibilitySection: some View {
         Section {
             Toggle(localized("Allow search in Privacy Mode"), isOn: $privacy.allowSearchWhileProtected)
                 .macOS26SettingsSearchAnchor("privacySearch")
@@ -446,16 +529,67 @@ extension MacOS26SettingsView {
                     "App filters show application names in the filter bar, independently of source labels on cards. Clipboard content stays hidden."
                 )
             )
-            .font(.caption).foregroundStyle(.secondary)
+            .font(typography.font(.caption)).foregroundStyle(.secondary)
             Toggle(localized("Show source apps in Privacy Mode"), isOn: $privacy.showSourceAppsWhileProtected)
                 .macOS26SettingsSearchAnchor("privacySources")
         } header: {
-            Text(localized("Visible during protection"))
+            Text(localized("Protection mode options"))
         } footer: {
             Text(
                 localized(
-                    "Applies to manual and automatic protection. Search terms and enabled app names are visible on screen and in accessibility. Clipboard content stays hidden; automatic protection still blocks hover reveals."
+                    "These options apply whenever protection is on. Search terms and allowed app names are visible on screen and accessible to assistive technologies. Clipboard content stays hidden. Protection triggered by detection blocks hover reveals."
                 ))
+        }
+    }
+
+    private var sharingProtectionStatus: some View {
+        let hasNoDetectedToolbar =
+            privacy.automaticEnabled && !privacy.isProtected && privacy.report.state == .clearWithinCoverage
+        return privacyNotice(
+            symbol: privacy.isProtected ? "lock.shield.fill" : "shield",
+            tint: privacy.isProtected ? accent : .secondary,
+            fill: privacy.isProtected ? accent.opacity(0.10) : Color.primary.opacity(0.05),
+            showsDashedBorder: hasNoDetectedToolbar
+        ) {
+            Text(privacy.statusText)
+            if hasNoDetectedToolbar {
+                Text(
+                    localized(
+                        "Automatic detection is limited. Turn on privacy protection before sharing sensitive content.")
+                )
+                .font(typography.font(.caption))
+                .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func privacyNotice<Content: View>(
+        symbol: String, tint: Color, fill: Color = Color.primary.opacity(0.05),
+        showsDashedBorder: Bool = false,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        let shape = RoundedRectangle(cornerRadius: 9)
+        return HStack(alignment: .top, spacing: 10) {
+            Image(systemName: symbol)
+                .font(typography.font(size: 14, weight: .semibold))
+                .foregroundStyle(tint)
+                .frame(width: typography.room(22))
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 4, content: content)
+                .font(typography.font(.callout).weight(.medium))
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(10)
+        .background(fill, in: shape)
+        .overlay {
+            if showsDashedBorder {
+                shape.strokeBorder(
+                    Color.secondary.opacity(0.7), style: StrokeStyle(lineWidth: 1, lineCap: .round, dash: [4, 3])
+                )
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+            }
         }
     }
 
@@ -467,7 +601,7 @@ extension MacOS26SettingsView {
     private var spotlightControls: some View {
         Group {
             Text(localized("Hover reveal area"))
-                .font(.subheadline.weight(.semibold))
+                .font(typography.font(.subheadline).weight(.semibold))
                 .padding(.top, 20)
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
@@ -497,25 +631,26 @@ extension MacOS26SettingsView {
                     .accessibilityValue(spotlightPoints(privacy.spotlight.blurRadius))
             }
             .macOS26SettingsSearchAnchor("blur")
-            Button(localized("Restore default values")) { privacy.spotlight = SpotlightPreferences() }
-                .disabled(privacy.spotlight == SpotlightPreferences())
-                .macOS26SettingsSearchAnchor("resetSpotlight")
+            Button(localized("Restore default values"), systemImage: "arrow.counterclockwise") {
+                privacy.spotlight = SpotlightPreferences()
+            }
+            .macOS26SettingsAction()
+            .disabled(privacy.spotlight == SpotlightPreferences())
+            .macOS26SettingsSearchAnchor("resetSpotlight")
 
             Text(
                 localized(
-                    "Applies to manual privacy with Hover set to Preview. The blur softens the reveal edge. Revealed content can be recorded; automatic protection stays fully masked."
+                    "Applies when you turn on privacy protection and set Hover to Preview. Blur softens the edge of the visible area. Screen recordings can capture that area. Protection triggered by detection keeps all content hidden."
                 )
             )
-            .font(.caption).foregroundStyle(.secondary)
+            .font(typography.font(.caption)).foregroundStyle(.secondary)
         }
     }
 
     private var networkSection: some View {
         Section {
-            Toggle(isOn: $general.linkPreviews) {
-                MacOS26SettingLabel(localized("Fetch link previews"), symbol: "link", tint: .teal)
-            }
-            .macOS26SettingsSearchAnchor("linkPreviews")
+            Toggle(localized("Fetch link previews"), isOn: $general.linkPreviews)
+                .macOS26SettingsSearchAnchor("linkPreviews")
         } header: {
             Text(localized("Online content"))
         } footer: {
@@ -525,12 +660,10 @@ extension MacOS26SettingsView {
 
     private var recordingSettingsSection: some View {
         Section {
-            MacOS26MenuRow(selection: $general.retentionPeriod) {
+            MacOS26MenuRow(localized("Keep history for"), selection: $general.retentionPeriod, display: \.label) {
                 ForEach(RetentionPeriodOption.allCases) { option in
                     Text(option.label).tag(option)
                 }
-            } label: {
-                MacOS26SettingLabel(localized("Keep history for"), symbol: "clock", tint: .orange)
             }
             .macOS26SettingsSearchAnchor("retention")
         } header: {
@@ -548,17 +681,18 @@ extension MacOS26SettingsView {
 
     private var storageManagementSection: some View {
         Section {
-            MacOS26MenuRow(selection: $general.capacity) {
+            MacOS26MenuRow(
+                localized("History capacity"), selection: $general.capacity, display: GeneralSettingsStore.capacityLabel
+            ) {
                 ForEach(GeneralSettingsStore.capacityChoices, id: \.self) { choice in
                     Text(GeneralSettingsStore.capacityLabel(choice)).tag(choice)
                 }
-            } label: {
-                MacOS26SettingLabel(localized("History capacity"), symbol: "tray.full", tint: .purple)
             }
             .macOS26SettingsSearchAnchor("capacity")
-            Button(localized("Clear Unpinned Items"), role: .destructive) {
+            Button(localized("Clear Unpinned Items"), systemImage: "trash", role: .destructive) {
                 confirmingClearHistory = true
             }
+            .macOS26SettingsAction()
             .alert(localized("Clear Unpinned Items"), isPresented: $confirmingClearHistory) {
                 Button(localized("Cancel"), role: .cancel) {}
                 Button(localized("Clear Unpinned Items"), role: .destructive) { clearHistory() }
@@ -573,12 +707,16 @@ extension MacOS26SettingsView {
 
     private var pinnedItemsSection: some View {
         Section {
-            MacOS26MenuRow(localized("Pinned items presentation"), selection: $general.pinnedPresentation) {
+            MacOS26MenuRow(
+                localized("Pinned items presentation"), selection: $general.pinnedPresentation, display: \.label
+            ) {
                 ForEach(PinnedPresentation.allCases) { Text($0.label).tag($0) }
             }
             .macOS26SettingsSearchAnchor("pinnedPresentation")
             if general.pinnedPresentation == .separate {
-                MacOS26MenuRow(localized("Pinned window layout"), selection: $general.pinnedWindowStyle) {
+                MacOS26MenuRow(
+                    localized("Pinned window layout"), selection: $general.pinnedWindowStyle, display: \.label
+                ) {
                     ForEach(PinnedWindowStyle.allCases) { Text($0.label).tag($0) }
                 }
                 .macOS26SettingsSearchAnchor("pinnedWindowStyle")
@@ -588,34 +726,84 @@ extension MacOS26SettingsView {
                     "Use the pinned-items shortcut or menu item. In the clipboard panel it selects Pinned; a separate window only shows pinned items."
                 )
             )
-            .font(.caption).foregroundStyle(.secondary)
+            .font(typography.font(.caption)).foregroundStyle(.secondary)
         } header: {
             Text(localized("Pinned items"))
         }
     }
 
-    private var sensitiveAccessSection: some View {
+    private var secretRecognitionSection: some View {
         Section {
-            VStack(alignment: .leading, spacing: 12) {
-                Text(localized("Sensitive apps")).font(.headline)
-                    .macOS26SettingsSearchAnchor("sensitiveApps")
+            Toggle(localized("Automatically recognize secrets"), isOn: $general.secretRecognition.enabled)
+                .macOS26SettingsSearchAnchor("recognizeSecrets")
+            if general.secretRecognition.enabled {
+                Toggle(localized("Secret masking"), isOn: $general.secretRecognition.mask)
+                    .macOS26SettingsSearchAnchor("maskSecrets")
+                Toggle(localized("Categorize secrets"), isOn: $general.secretRecognition.classify)
+                    .macOS26SettingsSearchAnchor("classifySecrets")
+            }
+            Text(localized("Recognition runs on this Mac and looks for common key, cookie, hash, and token formats."))
+                .font(typography.font(.caption)).foregroundStyle(.secondary)
+        } header: {
+            Text(localized("Secret Recognition"))
+        }
+    }
+
+    @ViewBuilder private var sensitiveAccessSection: some View {
+        Section {
+            privacyNotice(symbol: "lock.shield", tint: accent) {
                 Text(localized("Copies are kept temporarily, then deleted from WhiskyMac without undo."))
-                    .font(.caption).foregroundStyle(.secondary)
-                if general.sensitiveApps.isEmpty {
-                    Text(localized("No sensitive apps added.")).foregroundStyle(.secondary)
+            }
+            .macOS26SettingsSearchAnchor("sensitiveApps")
+            sensitiveRetentionRow
+                .macOS26SettingsSearchAnchor("sensitiveRetention")
+            sensitiveAppRows($general.sensitiveApps, emptyMessage: localized("No sensitive apps added."))
+            addPrivacyAppButton(localized("Add sensitive app…"), sensitive: true)
+        } header: {
+            Text(localized("Sensitive apps"))
+        }
+
+        Section {
+            privacyNotice(symbol: "hand.raised.fill", tint: accent) {
+                Text(localized("Copies from excluded apps are never recorded."))
+            }
+            .macOS26SettingsSearchAnchor("excludedApps")
+            sensitiveAppRows($general.excludedApps, emptyMessage: localized("No excluded apps added."))
+            addPrivacyAppButton(localized("Add App…"), sensitive: false)
+        } header: {
+            Text(localized("Excluded apps"))
+        }
+
+        Section {
+            DisclosureGroup(localized("How sensitive access works"), isExpanded: $temporarySessionsExpanded) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(
+                        localized(
+                            "Sensitive copies stay in memory, outside disk history, search and undo. They start hidden and can be shown for 10 seconds. They expire at the selected limit or sooner when the app quits, the Mac sleeps or the memory limit is reached. Expiration does not clear the system clipboard or copies held by other apps."
+                        ))
+                    Text(
+                        localized(
+                            "Explicit no-record markers and excluded apps always win. Existing normal history is not reclassified. An app can belong to only one list; adding it moves it from the other list. Source attribution is best effort."
+                        ))
                 }
-                ForEach(general.sensitiveApps) { app in
-                    HStack {
-                        Text(app.name)
-                        Spacer()
-                        Button(localized("Remove")) { general.sensitiveApps.removeAll { $0.bundleID == app.bundleID } }
-                            .buttonStyle(.borderless)
-                    }
-                }
-                Button(localized("Add sensitive app…")) { addExcludedApp(sensitive: true) }
-                HStack {
-                    Text(localized("Keep sensitive copies for"))
-                    Spacer()
+                .font(typography.font(.callout))
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+            .disclosureGroupStyle(MacOS26DisclosureRowStyle())
+        }
+    }
+
+    private var sensitiveRetentionRow: some View {
+        let layout =
+            typography.usesLargeLayout
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6)) : AnyLayout(HStackLayout(spacing: 10))
+        return VStack(alignment: .leading, spacing: 6) {
+            layout {
+                Text(localized("Keep sensitive copies for"))
+                    .fixedSize(horizontal: false, vertical: true)
+                if !typography.usesLargeLayout { Spacer(minLength: 8) }
+                HStack(spacing: 6) {
                     MacOS26NumericField(
                         title: localized("Keep sensitive copies for"), value: $general.sensitiveRetentionMinutes,
                         format: { String($0) }, parse: SensitiveRetention.minutes(from:))
@@ -624,64 +812,84 @@ extension MacOS26SettingsView {
                         .labelsHidden()
                         .accessibilityLabel(localized("Keep sensitive copies for"))
                 }
-                .macOS26SettingsSearchAnchor("sensitiveRetention")
-                Text(
-                    localized(
-                        "Enter 1–1440 minutes. Shortening the limit also applies to existing sensitive copies; increasing it only affects new copies."
-                    )
-                )
-                .font(.caption).foregroundStyle(.secondary)
+                .fixedSize()
             }
-            Divider()
-            VStack(alignment: .leading, spacing: 12) {
-                Text(localized("Excluded apps")).font(.headline)
-                    .macOS26SettingsSearchAnchor("excludedApps")
-                Text(localized("Copies from excluded apps are never recorded."))
-                    .font(.caption).foregroundStyle(.secondary)
-                if general.excludedApps.isEmpty {
-                    Text(localized("No excluded apps added.")).foregroundStyle(.secondary)
-                }
-                ForEach(general.excludedApps) { app in
-                    HStack(spacing: 9) {
-                        if let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: app.bundleID) {
-                            Image(nsImage: NSWorkspace.shared.icon(forFile: appURL.path))
-                                .resizable()
-                                .frame(width: 22, height: 22)
-                                .accessibilityHidden(true)
+            Text(
+                localized(
+                    "Enter 1–1440 minutes. Shortening the limit also applies to existing sensitive copies; increasing it only affects new copies."
+                )
+            )
+            .font(typography.font(.caption))
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private func sensitiveAppRows(_ apps: Binding<[ExcludedApp]>, emptyMessage: String) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            if apps.wrappedValue.isEmpty {
+                Text(emptyMessage)
+                    .font(typography.font(.callout))
+                    .foregroundStyle(.secondary)
+                    .transition(.opacity)
+            }
+            ForEach(apps.wrappedValue) { app in
+                VStack(spacing: 0) {
+                    if app.id != apps.wrappedValue.first?.id {
+                        Divider().padding(.vertical, 10)
+                    }
+                    HStack(spacing: 10) {
+                        Group {
+                            if let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: app.bundleID) {
+                                Image(nsImage: NSWorkspace.shared.icon(forFile: appURL.path))
+                                    .resizable()
+                                    .scaledToFit()
+                            } else {
+                                Image(systemName: "macwindow")
+                                    .font(typography.font(.body))
+                                    .foregroundStyle(.secondary)
+                            }
                         }
+                        .frame(width: typography.room(24), height: typography.room(24))
+                        .accessibilityHidden(true)
                         Text(app.name)
-                        Spacer()
+                            .fixedSize(horizontal: false, vertical: true)
+                        Spacer(minLength: 8)
                         Button(localized("Remove"), systemImage: "xmark.circle.fill") {
-                            general.excludedApps.removeAll { $0.bundleID == app.bundleID }
+                            apps.wrappedValue.removeAll { $0.id == app.id }
                         }
                         .labelStyle(.iconOnly)
                         .buttonStyle(.borderless)
+                        .font(typography.font(.body))
+                        .foregroundStyle(.secondary)
+                        .help(localized("Remove"))
                     }
                 }
-                Button(localized("Add App…"), systemImage: "plus") { addExcludedApp() }
-            }
-        } header: {
-            Text(localized("Sensitive access"))
-        } footer: {
-            DisclosureGroup(localized("How sensitive access works"), isExpanded: $temporarySessionsExpanded) {
-                Text(
-                    localized(
-                        "Sensitive copies stay in memory, outside disk history, search and undo. They start hidden and can be shown for 10 seconds. They expire at the selected limit or sooner when the app quits, the Mac sleeps or the memory limit is reached. Expiration does not clear the system clipboard or copies held by other apps."
-                    ))
-                Text(
-                    localized(
-                        "Explicit no-record markers and excluded apps always win. Existing normal history is not reclassified. An app can belong to only one list; adding it moves it from the other list. Source attribution is best effort."
-                    ))
+                .transition(
+                    .asymmetric(
+                        insertion: .opacity
+                            .combined(with: .scale(scale: 0.96, anchor: .leading))
+                            .combined(with: .offset(y: 8)),
+                        removal: .opacity)
+                )
             }
         }
     }
 
+    private func addPrivacyAppButton(_ title: String, sensitive: Bool) -> some View {
+        MacOS26SettingLabel(title, symbol: "plus", tint: accent)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .beButton {
+                addExcludedApp(sensitive: sensitive)
+            }
+            .buttonStyle(.plain)
+    }
+
     private var vimSection: some View {
         Section {
-            Toggle(isOn: $general.vimNavigation) {
-                MacOS26SettingLabel(localized("Vim navigation in the panel"), symbol: "keyboard", tint: .matcha)
-            }
-            .macOS26SettingsSearchAnchor("vim")
+            Toggle(localized("Vim navigation in the panel"), isOn: $general.vimNavigation)
+                .macOS26SettingsSearchAnchor("vim")
             if general.vimNavigation {
                 ForEach(VimAction.allCases) { action in
                     HStack(spacing: 10) {
@@ -738,7 +946,7 @@ extension MacOS26SettingsView {
                     Text(action.displayName)
                     if action.isGlobal {
                         Text(localized("global"))
-                            .font(.caption2)
+                            .font(typography.font(.caption2))
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(.fill.tertiary, in: .capsule)
@@ -794,7 +1002,7 @@ extension MacOS26SettingsView {
     private var restoreSection: some View {
         Section {
             VStack(alignment: .leading, spacing: 10) {
-                Text(localized("Reset category")).font(.headline)
+                Text(localized("Reset category")).font(typography.font(.headline))
                 ForEach(ShortcutResetCategory.allCases) { category in
                     Toggle(
                         isOn: Binding(
@@ -809,7 +1017,7 @@ extension MacOS26SettingsView {
                     ) {
                         VStack(alignment: .leading, spacing: 3) {
                             Text(category.label)
-                            Text(category.explanation).font(.caption).foregroundStyle(.secondary)
+                            Text(category.explanation).font(typography.font(.caption)).foregroundStyle(.secondary)
                         }
                     }
                     .toggleStyle(.checkbox)
@@ -820,11 +1028,14 @@ extension MacOS26SettingsView {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(localized("Reset keyboard shortcuts"))
                     Text(localized("Only selected categories are reset."))
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(typography.font(.caption)).foregroundStyle(.secondary)
                 }
                 Spacer()
-                Button(localized("Reset…"), role: .destructive) { confirmingReset = true }
-                    .disabled(resetCategories.isEmpty)
+                Button(localized("Reset…"), systemImage: "arrow.counterclockwise", role: .destructive) {
+                    confirmingReset = true
+                }
+                .macOS26SettingsAction()
+                .disabled(resetCategories.isEmpty)
             }
             .macOS26SettingsSearchAnchor("resetShortcuts")
             .alert(localized("Reset keyboard shortcuts?"), isPresented: $confirmingReset) {
@@ -843,21 +1054,12 @@ extension MacOS26SettingsView {
         }
     }
 
-    private func addExcludedApp(sensitive: Bool = false) {
-        let panel = NSOpenPanel()
-        panel.directoryURL = URL(fileURLWithPath: "/Applications")
-        panel.allowedContentTypes = [.applicationBundle]
-        panel.allowsMultipleSelection = true
-        guard panel.runModal() == .OK else { return }
-        for url in panel.urls {
-            guard let bundle = Bundle(url: url), let bundleID = bundle.bundleIdentifier else { continue }
-            let name =
-                (bundle.infoDictionary?["CFBundleName"] as? String) ?? url.deletingPathExtension().lastPathComponent
-            let app = ExcludedApp(bundleID: bundleID, name: name)
-            if sensitive {
-                general.addSensitiveApp(app)
-            } else {
-                general.excludeApp(app)
+    private func addExcludedApp(sensitive: Bool) {
+        PrivacyAppPicker.present { apps in
+            guard !privacy.isProtected else { return }
+            let add = sensitive ? general.addSensitiveApp : general.excludeApp
+            withAnimation(reduceMotion ? nil : .smooth(duration: 0.32)) {
+                apps.forEach(add)
             }
         }
     }

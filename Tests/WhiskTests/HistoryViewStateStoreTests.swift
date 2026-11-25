@@ -49,15 +49,16 @@ import Testing
 
     @Test func the_card_side_drives_the_zoomed_slot_and_the_rail_stride() {
         let store = HistoryViewStateStore()
-        #expect(store.cardSide == 200)
-        #expect(store.cardStride == 224)
+        #expect(store.cardSide == 260)
+        #expect(store.cardStride == 287)
 
         store.configureCards(side: 160)
 
         #expect(store.zoomedCardSide == 168)
         #expect(store.cardStride == 182)
-        #expect(PanelLayout.panelHeight(forCardSide: 200) == 430)
-        #expect(PanelLayout.panelHeight(forCardSide: 250) == 480)
+        store.configureCards(side: 250)
+        #expect(store.zoomedCardSide == 262.5)
+        #expect(store.cardStride == 276.5)
     }
 
     @Test func only_a_textual_card_opens_the_editor_and_ending_closes_it() throws {

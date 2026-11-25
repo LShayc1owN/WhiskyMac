@@ -4,16 +4,26 @@
 <p align="center"><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.it.md">Italiano</a></p>
 
 > [!NOTE]
-> WhiskyMac est une modification indépendante de [Whisk](https://github.com/nathan-poncet/whisk). Ce projet est en cours de développement : le dépôt est privé et aucun téléchargement public de l'application n'est encore configuré. Les instructions ci-dessous concernent la compilation depuis cette copie du projet.
+> WhiskyMac est un projet indépendant dérivé de [Whisk](https://github.com/nathan-poncet/whisk), toujours en développement. Les fonctionnalités ci-dessous décrivent le code source actuel. Les notes de chaque version précisent les fonctionnalités incluses et le statut de la signature.
+
+## Télécharger et démarrer
+
+**[Dernière version sur GitHub](https://github.com/LShayc1owN/WhiskyMac/releases/latest)**
+
+1. Téléchargez le ZIP de l’application, décompressez-le et déplacez `WhiskyMac.app` dans le dossier Applications.
+2. Ouvrez WhiskyMac et suivez le guide de bienvenue. Si macOS demande l’autorisation de lire le presse-papiers, choisissez **Autoriser l’accès au presse-papiers…** dans le menu de WhiskyMac.
+3. Copiez un contenu dans une autre application, puis cliquez sur l’icône de WhiskyMac dans la barre des menus ou choisissez **Afficher l’historique**. Vous pouvez activer un raccourci global dans les réglages.
 
 ## En bref
 
-- **Retrouver ses copies.** L'historique local conserve texte, texte enrichi, liens, images, fichiers et couleurs. Recherchez dans le contenu ou par application ; filtrez par application, type, épingle, étiquette de couleur ou attribution Handoff. Les chemins de fichiers en texte disposent d'un filtre et de la recherche `type:path`.
-- **Réutiliser le contenu.** Copiez, collez directement ou en texte brut, glissez vers une autre application, prévisualisez, modifiez et utilisez la file de collage. Les versions de texte enrichi ayant le même texte brut sont regroupées. La navigation au clavier et le mode Vim sont disponibles.
-- **Découper et organiser.** Découpez par ligne, paragraphe ou séparateur, ou extrayez des liens HTTP(S). Vérifiez les parties, puis ajoutez des cartes, remplacez l'original ou créez un groupe persistant. Choisissez l'original ou certaines parties lors de la copie ou du collage.
-- **Garder l'essentiel.** Ajoutez aux épingles des notes consultables, sept étiquettes de couleur et un masquage permanent facultatif. Affichez-les dans l'historique ou dans une fenêtre distincte. Réglez la durée et la capacité des éléments non épinglés ; leur effacement est annulable.
-- **Maîtriser l'affichage.** Le mode de confidentialité manuel masque le contenu. La détection facultative des barres de partage Zoom/Teams a une portée limitée. Recherche, filtres et révélation près du pointeur s'activent séparément. Les applications sensibles utilisent une session temporaire en mémoire ; les applications exclues ne sont pas enregistrées.
-- **Personnaliser.** Modifiez la taille des cartes, l'aspect dépoli, l'icône de la barre des menus, les interactions, les raccourcis et les sons de copie facultatifs. Les réglages sont consultables par recherche et l'annulation suit la réinitialisation des raccourcis. L'exercice du guide initial ne touche pas au vrai presse-papiers ni à l'historique. L'interface existe en anglais, français, allemand, italien, chinois simplifié, chinois traditionnel et japonais.
+- **Retrouver ses copies.** Le texte, le texte enrichi, le code, les liens, les images, les fichiers et les couleurs sont conservés localement. Recherchez par contenu ou application source, par correspondance approximative, sous-chaîne, mot entier, début ou fin du texte. Filtrez par application, type, épingle, étiquette de couleur ou origine Handoff. Utilisez `type:path` pour retrouver les chemins de fichiers copiés sous forme de texte.
+- **Réutiliser les copies.** Prévisualisez, modifiez, glissez, copiez, collez directement ou en texte brut, et utilisez la file de collage. Choisissez parmi les versions de texte enrichi regroupées et naviguez au clavier ou avec les raccourcis Vim facultatifs.
+- **Découper le texte.** Découpez le texte par ligne, paragraphe ou séparateur, ou extrayez les liens HTTP(S). Vérifiez les parties avant d’ajouter des cartes, de remplacer l’original ou d’enregistrer un groupe. Au moment de copier ou de coller un groupe, choisissez l’original ou les parties souhaitées.
+- **Organiser l’historique.** Épinglez des éléments avec des notes consultables, sept étiquettes de couleur et une option pour toujours masquer le contenu. Ouvrez les épingles dans l’historique ou dans une fenêtre distincte. Masquez temporairement les entrées anciennes selon la date et l’heure, le type de contenu ou l’origine Handoff. Réglez la durée et la capacité de l’historique non épinglé, ou effacez-le avec possibilité d’annuler.
+- **Maîtriser l’affichage.** Le mode de confidentialité manuel masque les cartes. La recherche, les filtres et la révélation près du pointeur se règlent séparément. Le menu d’une carte permet aussi de la révéler sur place. La détection facultative du partage d’écran couvre les barres de partage Zoom et Teams prises en charge. Les copies issues d’applications sensibles expirent en mémoire. Les applications exclues sont ignorées.
+- **Masquer les secrets probables.** La reconnaissance locale recherche les formats courants de clés API, de jetons, de cookies et d’empreintes. Le masquage des cartes et leur classement dans la catégorie des secrets se règlent séparément. Le masquage agit sur l’affichage des cartes.
+- **Adapter l’interface à son Mac.** À partir de macOS 26, les commandes de l’historique et des réglages utilisent Liquid Glass. Sous macOS 15, l’interface utilise un effet de verre dépoli. Choisissez séparément pour l’historique et les réglages un mode clair, sombre ou conforme au système.
+- **Personnaliser les commandes.** Ajustez la taille des cartes, l’icône de la barre des menus, les actions, les raccourcis et les sons de copie facultatifs. Recherchez dans les réglages et réinitialisez les raccourcis par catégorie avec possibilité d’annuler. L’interface est disponible en français, anglais, allemand, italien, chinois simplifié, chinois traditionnel et japonais.
 
 Pour les comportements précis et les limites, consultez le [périmètre du projet](docs/PROJECT.md) et le [journal des changements](CHANGELOG.md).
 
@@ -25,10 +35,7 @@ Il faut macOS 15 ou plus récent, le SDK macOS 26 et une installation complète 
 swift run Whisk
 swift test
 ./scripts/localizations.sh check
-./scripts/build-app.sh 0.0.0 native
 ```
-
-Le script produit `dist/WhiskyMac.app` et `dist/WhiskyMac.zip`. La cible Swift et l'exécutable internes conservent le nom `Whisk`. Sans identité de signature, l'application est signée ad hoc ; elle n'est ni notarisée ni prête pour une soumission à l'App Store.
 
 ## Confidentialité et données
 
@@ -48,7 +55,7 @@ L'[autorisation App Store/TestFlight d'origine](LICENSE-EXCEPTION-APP-STORE.md) 
 
 ## Publications et soutien
 
-Les adresses publiques du code source, de l'assistance et de la politique de confidentialité sont encore vides dans [release-config.json](release-config.json) ; la validation bloque leur publication tant qu'elles ne sont pas renseignées. Les paquets installables devront être distribués via GitHub Releases avec le code source correspondant, et non ajoutés au dépôt. Les textes juridiques inclus dans l'application se trouvent dans `Contents/Resources/Legal`, accessibles depuis **Licences et mentions…** dans la barre des menus.
+La publication automatisée vérifie les adresses publiques du code source, de l’assistance et de la politique de confidentialité dans [release-config.json](release-config.json). Les licences sont incluses dans `Contents/Resources/Legal`. Pour les consulter, choisissez **Licences et mentions légales…** dans le menu de WhiskyMac.
 
 Si WhiskyMac vous est utile, vous pouvez soutenir son développement indépendant par un don volontaire :
 

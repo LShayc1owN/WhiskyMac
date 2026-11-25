@@ -24,6 +24,7 @@ struct SettingsSearchContext: Equatable {
     var vimEnabled = false
     var showsDeveloperTools = AppBuildInfo.current.channel == .debug
     var showsPinnedWindowLayout = true
+    var recognizesSecrets = true
 }
 
 struct SettingsSearchEntry: Identifiable {
@@ -41,15 +42,16 @@ struct SettingsSearchEntry: Identifiable {
         case .sounds: "speaker.wave.2"
         case .statusIcons: "menubar.rectangle"
         case .navigation: "sidebar.left"
+        case .colors where id == "interfaceFontSize" || id == "interfaceFontPlainText": "textformat.size"
         case .colors: "paintpalette"
         case .cards: "rectangle.3.group"
         case .filterTags: "tag"
         case .retention: "clock"
         case .clearHistory: "internaldrive"
         case .filters: "line.3.horizontal.decrease.circle"
-        case .screenPrivacy, .privacyVisibility, .sensitiveAccess: "hand.raised.fill"
+        case .screenSharingProtection, .sensitiveAccess: "hand.raised.fill"
+        case .secretRecognition: ContentCategory.secret.symbolName
         case .network: "network"
-        case .globalShortcuts, .panelShortcuts, .vim: "keyboard"
         case .resetShortcuts: "arrow.counterclockwise"
         case .licenses: "doc.text"
         case .aboutDeveloper: "person.crop.circle"
@@ -140,7 +142,7 @@ struct SettingsSearchIndex {
         add(
             "navigation", .navigation, settingsSearchText("Settings layout"),
             keywords: settingsSearchText("sidebar tabs navigation"))
-        add("accent", .colors, settingsSearchText("Accent color"))
+        add("accent", .colors, settingsSearchText("Accent color"), keywords: settingsSearchText("Theme color"))
         add(
             "settingsAppearance", .colors, settingsSearchText("Settings window appearance"),
             keywords: settingsSearchText("dark light theme system appearance"))
@@ -154,6 +156,9 @@ struct SettingsSearchIndex {
         add(
             "filterTagSize", .filterTags, settingsSearchText("Tag size"),
             keywords: settingsSearchText("size width preview restore default"))
+        add("filterCategoryOrder", .filterTags, settingsSearchText("Category tag order"))
+        add("interfaceFontSize", .colors, settingsSearchText("Interface font size"))
+        add("interfaceFontPlainText", .colors, settingsSearchText("Apply interface font size to plain text"))
         add("retention", .retention, settingsSearchText("Keep history for"))
         add("capacity", .clearHistory, settingsSearchText("History capacity"))
         add(
@@ -172,17 +177,26 @@ struct SettingsSearchIndex {
                 "\(prefix).delay", section, settingsSearchText("Hover delay (seconds)"),
                 anchor: enabled ? nil : "\(prefix).hover")
         }
-        add("manualPrivacy", .screenPrivacy, settingsSearchText("Manual Privacy Mode"))
-        add("automaticPrivacy", .screenPrivacy, settingsSearchText("Automatic protection (limited detection)"))
-        add("detection", .screenPrivacy, settingsSearchText("Detection coverage"))
+        add("manualPrivacy", .screenSharingProtection, settingsSearchText("Privacy protection"))
         add(
-            "accessibility", .screenPrivacy, settingsSearchText("Allow Accessibility for toolbar detection…"),
+            "automaticPrivacy", .screenSharingProtection,
+            settingsSearchText("Turn on protection when screen sharing is detected")
+        )
+        add("detection", .screenSharingProtection, settingsSearchText("Detection coverage"))
+        add(
+            "accessibility", .screenSharingProtection, settingsSearchText("Allow Accessibility for toolbar detection…"),
             anchor: context.automaticProtection ? nil : "automaticPrivacy")
-        add("privacySearch", .privacyVisibility, settingsSearchText("Allow search in Privacy Mode"))
-        add("privacyFilters", .privacyVisibility, settingsSearchText("Allow type and tag filtering in Privacy Mode"))
-        add("privacyAppFilters", .privacyVisibility, settingsSearchText("Allow app filtering in Privacy Mode"))
-        add("privacyHandoffFilters", .privacyVisibility, settingsSearchText("Allow Handoff filtering in Privacy Mode"))
-        add("privacySources", .privacyVisibility, settingsSearchText("Show source apps in Privacy Mode"))
+        add(
+            "privacySearch", .screenSharingProtection, settingsSearchText("Allow search in Privacy Mode"),
+            keywords: settingsSearchText("Visible during protection"))
+        add(
+            "privacyFilters", .screenSharingProtection,
+            settingsSearchText("Allow type and tag filtering in Privacy Mode"))
+        add("privacyAppFilters", .screenSharingProtection, settingsSearchText("Allow app filtering in Privacy Mode"))
+        add(
+            "privacyHandoffFilters", .screenSharingProtection,
+            settingsSearchText("Allow Handoff filtering in Privacy Mode"))
+        add("privacySources", .screenSharingProtection, settingsSearchText("Show source apps in Privacy Mode"))
         add(
             "diameter", .privacyInteractions, settingsSearchText("Diameter"),
             keywords: settingsSearchText("Hover reveal area"))
@@ -193,6 +207,11 @@ struct SettingsSearchIndex {
         add("sensitiveApps", .sensitiveAccess, settingsSearchText("Sensitive apps"))
         add("sensitiveRetention", .sensitiveAccess, settingsSearchText("Keep sensitive copies for"))
         add("excludedApps", .sensitiveAccess, settingsSearchText("Excluded apps"))
+        add("recognizeSecrets", .secretRecognition, settingsSearchText("Automatically recognize secrets"))
+        if context.recognizesSecrets {
+            add("maskSecrets", .secretRecognition, settingsSearchText("Secret masking"))
+            add("classifySecrets", .secretRecognition, settingsSearchText("Categorize secrets"))
+        }
         add("linkPreviews", .network, settingsSearchText("Fetch link previews"))
         for action in KeyAction.allCases {
             add("shortcut.\(action.rawValue)", action.isGlobal ? .globalShortcuts : .panelShortcuts, action.searchTitle)

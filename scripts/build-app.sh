@@ -104,6 +104,8 @@ cat > "$APP/Contents/Info.plist" << PLIST
 <dict>
     <key>CFBundleDevelopmentRegion</key>
     <string>en</string>
+    <key>CFBundleAllowMixedLocalizations</key>
+    <true/>
     <key>CFBundleLocalizations</key>
     <array>
         <string>en</string>
@@ -135,6 +137,19 @@ cat > "$APP/Contents/Info.plist" << PLIST
     <key>CFBundleSupportedPlatforms</key>
     <array>
         <string>MacOSX</string>
+    </array>
+    <key>UTExportedTypeDeclarations</key>
+    <array>
+        <dict>
+            <key>UTTypeIdentifier</key>
+            <string>${BUNDLE_ID}.filter-category-order</string>
+            <key>UTTypeDescription</key>
+            <string>WhiskyMac Filter Category</string>
+            <key>UTTypeConformsTo</key>
+            <array>
+                <string>public.data</string>
+            </array>
+        </dict>
     </array>
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.productivity</string>

@@ -4,6 +4,8 @@ import SwiftUI
 
 @available(macOS 26, *)
 struct MacOS26SearchMatchPicker: View {
+    @Environment(\.interfaceTypography) private var typography
+
     let mode: SearchMatchMode
     let select: (SearchMatchMode) -> Void
 
@@ -16,13 +18,21 @@ struct MacOS26SearchMatchPicker: View {
             }
             .pickerStyle(.inline)
         } label: {
-            Text(mode.title)
-                .font(.caption.weight(.medium))
-                .foregroundStyle(.primary)
+            HStack(spacing: 4) {
+                if typography.usesLargeLayout {
+                    Image(systemName: "line.3.horizontal.decrease")
+                } else {
+                    Text(mode.title)
+                    Image(systemName: "chevron.down")
+                        .font(typography.font(size: 9, weight: .medium))
+                }
+            }
+            .font(typography.font(.callout))
+            .foregroundStyle(.secondary)
         }
-        .menuStyle(.borderlessButton)
-        .menuIndicator(.visible)
-        .controlSize(.small)
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
         .fixedSize()
         .accessibilityLabel(localized("Search match mode"))
         .accessibilityValue(mode.title)

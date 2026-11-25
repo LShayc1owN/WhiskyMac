@@ -54,6 +54,7 @@ struct PanelActions {
     var updatePinnedMetadata: (UUID, PinnedMetadata) -> Void = { _, _ in }
     var metadataEditorChanged: (Bool) -> Void = { _ in }
     var cardMenuChanged: (Bool) -> Void = { _ in }
+    var revealSecret: (UUID) -> Void = { _ in }
     var split: (UUID) -> Void = { _ in }
     var preparePinned: (Bool) -> Void = { _ in }
 }
@@ -105,6 +106,7 @@ extension PanelActions {
             updatePinnedMetadata: { if !isProtected() { self.updatePinnedMetadata($0, $1) } },
             metadataEditorChanged: { self.metadataEditorChanged($0) },
             cardMenuChanged: { self.cardMenuChanged($0) },
+            revealSecret: { if !isProtected() { self.revealSecret($0) } },
             split: { if !isProtected() { self.split($0) } },
             preparePinned: { self.preparePinned($0) }
         )

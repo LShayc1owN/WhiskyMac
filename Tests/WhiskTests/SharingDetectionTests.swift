@@ -95,7 +95,8 @@ import Testing
         let sandbox = try IsolatedDefaults()
         var time: TimeInterval = 0
         let privacy = PrivacyController(defaults: sandbox.defaults, now: { time }, schedulesTimer: false)
-        #expect(privacy.statusText == localized("Automatic detection is off. Use manual protection before sharing."))
+        #expect(
+            privacy.statusText == localized("Automatic detection is off. Turn on privacy protection before sharing."))
         privacy.setAutomaticEnabled(true)
         #expect(privacy.statusText == localized("Detection is uncertain. Content is hidden as a precaution."))
         privacy.receive([SharingReport(state: .unknown, reason: .accessibilityRequired)])
@@ -113,7 +114,7 @@ import Testing
             privacy.statusText
                 == localized("No supported toolbar detected. Other sharing or recording may still be active."))
         privacy.setProtected(true)
-        #expect(privacy.statusText == localized("Privacy Mode is on (manual)"))
+        #expect(privacy.statusText == localized("Privacy protection is on"))
         let restored = PrivacyController(defaults: sandbox.defaults)
         #expect(restored.automaticEnabled)
         #expect(restored.isProtected)

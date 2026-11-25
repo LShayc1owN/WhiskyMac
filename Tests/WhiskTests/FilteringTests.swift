@@ -20,6 +20,41 @@ import Testing
         #expect(Payload.text("#7D947").category == .text)
     }
 
+    @Test(arguments: [
+        "let x = 1", "let 名称 = 1", "print(42)", "logger.info(message)", "run()", "total = 12",
+        "public func run() { start() }", "from math import sqrt", "def greet(name):\r\n    print(name)",
+        "const greet = (name) => name", "fn main() {}", "#include <stdio.h>", "if (ready) { run(); }",
+        #"{"name":"demo","enabled":true}"#, "[1, 2, 3]", "<strong>Hi</strong>", "<br />",
+        "SELECT id FROM records", "select * from records", "select id, name from records;",
+        "update records set enabled = true", "git status", "ls -la", #"echo "hello""#, "#!/bin/zsh",
+        ".card { color: red; }",
+        "```yaml\nname: demo\n```", "~~~bash\r\necho hi\r\n~~~",
+    ])
+    func actual_syntax_can_identify_short_snippets(_ text: String) {
+        #expect(Payload.text(text).category == .code)
+    }
+
+    @Test(arguments: [
+        "Please let me import these files.", "The class starts at noon and the final exam is Friday.",
+        "Friday -> Monday; details to follow.", "  First item;\n  Second item;", "    Quote one\n    Quote two",
+        "Please return tomorrow.", "rgb(1, 2)", "Call me (after five);", "计划：先记录 -> 再讨论",
+        "[shopping list]", "1 < 2 and 3 > 2", "```text\nordinary notes\n```",
+        "A note mentioning object.run(42) in prose.", "git status is useful during development",
+        "Update my set of notes to include the results.", "SELECT TOPICS FROM THE AGENDA", "Class Members:",
+    ])
+    func words_indentation_and_punctuation_alone_keep_text_plain(_ text: String) {
+        #expect(Payload.text(text).category == .text)
+    }
+
+    @Test func analysis_is_bounded_and_keeps_the_original_text() {
+        let prose = String(repeating: "ordinary text\n", count: 2_000)
+        #expect(!CodeRecognition.matches(prose + "let x = 1"))
+        let source = "let x = 1\n" + prose
+        let item = anItem(.text(source))
+        #expect(item.category == .code)
+        #expect(item.payload == .text(source))
+    }
+
     @Test func every_common_color_notation_is_recognized() {
         #expect(Payload.text("#abc").category == .color)
         #expect(Payload.text("#abcd").category == .color)
@@ -40,7 +75,7 @@ import Testing
     }
 
     @Test func every_classification_and_highlighting_pattern_compiles() {
-        #expect(Payload.methodCallPattern != nil)
+        #expect(CodeRecognition.patterns.allSatisfy { $0 != nil })
         #expect(CodeHighlighter.passes.count == 4)
         #expect(CodeHighlighter.passes.allSatisfy { $0.1 != nil })
     }
@@ -110,6 +145,17 @@ import Testing
         let matches = filter(seededHistory(), filter: HistoryFilter(categories: [.code]))
 
         #expect(matches.map(\.payload) == [.text("let x = api.compute(1)")])
+    }
+
+    @Test func text_includes_code_in_filters_search_and_temporary_hiding() {
+        let history = seededHistory()
+            .recording(.text(#"let token = "sk-example_123456789abcdefgh""#), from: nil, at: clock.now())
+        let expected = [Payload.text("plain words"), .text("let x = api.compute(1)")]
+        #expect(filter(history, filter: HistoryFilter(categories: [.text])).map(\.payload) == expected)
+        #expect(filter(history, filter: HistoryFilter(query: "type:text")).map(\.payload) == expected)
+        #expect(filter(history, filter: HistoryFilter(query: "kind:tex")).map(\.payload) == expected)
+        let hiding = HistoryHidingRule(cutoff: clock.now(), categories: [.text])
+        #expect(history.items.filter { hiding.hides($0) }.map(\.payload) == expected)
     }
 
     @Test func free_words_also_match_the_source_application() {
@@ -238,15 +284,5 @@ import Testing
         let none = filter(
             seededHistory(), filter: HistoryFilter(query: "plain", sources: [slack], categories: [.color]))
         #expect(none.isEmpty)
-    }
-}
-
-@Suite struct VersionComparison {
-    @Test func semantic_versions_compare_componentwise() {
-        #expect(UpdateChecker.isNewer("0.6.0", than: "0.5.1"))
-        #expect(UpdateChecker.isNewer("1.0.0", than: "0.9.9"))
-        #expect(UpdateChecker.isNewer("0.5.10", than: "0.5.9"))
-        #expect(!UpdateChecker.isNewer("0.5.0", than: "0.5.0"))
-        #expect(!UpdateChecker.isNewer("0.4.9", than: "0.5.0"))
     }
 }

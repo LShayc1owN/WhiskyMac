@@ -266,7 +266,7 @@ import Vision
             appearance.navigation = navigation
             privacy.setProtected(false)
             let host = NSHostingView(
-                rootView: SettingsView(
+                rootView: MacOS15SettingsView(
                     store: KeyBindingsStore(defaults: sandbox.defaults), general: general,
                     loginItem: LoginItemManager(),
                     vimBindings: VimBindingsStore(defaults: sandbox.defaults), privacy: privacy, appearance: appearance,
@@ -362,13 +362,14 @@ import Vision
             session.receive(PasteboardSnapshot(payload: payload, source: source))
             let id = try #require(session.ids.first)
             session.reveal(id)
-            let renderer = ImageRenderer(content: SensitiveSessionView(session: session).frame(width: 600, height: 100))
+            let renderer = ImageRenderer(
+                content: MacOS15SensitiveSessionView(session: session).frame(width: 600, height: 100))
             #expect(renderer.nsImage != nil)
         }
         session.receive(PasteboardSnapshot(payload: .text("SENSITIVE-VIEW-CANARY"), source: source))
         let revealed = try #require(session.ids.first)
         session.reveal(revealed)
-        let host = NSHostingView(rootView: SensitiveSessionView(session: session))
+        let host = NSHostingView(rootView: MacOS15SensitiveSessionView(session: session))
         host.frame = NSRect(x: 0, y: 0, width: 600, height: 100)
         let window = NSWindow(contentRect: host.frame, styleMask: .borderless, backing: .buffered, defer: false)
         window.isReleasedWhenClosed = false
@@ -389,7 +390,7 @@ import Vision
         #expect(session.revealedPayload(revealed) == .text("SENSITIVE-VIEW-CANARY"))
         try snapshot("sensitive-revealed.png")
         session.hide()
-        host.rootView = SensitiveSessionView(session: session)
+        host.rootView = MacOS15SensitiveSessionView(session: session)
         host.layoutSubtreeIfNeeded()
         #expect(session.revealedPayload(revealed) == nil)
         try snapshot("sensitive-hidden.png")

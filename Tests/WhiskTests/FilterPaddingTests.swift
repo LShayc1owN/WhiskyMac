@@ -21,7 +21,7 @@ import Testing
             id: allFiltersChipID, label: "All", sourceBundleID: nil, icon: .symbol("square.grid.2x2"),
             accessibilityLabel: "All", isActive: true, isFocused: false)
         let host = NSHostingView(
-            rootView: HistoryPanelView(store: store, actions: PanelActionSpy().actions)
+            rootView: MacOS15HistoryPanelView(store: store, actions: PanelActionSpy().actions)
                 .transaction { if !animationsEnabled { $0.disablesAnimations = true } })
         host.sizingOptions = []
         let window = NSWindow(
@@ -41,11 +41,11 @@ import Testing
             for scale in [0.75, 1, 2, 1] {
                 store.configureFilterTags(scale: scale)
                 window.setContentSize(
-                    NSSize(width: 900, height: PanelLayout.panelHeight(forCardSide: 300, tagScale: scale)))
+                    NSSize(width: 900, height: MacOS15PanelLayout.panelHeight(forCardSide: 300, tagScale: scale)))
                 host.layoutSubtreeIfNeeded()
                 try await Task.sleep(for: .milliseconds(350))
                 host.layoutSubtreeIfNeeded()
-                let surfaces = descendants(host).compactMap { $0 as? BackdropView }
+                let surfaces = descendants(host).compactMap { $0 as? MacOS15BackdropView }
                 let card = try #require(
                     surfaces.first { $0.bounds.height >= 300 && $0.bounds.width == $0.bounds.height })
                 let firstTag = try #require(
@@ -54,7 +54,7 @@ import Testing
                     })
                 let cardFrame = card.convert(card.bounds, to: host)
                 let tagFrame = firstTag.convert(firstTag.bounds, to: host)
-                let restingCardEdge = PanelLayout.contentMargin + (store.zoomedCardSide - store.cardSide) / 2
+                let restingCardEdge = MacOS15PanelLayout.contentMargin + (store.zoomedCardSide - store.cardSide) / 2
                 #expect(
                     abs(restingCardEdge - tagFrame.minX) < 1,
                     "selected=\(selected), scale=\(scale): \(cardFrame), \(tagFrame)")
@@ -62,11 +62,8 @@ import Testing
                     #expect(abs(previous - tagFrame.minX) < 0.5, "Card selection must not move the filter row")
                 }
                 tagPositions[scale] = tagFrame.minX
-                let tagScroll = try #require(
-                    descendants(host).compactMap { $0 as? NSScrollView }.first {
-                        $0.bounds.height < 120
-                    })
-                #expect(tagScroll.bounds.height <= FilterTagMetrics(scale: scale).totalRowHeight + 1)
+                let tagScroll = try #require(firstTag.enclosingScrollView)
+                #expect(tagScroll.bounds.height <= MacOS15FilterTagMetrics(scale: scale).totalRowHeight + 1)
                 let rowFrame = tagScroll.convert(tagScroll.bounds, to: host)
                 #expect(abs(rowFrame.midY - tagFrame.midY) < 1)
                 let bottomMargin = host.isFlipped ? host.bounds.maxY - cardFrame.maxY : cardFrame.minY

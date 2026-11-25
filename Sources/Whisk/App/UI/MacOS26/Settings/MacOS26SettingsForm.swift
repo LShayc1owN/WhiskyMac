@@ -5,9 +5,10 @@
 import SwiftUI
 
 @available(macOS 26, *)
-struct MacOS26SettingsForm<Content: View>: View {
+struct MacOS26SettingsForm<Header: View, Content: View>: View {
     @ObservedObject var search: SettingsSearchModel
     let section: SettingsSectionID
+    @ViewBuilder var header: Header
     @ViewBuilder var content: Content
     @State private var renderedAnchors: Set<String> = []
 
@@ -26,16 +27,19 @@ struct MacOS26SettingsForm<Content: View>: View {
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    Group(sections: content) { sections in
-                        ForEach(sections) { section in
-                            MacOS26SettingsGroup(section: section)
+                VStack(alignment: .leading, spacing: 0) {
+                    header
+                    VStack(alignment: .leading, spacing: 18) {
+                        Group(sections: content) { sections in
+                            ForEach(sections) { section in
+                                MacOS26SettingsGroup(section: section)
+                            }
                         }
                     }
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 24)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 24)
-                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .scrollEdgeEffectStyle(.soft, for: .top)
             .toggleStyle(MacOS26SettingsSwitchStyle())
@@ -68,12 +72,14 @@ private struct MacOS26SettingsSwitchStyle: ToggleStyle {
 
 @available(macOS 26, *)
 private struct MacOS26SettingsGroup: View {
+    @Environment(\.interfaceTypography) private var typography
+
     let section: SectionConfiguration
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             ForEach(section.header) { header in
-                header.font(.headline).padding(.horizontal, 4)
+                header.font(typography.font(.headline)).padding(.horizontal, 4)
                     .accessibilityAddTraits(.isHeader)
             }
             VStack(spacing: 0) {
@@ -94,7 +100,7 @@ private struct MacOS26SettingsGroup: View {
             .containerShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
             ForEach(section.footer) { footer in
                 footer
-                    .font(.caption)
+                    .font(typography.font(.caption))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 4)

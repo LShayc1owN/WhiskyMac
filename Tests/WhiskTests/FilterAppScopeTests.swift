@@ -59,13 +59,20 @@ import Testing
     @Test func same_sources_publish_only_once_even_when_the_card_viewport_keeps_moving() {
         let scope = FilterAppScope(visibleSourceKeys: [])
         var updates = 0
-        let observation = scope.$visibleSourceKeys.dropFirst().sink { _ in updates += 1 }
+        let observation = scope.objectWillChange.sink { _ in updates += 1 }
         scope.update(["app-a", "app-b"])
         scope.update(["app-b", "app-a"])
         scope.update(["app-a", "app-b"])
         #expect(updates == 1)
         scope.update(["app-b"])
         #expect(updates == 2)
+        scope.isExpanded = true
+        let expandedUpdates = updates
+        scope.update(["app-c"])
+        scope.update(["app-d"])
+        #expect(updates == expandedUpdates)
+        scope.isExpanded = false
+        #expect(updates == expandedUpdates + 1 && scope.visibleSourceKeys == ["app-d"])
         withExtendedLifetime(observation) {}
     }
 }

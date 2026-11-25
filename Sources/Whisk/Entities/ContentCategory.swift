@@ -8,8 +8,20 @@ enum ContentCategory: String, CaseIterable, Equatable {
     case color
     case link
     case path
+    case secret
     case image
     case files
+
+    /// Code has its own preview and can also be found under Text.
+    var parentCategory: ContentCategory? { self == .code ? .text : nil }
+
+    func isIncluded(in categories: Set<ContentCategory>) -> Bool {
+        categories.contains(self) || parentCategory.map(categories.contains) == true
+    }
+
+    func matches(typePrefix: String) -> Bool {
+        rawValue.hasPrefix(typePrefix) || parentCategory?.rawValue.hasPrefix(typePrefix) == true
+    }
 
     var symbolName: String {
         switch self {
@@ -17,6 +29,7 @@ enum ContentCategory: String, CaseIterable, Equatable {
         case .code: "chevron.left.forwardslash.chevron.right"
         case .color: "paintpalette"
         case .link: "link"
+        case .secret: "key.horizontal.fill"
         case .path: "point.bottomleft.forward.to.arrow.triangle.uturn.scurvepath"
         case .image: "photo"
         case .files: "folder"
@@ -33,7 +46,7 @@ extension Payload {
         case .text(let value):
             if Self.readsAsFilePath(value) { return .path }
             if ParsedColor.parse(value) != nil { return .color }
-            if Self.readsAsCode(value) { return .code }
+            if CodeRecognition.matches(value) { return .code }
             return .text
         }
     }
@@ -59,39 +72,4 @@ extension Payload {
             CharacterSet.controlCharacters.contains($0) || CharacterSet.newlines.contains($0)
         }
     }
-
-    /// Scoring heuristic, deliberately approximate: this classifies a card,
-    /// it does not parse a language.
-    static func readsAsCode(_ text: String) -> Bool {
-        guard text.count >= 12 else { return false }
-        var score = 0
-        for marker in codeMarkers where text.contains(marker) {
-            score += 2
-        }
-        for line in text.components(separatedBy: "\n") {
-            let trimmed = line.trimmingCharacters(in: .whitespaces)
-            if trimmed.hasSuffix("{") || trimmed.hasSuffix("}") || trimmed.hasSuffix(";") {
-                score += 2
-            }
-            if line.hasPrefix("    ") || line.hasPrefix("\t") {
-                score += 1
-            }
-        }
-        if let methodCallPattern,
-            methodCallPattern.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) != nil
-        {
-            score += 2
-        }
-        return score >= 4
-    }
-
-    private static let codeMarkers = [
-        "func ", "def ", "fn ", "let ", "var ", "const ", "import ",
-        "class ", "struct ", "enum ", "#include", "defmodule ", "impl ",
-        "=>", "->", "&&", "||", "==", "!=",
-    ]
-
-    /// Optional so a bad pattern degrades to "no match" instead of
-    /// trapping; a test compiles it once so it can never stay bad.
-    static let methodCallPattern = try? NSRegularExpression(pattern: "\\.[A-Za-z_]\\w*\\(")
 }

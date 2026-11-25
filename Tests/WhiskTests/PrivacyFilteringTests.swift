@@ -234,7 +234,7 @@ import Testing
         state.setPanelVisible(true)
         state.setPrivacyPermissions(allowSearch: false, showSourceApps: false, allowFiltering: true)
         let spy = PanelActionSpy()
-        let host = HistoryPanelHosting.make(store: state, actions: spy.actions)
+        let host = HistoryPanelHosting.make(uiFactory: MacOS15UIFactory(), store: state, actions: spy.actions)
         host.frame = NSRect(x: 0, y: 0, width: 900, height: 430)
         let window = NSWindow(
             contentRect: NSRect(x: -10000, y: -10000, width: 900, height: 430),
@@ -249,7 +249,8 @@ import Testing
                 + (node.accessibilityChildren() ?? []).map { labels($0 as AnyObject, depth: depth + 1) }.joined()
         }
         #expect(!labels(host).contains("SECRET"))
-        let renderer = ImageRenderer(content: host.rootView)
+        let root = try #require(host as? TestHostingSurface).renderedRoot
+        let renderer = ImageRenderer(content: root)
         renderer.proposedSize = ProposedViewSize(width: 900, height: 430)
         #expect(renderer.nsImage != nil)
         #expect(state.protectedFilters.apps.isEmpty)

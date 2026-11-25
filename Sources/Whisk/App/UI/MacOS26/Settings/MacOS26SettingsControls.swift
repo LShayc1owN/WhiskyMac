@@ -7,6 +7,8 @@ import SwiftUI
 
 @available(macOS 26, *)
 struct MacOS26SettingLabel: View {
+    @Environment(\.interfaceTypography) private var typography
+
     let title: String
     let symbol: String
     let tint: Color
@@ -22,9 +24,9 @@ struct MacOS26SettingLabel: View {
             Text(title).fixedSize(horizontal: false, vertical: true)
         } icon: {
             Image(systemName: symbol)
-                .font(.system(size: 12, weight: .semibold))
+                .font(typography.font(size: 12, weight: .semibold))
                 .foregroundStyle(tint)
-                .frame(width: 24, height: 24)
+                .frame(width: typography.room(24), height: typography.room(24))
                 .background(tint.opacity(0.12), in: .rect(cornerRadius: 7))
                 .accessibilityHidden(true)
         }
@@ -32,41 +34,100 @@ struct MacOS26SettingLabel: View {
 }
 
 @available(macOS 26, *)
-struct MacOS26MenuRow<Value: Hashable, Label: View, Options: View>: View {
-    @Binding var selection: Value
+struct MacOS26MenuRow<Selection: Hashable, Options: View>: View {
+    @Environment(\.interfaceTypography) private var typography
+    let title: String
+    @Binding var selection: Selection
+    let display: (Selection) -> String
     @ViewBuilder let options: () -> Options
-    @ViewBuilder let label: () -> Label
 
     init(
-        selection: Binding<Value>, @ViewBuilder options: @escaping () -> Options,
-        @ViewBuilder label: @escaping () -> Label
+        _ title: String, selection: Binding<Selection>, display: @escaping (Selection) -> String,
+        @ViewBuilder options: @escaping () -> Options
     ) {
+        self.title = title
         _selection = selection
+        self.display = display
         self.options = options
-        self.label = label
-    }
-
-    init(_ title: String, selection: Binding<Value>, @ViewBuilder options: @escaping () -> Options)
-    where Label == Text {
-        self.init(selection: selection, options: options) { Text(title) }
     }
 
     var body: some View {
-        HStack(spacing: 16) {
-            label().fixedSize(horizontal: false, vertical: true)
-                .accessibilityHidden(true)
-            Spacer(minLength: 0)
-            Picker(selection: $selection, content: options, label: label)
-                .labelsHidden()
-                .pickerStyle(.menu)
+        if typography.isStandard {
+            HStack(spacing: 16) {
+                Text(title).fixedSize(horizontal: false, vertical: true).accessibilityHidden(true)
+                Spacer(minLength: 8)
+                picker.labelsHidden().pickerStyle(.menu).fixedSize()
+            }
+        } else {
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 16) {
+                    Text(title).fixedSize().accessibilityHidden(true)
+                    Spacer(minLength: 0)
+                    menuButton.fixedSize()
+                }
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(title).fixedSize(horizontal: false, vertical: true).accessibilityHidden(true)
+                    menuButton
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private var picker: some View {
+        Picker(title, selection: $selection, content: options)
+    }
+
+    private var menuButton: some View {
+        MenuButton(title: title, value: display(selection), options: picker.pickerStyle(.inline))
+    }
+
+    private struct MenuButton<MenuOptions: View>: View {
+        @Environment(\.interfaceTypography) private var typography
+        @State private var presenter = SettingsMenuPresenter()
+        let title: String
+        let value: String
+        let options: MenuOptions
+
+        var body: some View {
+            Button {
+                presenter.present(options, typography: typography)
+            } label: {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(verbatim: value)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(typography.font(size: 9, weight: .semibold))
+                        .accessibilityHidden(true)
+                }
+                .font(typography.font(.body))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(.fill.secondary, in: RoundedRectangle(cornerRadius: 6))
+            }
+            .buttonStyle(.plain)
+            .background(MenuAnchor(presenter: presenter).allowsHitTesting(false).accessibilityHidden(true))
+            .accessibilityLabel(title)
+            .accessibilityValue(value)
+        }
+    }
+
+    private struct MenuAnchor: NSViewRepresentable {
+        let presenter: SettingsMenuPresenter
+
+        func makeNSView(context: Context) -> NSView { NSView() }
+
+        func updateNSView(_ view: NSView, context: Context) {
+            presenter.anchor = view
         }
     }
 }
 
 @available(macOS 26, *)
 struct MacOS26SizeSettingEditor<Preview: View>: View {
+    @Environment(\.interfaceTypography) private var typography
+
     let title: String
-    let symbol: String
     let savedValue: Double
     let defaultValue: Double
     let range: ClosedRange<Double>
@@ -76,36 +137,60 @@ struct MacOS26SizeSettingEditor<Preview: View>: View {
     let previewOnScreen: () -> Void
     @ViewBuilder let preview: () -> Preview
 
-    private var value: Double { draft.value(saved: savedValue) }
+    private var size: Binding<Double> {
+        Binding(get: { draft.value(saved: savedValue) }, set: { draft.proposedValue = $0 })
+    }
+
+    private var value: Double { size.wrappedValue }
+
+    private var sizeLayout: AnyLayout {
+        typography.usesLargeLayout
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8)) : AnyLayout(HStackLayout(spacing: 12))
+    }
     private var hasChanges: Bool { draft.hasChanges(saved: savedValue) }
 
     private var valueLabel: String {
-        if usesPercentage { return value.formatted(.percent.precision(.fractionLength(0))) }
+        if usesPercentage {
+            return value.formatted(.percent.locale(AppLocalization.interfaceLocale).precision(.fractionLength(0)))
+        }
         let points = Int(value.rounded())
         return localized("\(points) pt")
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            HStack(spacing: 12) {
-                MacOS26SettingLabel(title, symbol: symbol, tint: .indigo)
+            sizeLayout {
+                Text(title)
+                    .fixedSize(horizontal: false, vertical: true)
                     .accessibilityHidden(true)
-                Spacer(minLength: 8)
-                Slider(value: Binding(get: { value }, set: { draft.proposedValue = $0 }), in: range)
-                    .accessibilityLabel(title)
-                    .accessibilityValue(valueLabel)
-                    .frame(minWidth: 100, maxWidth: 220)
-                Text(valueLabel)
-                    .monospacedDigit()
-                    .foregroundStyle(.secondary)
-                    .frame(width: 64, alignment: .trailing)
-                    .accessibilityHidden(true)
+                if !typography.usesLargeLayout { Spacer(minLength: 8) }
+                HStack(spacing: 10) {
+                    Slider(value: size, in: range)
+                        .accessibilityLabel(title)
+                        .accessibilityValue(valueLabel)
+                        .frame(minWidth: 100, maxWidth: 220)
+                    if usesPercentage {
+                        Text(valueLabel)
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: true, vertical: false)
+                            .frame(minWidth: 64, alignment: .trailing)
+                            .accessibilityHidden(true)
+                    } else {
+                        let input = CardSizeInput()
+                        HStack(spacing: 6) {
+                            MacOS26NumericField(title: title, value: size, format: input.format, parse: input.parse)
+                                .accessibilityIdentifier("card-size-input")
+                            Text(localized("pt")).foregroundStyle(.secondary)
+                        }
+                        .fixedSize()
+                    }
+                }
             }
-
             if hasChanges {
                 ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 10) { editActions }
-                    VStack(alignment: .leading, spacing: 10) { editActions }
+                    HStack(spacing: 12) { editActions }.fixedSize(horizontal: true, vertical: false)
+                    VStack(alignment: .leading, spacing: 8) { editActions }
                 }
             } else if value != defaultValue {
                 restoreDefault
@@ -113,28 +198,53 @@ struct MacOS26SizeSettingEditor<Preview: View>: View {
 
             Divider()
             Text(localized("Preview"))
-                .font(.caption)
+                .font(typography.font(.caption))
                 .foregroundStyle(.secondary)
             preview()
             Button(localized("Preview on screen"), systemImage: "macwindow", action: previewOnScreen)
+                .macOS26SettingsAction()
         }
     }
 
     @ViewBuilder
     private var editActions: some View {
-        Button(localized("Restore last saved size")) { draft.revert() }
-        Button(localized("Save current setting")) { draft.save(using: save) }
-            .buttonStyle(.borderedProminent)
+        editButton(localized("Restore last saved size"), symbol: "arrow.uturn.backward") {
+            draft.revert()
+        }
+        .buttonStyle(.bordered)
+        editButton(localized("Save current setting"), symbol: "checkmark") {
+            draft.save(using: save)
+        }
+        .buttonStyle(.borderedProminent)
         if value != defaultValue { restoreDefault }
     }
 
     private var restoreDefault: some View {
-        Button(localized("Restore default size")) { draft.proposedValue = defaultValue }
+        editButton(localized("Restore default size"), symbol: "arrow.counterclockwise") {
+            draft.proposedValue = defaultValue
+        }
+        .buttonStyle(.bordered)
+    }
+
+    private func editButton(_ title: String, symbol: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Label {
+                Text(verbatim: title)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
+            } icon: {
+                Image(systemName: symbol).imageScale(.small)
+            }
+            .labelStyle(.titleAndIcon)
+            .padding(.vertical, typography.points(2))
+        }
     }
 }
 
 @available(macOS 26, *)
 struct MacOS26CardSizeSample: View {
+    @Environment(\.interfaceTypography) private var typography
+
     let side: CGFloat
     @Environment(\.colorScheme) private var clipboardScheme
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
@@ -150,25 +260,25 @@ struct MacOS26CardSizeSample: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 7) {
                     Label(AppIdentity.displayName, systemImage: "doc.on.clipboard")
-                        .font(.callout.weight(.semibold))
+                        .font(typography.font(.callout).weight(.semibold))
                         .lineLimit(1)
                     Spacer(minLength: 0)
                     Image(systemName: "ellipsis")
-                        .font(.caption.weight(.semibold))
+                        .font(typography.font(.caption).weight(.semibold))
                         .foregroundStyle(secondary)
                         .frame(width: 25, height: 25)
                         .background(primary.opacity(0.07), in: .circle)
                         .glassEffect(reduceTransparency ? .identity : .regular, in: .circle)
                 }
                 Text(localized("Preview"))
-                    .font(.callout)
+                    .font(typography.font(.callout))
                 Spacer(minLength: 8)
                 HStack {
                     Text(localized("Clipboard cards"))
                     Spacer()
                     Image(systemName: "text.alignleft")
                 }
-                .font(.caption2)
+                .font(typography.font(.caption2))
                 .foregroundStyle(secondary)
             }
             .foregroundStyle(primary)
@@ -188,10 +298,12 @@ struct MacOS26CardSizeSample: View {
 
 @available(macOS 26, *)
 struct MacOS26FilterTagSizeSample: View {
+    @Environment(\.interfaceTypography) private var typography
+
     let scale: Double
 
     var body: some View {
-        let metrics = FilterTagMetrics(scale: scale)
+        let metrics = MacOS26FilterTagMetrics(scale: scale, typography: typography)
         ScrollView(.horizontal) {
             HStack(spacing: 6) {
                 tag(localized("All"), symbol: "square.grid.2x2", metrics: metrics, active: true)
@@ -207,9 +319,11 @@ struct MacOS26FilterTagSizeSample: View {
         .accessibilityValue(scale.formatted(.percent.precision(.fractionLength(0))))
     }
 
-    private func tag(_ name: String, symbol: String, metrics: FilterTagMetrics, active: Bool = false) -> some View {
+    private func tag(_ name: String, symbol: String, metrics: MacOS26FilterTagMetrics, active: Bool = false)
+        -> some View
+    {
         Label(name, systemImage: symbol)
-            .font(.system(size: metrics.fontSize))
+            .font(typography.font(size: metrics.fontSize))
             .padding(.horizontal, metrics.horizontalPadding)
             .frame(height: metrics.rowHeight)
             .background(active ? Color.accentColor.opacity(0.16) : Color.primary.opacity(0.07), in: Capsule())
@@ -218,6 +332,7 @@ struct MacOS26FilterTagSizeSample: View {
 
 @available(macOS 26, *)
 struct MacOS26NumericField<Value: Equatable>: View {
+    @Environment(\.interfaceTypography) private var typography
     let title: String
     @Binding var value: Value
     let format: (Value) -> String
@@ -227,10 +342,16 @@ struct MacOS26NumericField<Value: Equatable>: View {
 
     var body: some View {
         TextField(title, text: $draft)
-            .textFieldStyle(.roundedBorder)
-            .monospacedDigit()
+            .textFieldStyle(.plain)
+            .font(typography.font(.body).monospacedDigit())
             .multilineTextAlignment(.trailing)
-            .frame(width: 64)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 3)
+            .frame(width: typography.room(64))
+            .background(.background, in: RoundedRectangle(cornerRadius: 5))
+            .overlay(
+                RoundedRectangle(cornerRadius: 5).strokeBorder(focused ? Color.accentColor : .secondary.opacity(0.35))
+            )
             .accessibilityLabel(title)
             .focused($focused)
             .onAppear { draft = format(value) }
@@ -242,13 +363,15 @@ struct MacOS26NumericField<Value: Equatable>: View {
     }
 
     private func commit() {
-        if let parsed = parse(draft) { value = parsed }
+        if draft != format(value), let parsed = parse(draft) { value = parsed }
         draft = format(value)
     }
 }
 
 @available(macOS 26, *)
 struct MacOS26VimKeyField: View {
+    @Environment(\.interfaceTypography) private var typography
+
     let action: VimAction
     @ObservedObject var store: VimBindingsStore
     @State private var text = ""
@@ -257,9 +380,9 @@ struct MacOS26VimKeyField: View {
     var body: some View {
         TextField(action.displayName, text: $text)
             .textFieldStyle(.roundedBorder)
-            .font(.system(.body, design: .monospaced))
+            .font(typography.font(.body, design: .monospaced))
             .multilineTextAlignment(.center)
-            .frame(width: 48)
+            .frame(width: max(48, typography.points(24)))
             .focused($focused)
             .onAppear { text = store.key(for: action) }
             .onSubmit { commit() }
@@ -285,21 +408,33 @@ struct MacOS26ShortcutRecorder: View {
     private var isRecording: Bool { store.recordingAction == action }
 
     var body: some View {
-        Button {
-            isRecording ? store.endRecording() : store.beginRecording(action)
-        } label: {
-            Text(isRecording ? localized("Type shortcut…") : store.label(for: action))
-                .monospaced()
-                .frame(minWidth: 74)
-        }
-        .buttonStyle(.bordered)
-        .background {
-            if isRecording { Capsule().strokeBorder(.tint, lineWidth: 2) }
-        }
-        .accessibilityLabel(action.displayName)
-        .accessibilityValue(isRecording ? localized("Type shortcut…") : store.label(for: action))
-        .onDisappear {
-            if isRecording { store.endRecording() }
+        Text(isRecording ? localized("Type shortcut…") : store.label(for: action))
+            .monospaced()
+            .frame(minWidth: 74)
+            .beButton { isRecording ? store.endRecording() : store.beginRecording(action) }
+            .buttonStyle(.bordered)
+            .background {
+                if isRecording { Capsule().strokeBorder(.tint, lineWidth: 2) }
+            }
+            .accessibilityLabel(action.displayName)
+            .accessibilityValue(isRecording ? localized("Type shortcut…") : store.label(for: action))
+            .onDisappear {
+                if isRecording { store.endRecording() }
+            }
+    }
+}
+
+@available(macOS 26, *)
+extension View {
+    /// AppKit's bordered button is single-line. Use the wrapping action style when the title needs more room.
+    func macOS26SettingsAction(prominent: Bool = false) -> some View {
+        ViewThatFits(in: .horizontal) {
+            if prominent {
+                self.buttonStyle(.borderedProminent).fixedSize()
+            } else {
+                self.buttonStyle(.bordered).fixedSize()
+            }
+            self.buttonStyle(MacOS26DialogActionStyle(prominent: prominent))
         }
     }
 }

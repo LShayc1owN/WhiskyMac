@@ -28,6 +28,8 @@
 	<string>いいアイデア</string>
 	<key>A little inspiration</key>
 	<string>ひらめきのメモ</string>
+	<key>AI assistance</key>
+	<string>AIによる翻訳支援</string>
 	<key>About</key>
 	<string>このアプリについて</string>
 	<key>About the developer</key>
@@ -46,8 +48,6 @@
 	<string>アプリを追加…</string>
 	<key>Add cards to the paste stack and enable its shortcut to paste them in order.</key>
 	<string>カードを連続ペーストに追加し、ショートカットをオンにすると、順番にペーストできます。</string>
-	<key>Add example</key>
-	<string>サンプルを追加</string>
 	<key>Add sensitive app…</key>
 	<string>機密扱いのアプリを追加…</string>
 	<key>Add to Paste Stack</key>
@@ -68,6 +68,8 @@
 	<string>プライバシーモード中にHandoffでの絞り込みを許可</string>
 	<key>Allow app filtering in Privacy Mode</key>
 	<string>プライバシーモード中にアプリでの絞り込みを許可</string>
+	<key>Allow clipboard access to see new copies in your history.</key>
+	<string>新しくコピーした項目を履歴に表示するには、クリップボードへのアクセスを許可してください。</string>
 	<key>Allow removal of %lld older history items</key>
 	<string>古い履歴%lld件の削除を許可</string>
 	<key>Allow search in Privacy Mode</key>
@@ -88,18 +90,18 @@
 	<string>外観とカードサイズ</string>
 	<key>Application observed on this Mac at capture time; source is not verified.</key>
 	<string>記録時にこのMacで最前面にあったアプリです。実際のコピー元は確認されていません。</string>
-	<key>Applies to manual and automatic protection. Search terms and enabled app names are visible on screen and in accessibility. Clipboard content stays hidden; automatic protection still blocks hover reveals.</key>
-	<string>手動保護と自動保護の両方に適用されます。検索語と表示を許可したアプリ名は画面に表示され、支援技術でも読み取れます。クリップボードの内容は非表示のままです。自動保護中はポインタを重ねても内容は表示されません。</string>
-	<key>Applies to manual privacy with Hover set to Preview. The blur softens the reveal edge. Revealed content can be recorded; automatic protection stays fully masked.</key>
-	<string>手動プライバシーモードがオンで、ポインタを重ねたときの操作が「プレビュー」の場合に適用されます。ぼかしで表示範囲の境界をなじませます。表示した範囲は画面収録に映ることがあります。自動保護中はすべての内容が非表示のままです。</string>
-	<key>Automatic detection is limited. Use manual protection before important sharing.</key>
-	<string>自動検出には対象外の共有があります。機密情報を共有する前に手動保護をオンにしてください。</string>
-	<key>Automatic detection is off. Use manual protection before sharing.</key>
-	<string>自動検出はオフです。画面を共有する前に手動保護をオンにしてください。</string>
-	<key>Automatic protection (limited detection)</key>
-	<string>自動保護（検出範囲に制限あり）</string>
-	<key>Automatic protection only detects supported Zoom and Teams sharing sessions.</key>
-	<string>自動保護で検出できるのは、対応するZoomとTeamsの共有だけです。</string>
+	<key>Applies when you turn on privacy protection and set Hover to Preview. Blur softens the edge of the visible area. Screen recordings can capture that area. Protection triggered by detection keeps all content hidden.</key>
+	<string>プライバシー保護をオンにし、ポインタを重ねたときの操作を「プレビュー」に設定すると適用されます。ぼかしで表示範囲の境界をなじませます。表示した範囲は画面収録に映ることがあります。検出によって保護がオンになった場合は、すべての内容が非表示のままです。</string>
+	<key>Apply interface font size to plain text</key>
+	<string>プレーンテキストにインターフェイスの文字サイズを適用</string>
+	<key>Automatic detection covers only supported Zoom and Teams screen sharing sessions.</key>
+	<string>自動検出の対象は、対応するZoomとTeamsの画面共有のみです。</string>
+	<key>Automatic detection is limited. Turn on privacy protection before sharing sensitive content.</key>
+	<string>自動検出には対象外の共有があります。機密情報を共有する前にプライバシー保護をオンにしてください。</string>
+	<key>Automatic detection is off. Turn on privacy protection before sharing.</key>
+	<string>自動検出はオフです。画面を共有する前にプライバシー保護をオンにしてください。</string>
+	<key>Automatically recognize secrets</key>
+	<string>シークレットを自動検出</string>
 	<key>Available for 5 seconds</key>
 	<string>5秒間取り消せます</string>
 	<key>Back</key>
@@ -110,6 +112,8 @@
 	<string>Base64をデコード</string>
 	<key>Base64-encoded</key>
 	<string>Base64でエンコード</string>
+	<key>Basic settings</key>
+	<string>基本設定</string>
 	<key>Beta and Release</key>
 	<string>BetaとRelease</string>
 	<key>Beta only</key>
@@ -130,6 +134,10 @@
 	<string>カードサイズ</string>
 	<key>Cards from the bottom</key>
 	<string>画面下部にカードを並べる</string>
+	<key>Categorize secrets</key>
+	<string>シークレットを分類</string>
+	<key>Category tag order</key>
+	<string>カテゴリタグの順序</string>
 	<key>Changes are saved only when you choose Save current setting.</key>
 	<string>「現在の設定を保存」を選ぶと変更が保存されます。</string>
 	<key>Check for updates</key>
@@ -140,8 +148,6 @@
 	<string>許可状況を再確認</string>
 	<key>Checking for updates…</key>
 	<string>アップデートを確認中…</string>
-	<key>Checks Zoom and Teams sharing toolbar titles using Accessibility. Client versions and languages may not match. System sharing, remote desktop, recording and browser tabs are not covered. Enable manual protection before important sharing.</key>
-	<string>アクセシビリティ機能を使って、ZoomとTeamsの共有ツールバーを検出します。アプリのバージョンや言語によっては検出できません。システムの画面共有、リモートデスクトップ、画面収録、ブラウザのタブは対象外です。機密情報を共有する前に手動保護をオンにしてください。</string>
 	<key>Choose a format to continue</key>
 	<string>続けるには形式を選択してください</string>
 	<key>Choose a format to split</key>
@@ -164,8 +170,12 @@
 	<string>検索をクリア</string>
 	<key>Click a shortcut to record a new one — press Escape to cancel recording.</key>
 	<string>ショートカットをクリックして新しいキーの組み合わせを入力します。取り消すにはEscキーを押します。</string>
+	<key>Click the WhiskyMac menu bar icon. If a menu opens, choose “%@”.</key>
+	<string>メニューバーの WhiskyMac アイコンをクリックします。メニューが開いたら「%@」を選びます。</string>
 	<key>Click the shortcut to change it. Press Esc to cancel.</key>
 	<string>ショートカットをクリックして変更します。取り消すにはEscキーを押します。</string>
+	<key>Click to copy or paste. When you turn on privacy protection, use the card menu to show the full card or hover to see a small area. Protection triggered by detection keeps cards hidden.</key>
+	<string>コピーやペーストはクリックして行います。プライバシー保護をオンにしたときは、カードのメニューから全体を表示したり、ポインタを重ねて一部を表示したりできます。検出によって保護がオンになった場合は、カードは非表示のままです。</string>
 	<key>Click to filter</key>
 	<string>クリックして絞り込む</string>
 	<key>Click to record a shortcut. Escape cancels.</key>
@@ -176,8 +186,6 @@
 	<string>クリップボードの外観</string>
 	<key>Clipboard cards</key>
 	<string>クリップボードのカード</string>
-	<key>Clipboard controls</key>
-	<string>クリップボードの操作</string>
 	<key>Close the panel</key>
 	<string>パネルを閉じる</string>
 	<key>Collapse apps</key>
@@ -186,8 +194,6 @@
 	<string>折りたたみ済み</string>
 	<key>Color tags</key>
 	<string>カラータグ</string>
-	<key>Colors</key>
-	<string>カラー</string>
 	<key>Comma (, / ，)</key>
 	<string>カンマ（, / ，）</string>
 	<key>Complete original</key>
@@ -214,8 +220,8 @@
 	<string>除外したアプリからコピーした内容は記録されません。</string>
 	<key>Copy</key>
 	<string>コピー</string>
-	<key>Copy and paste require an explicit click. Full preview and editing stay disabled. Local reveal works only in manual privacy; automatic protection stays masked.</key>
-	<string>コピーやペーストにはクリックでの操作が必要です。全体のプレビューと編集はできません。一部だけ表示できるのは手動プライバシーモード中に限られ、自動保護中はすべての内容が非表示のままです。</string>
+	<key>Copy a little text in another app, such as TextEdit. Leave the cursor where you want to paste.</key>
+	<string>テキストエディットなどの別のアプリで短いテキストをコピーし、貼り付けたい場所にカーソルを置きます。</string>
 	<key>Copy something new. If it doesn’t appear, check clipboard access, capture status and app exclusions.</key>
 	<string>新しく何かをコピーしてください。表示されない場合は、クリップボードへのアクセス許可、記録の状態、除外設定を確認してください。</string>
 	<key>Copy something to get started</key>
@@ -266,6 +272,8 @@
 	<string>直接ペースト</string>
 	<key>Disable Developer Mode</key>
 	<string>デベロッパモードをオフにする</string>
+	<key>Display and theme colors</key>
+	<string>表示とテーマカラー</string>
 	<key>Do nothing</key>
 	<string>何もしない</string>
 	<key>Dock icon</key>
@@ -278,12 +286,12 @@
 	<string>ダブルクリック</string>
 	<key>Download update on GitHub</key>
 	<string>GitHubからアップデートをダウンロード</string>
+	<key>Drag to reorder</key>
+	<string>ドラッグして並べ替え</string>
 	<key>Edge blur radius</key>
 	<string>境界のぼかし半径</string>
 	<key>Edit and split text</key>
 	<string>テキストを編集・分割</string>
-	<key>Edit example</key>
-	<string>サンプルを編集</string>
 	<key>Edit the selection</key>
 	<string>選択項目を編集</string>
 	<key>Editing %@</key>
@@ -296,8 +304,6 @@
 	<string>オンにする</string>
 	<key>Enable Developer Mode</key>
 	<string>デベロッパモードをオンにする</string>
-	<key>Enable WhiskyMac in Accessibility to paste directly. You can also copy a card and press ⌘V.</key>
-	<string>直接ペーストするには「アクセシビリティ」でWhiskyMacを許可してください。カードをコピーして⌘Vを押すこともできます。</string>
 	<key>Enable the history shortcut</key>
 	<string>履歴を開くショートカットをオンにする</string>
 	<key>Enable this global shortcut</key>
@@ -310,8 +316,6 @@
 	<string>読点（、）</string>
 	<key>Everyday tools</key>
 	<string>便利な機能</string>
-	<key>Example actions</key>
-	<string>サンプルの操作</string>
 	<key>Exclude %@</key>
 	<string>%@を除外</string>
 	<key>Exclude the selection's application</key>
@@ -382,14 +386,6 @@
 	<string>Handoffの表示はシステムのクリップボードにあるマーカーに基づきます。マーカーがなくても別のデバイスがコピー元の場合があります。記録済みの履歴は再分類できません。</string>
 	<key>Handoff, source filter</key>
 	<string>Handoff、コピー元フィルタ</string>
-	<key>Hello, WhiskyMac.
-A good idea.
-Ready when you are.</key>
-	<string>Hello, WhiskyMac.
-ひらめきをメモ。
-必要なときに、もう一度。</string>
-	<key>Hidden — right-click to show temporarily</key>
-	<string>非表示中。右クリックで一時表示</string>
 	<key>Hide</key>
 	<string>非表示</string>
 	<key>Hide by type or source</key>
@@ -424,6 +420,8 @@ Ready when you are.</key>
 	<string>ポインタを重ねて絞り込む</string>
 	<key>How sensitive access works</key>
 	<string>機密項目の仕組み</string>
+	<key>Human contributors</key>
+	<string>人による翻訳協力</string>
 	<key>Illustration: pin useful cards and arrange a paste stack.</key>
 	<string>ピン留めしたカードと連続ペーストの順序を示すイラスト。</string>
 	<key>Illustration: the menu bar opens a searchable row of clipboard cards.</key>
@@ -442,6 +440,8 @@ Ready when you are.</key>
 	<string>クリップボードパネル内</string>
 	<key>Interactions</key>
 	<string>操作方法</string>
+	<key>Interface font size</key>
+	<string>インターフェイスの文字サイズ</string>
 	<key>Keep history for</key>
 	<string>履歴の保存期間</string>
 	<key>Keep original and add cards</key>
@@ -456,6 +456,8 @@ Ready when you are.</key>
 	<string>Kenney UI Audioのライセンス</string>
 	<key>Kenney UI Audio source</key>
 	<string>Kenney UI Audioの入手元</string>
+	<key>Keyboard shortcuts</key>
+	<string>キーボードショートカット</string>
 	<key>Know what protection covers</key>
 	<string>保護の対象を確認</string>
 	<key>Language</key>
@@ -476,6 +478,8 @@ Ready when you are.</key>
 	<string>ライセンスと通知…</string>
 	<key>Light</key>
 	<string>ライト</string>
+	<key>Light and dark appearance</key>
+	<string>ライト／ダークの外観</string>
 	<key>Lightweight mode</key>
 	<string>軽量モード</string>
 	<key>Lightweight mode loads thumbnails only as needed when you open the clipboard panel. Closing the panel clears the thumbnail cache to reduce memory use.</key>
@@ -498,16 +502,12 @@ Ready when you are.</key>
 	<string>コピーした内容を、次に使うときまで。</string>
 	<key>Make the settings and clipboard cards feel at home.</key>
 	<string>設定画面のレイアウト、アクセントカラー、カードサイズを調整します。</string>
-	<key>Manage manual and automatic protection in Settings.</key>
-	<string>手動保護と自動保護は「設定」で管理できます。</string>
+	<key>Manage privacy protection and automatic detection in Settings.</key>
+	<string>プライバシー保護と自動検出は「設定」で管理できます。</string>
 	<key>Manage what stays visible and which clicks are allowed.</key>
 	<string>表示する情報や、許可するクリック操作を設定します。</string>
 	<key>Manual Command-V available</key>
 	<string>⌘Vで手動ペースト</string>
-	<key>Manual Privacy Mode</key>
-	<string>手動プライバシーモード</string>
-	<key>Manual privacy: hover to reveal a small area</key>
-	<string>手動保護中は、ポインタを重ねると一部を表示できます</string>
 	<key>Matching Word</key>
 	<string>単語単位で一致</string>
 	<key>Menu bar and Dock</key>
@@ -518,24 +518,28 @@ Ready when you are.</key>
 	<string>メニューバーアイコン</string>
 	<key>More apps</key>
 	<string>さらにアプリを表示</string>
-	<key>More interactions</key>
-	<string>その他の操作</string>
 	<key>More settings and configuration</key>
 	<string>その他の設定</string>
+	<key>More shortcuts</key>
+	<string>その他のショートカット</string>
 	<key>More than 1000 results. Choose a different rule.</key>
 	<string>結果が1,000件を超えています。別の分割方法を選んでください。</string>
-	<key>More ways to make it yours</key>
-	<string>さらにカスタマイズ</string>
 	<key>Mouse press</key>
 	<string>マウスボタンを押す音</string>
 	<key>Mouse release</key>
 	<string>マウスボタンを放す音</string>
+	<key>Move %@ down</key>
+	<string>%@を下に移動</string>
+	<key>Move %@ up</key>
+	<string>%@を上に移動</string>
 	<key>NORMAL</key>
 	<string>通常</string>
 	<key>Never recorded</key>
 	<string>記録しない</string>
 	<key>Never show</key>
 	<string>表示しない</string>
+	<key>New copies can be saved to your history.</key>
+	<string>新しくコピーした内容を履歴に保存できます。</string>
 	<key>New copies stay in memory briefly. Excluded apps aren’t recorded. Existing history is kept.</key>
 	<string>新しくコピーした内容は短時間だけメモリに保持されます。除外したアプリの内容は記録されません。記録済みの履歴はそのままです。</string>
 	<key>Newer cards stay visible. History is not deleted.</key>
@@ -544,8 +548,6 @@ Ready when you are.</key>
 	<string>次のカードまたはフィルタ</string>
 	<key>No excluded apps added.</key>
 	<string>除外するアプリはありません</string>
-	<key>No match. Try Hello or clear the search.</key>
-	<string>一致する項目がありません。「Hello」で検索するか、検索をクリアしてください。</string>
 	<key>No matches</key>
 	<string>一致する項目がありません</string>
 	<key>No matching settings</key>
@@ -600,6 +602,10 @@ Ready when you are.</key>
 	<string>原文ファイルを開く</string>
 	<key>Open the selected link</key>
 	<string>選択したリンクを開く</string>
+	<key>Optional settings</key>
+	<string>オプション設定</string>
+	<key>Optional. Turn on WhiskyMac in Accessibility to paste directly, or copy a card and press ⌘V.</key>
+	<string>任意。直接ペーストするには「アクセシビリティ」で WhiskyMac を有効にします。カードをコピーして ⌘V を押すこともできます。</string>
 	<key>Orange tag</key>
 	<string>オレンジのタグ</string>
 	<key>Original Whisk on GitHub</key>
@@ -618,8 +624,6 @@ Ready when you are.</key>
 	<string>プレーンテキストでペースト</string>
 	<key>Paste as…</key>
 	<string>形式を選んでペースト…</string>
-	<key>Paste example</key>
-	<string>サンプルをペースト</string>
 	<key>Paste in order</key>
 	<string>順番にペースト</string>
 	<key>Paste next from the stack</key>
@@ -672,12 +676,6 @@ Ready when you are.</key>
 	<string>新しい項目を記録したときに音を鳴らす</string>
 	<key>Play a sound when copying from history</key>
 	<string>履歴からコピーしたときに音を鳴らす</string>
-	<key>Practice</key>
-	<string>練習</string>
-	<key>Practice note</key>
-	<string>練習用メモ</string>
-	<key>Practice space</key>
-	<string>練習スペース</string>
 	<key>Press %@ to search</key>
 	<string>%@で検索</string>
 	<key>Press a shortcut…</key>
@@ -694,16 +692,22 @@ Ready when you are.</key>
 	<string>前のカードまたはフィルタ</string>
 	<key>Privacy</key>
 	<string>プライバシー</string>
-	<key>Privacy Mode is on (manual)</key>
-	<string>手動プライバシーモードがオンです</string>
+	<key>Privacy Mode is on</key>
+	<string>プライバシーモードはオンです</string>
 	<key>Privacy mode</key>
 	<string>プライバシーモード</string>
 	<key>Privacy mode icon</key>
 	<string>プライバシーモードのアイコン</string>
+	<key>Privacy protection</key>
+	<string>プライバシー保護</string>
+	<key>Privacy protection is on</key>
+	<string>プライバシー保護はオンです</string>
 	<key>Project notice</key>
 	<string>プロジェクトに関する通知</string>
 	<key>Protected clipboard item</key>
 	<string>保護されているクリップボード項目</string>
+	<key>Protection mode options</key>
+	<string>保護モードのオプション</string>
 	<key>Purple tag</key>
 	<string>紫のタグ</string>
 	<key>Quick reference</key>
@@ -716,6 +720,8 @@ Ready when you are.</key>
 	<string>表示形式</string>
 	<key>Ready</key>
 	<string>準備完了</string>
+	<key>Recognition runs on this Mac and looks for common key, cookie, hash, and token formats.</key>
+	<string>この Mac 上で一般的なキー、Cookie、ハッシュ、トークンの形式を検出します。</string>
 	<key>Recording settings</key>
 	<string>履歴の記録</string>
 	<key>Red tag</key>
@@ -748,6 +754,8 @@ Ready when you are.</key>
 	<string>リセット…</string>
 	<key>Restore Defaults</key>
 	<string>デフォルトの設定に戻す</string>
+	<key>Restore default order</key>
+	<string>デフォルトの順序に戻す</string>
 	<key>Restore default size</key>
 	<string>デフォルトのサイズに戻す</string>
 	<key>Restore default values</key>
@@ -766,6 +774,8 @@ Ready when you are.</key>
 	<string>記録を再開</string>
 	<key>Return saves, Shift-Return breaks the line, Escape cancels.</key>
 	<string>Returnキーで保存、Shift＋Returnで改行、Escキーでキャンセルします。</string>
+	<key>Reveal Secret</key>
+	<string>シークレットの原文を表示</string>
 	<key>Reveal a small area</key>
 	<string>一部だけ表示</string>
 	<key>Reveal in Finder</key>
@@ -778,6 +788,8 @@ Ready when you are.</key>
 	<string>リッチテキスト</string>
 	<key>Rich text could not be preserved. Enable Plain text to continue.</key>
 	<string>書式を保持できませんでした。「プレーンテキスト」をオンにして続けてください。</string>
+	<key>Rich text keeps its original font sizes.</key>
+	<string>リッチテキストには元の文字サイズが使われます。</string>
 	<key>Right click</key>
 	<string>右クリック</string>
 	<key>Right-click always opens the menu. Follow windows shows the Dock icon for Settings and welcome windows only.</key>
@@ -794,12 +806,6 @@ Ready when you are.</key>
 	<string>SFX Kitのライセンス</string>
 	<key>SFX Kit source</key>
 	<string>SFX Kitの入手元</string>
-	<key>Sample copied.</key>
-	<string>サンプルをコピーしました。</string>
-	<key>Sample pasted.</key>
-	<string>サンプルをペーストしました。</string>
-	<key>Sample updated.</key>
-	<string>サンプルを更新しました。</string>
 	<key>Save</key>
 	<string>保存</string>
 	<key>Save As…</key>
@@ -814,10 +820,10 @@ Ready when you are.</key>
 	<string>保存方法</string>
 	<key>Save the selection as a file</key>
 	<string>選択項目をファイルとして保存</string>
-	<key>Screen privacy</key>
-	<string>画面上のプライバシー保護</string>
 	<key>Screen sharing</key>
 	<string>画面共有</string>
+	<key>Screen sharing protection</key>
+	<string>画面共有の保護</string>
 	<key>Search SF Symbols by name</key>
 	<string>SF Symbolsを名前で検索</string>
 	<key>Search and filter</key>
@@ -836,12 +842,20 @@ Ready when you are.</key>
 	<string>設定を検索</string>
 	<key>Search your clipboard</key>
 	<string>クリップボードを検索</string>
+	<key>Secret Recognition</key>
+	<string>シークレットの検出</string>
+	<key>Secret masking</key>
+	<string>シークレットのマスキング</string>
 	<key>Select a delimiter or enter a custom separator.</key>
 	<string>区切り文字を選択するか、カスタム区切り文字を入力してください。</string>
 	<key>Select all types</key>
 	<string>すべての種類を選択</string>
 	<key>Select at least one result.</key>
 	<string>少なくとも1件の結果を選択してください。</string>
+	<key>Select the card you just copied. Press %@ to copy it or %@ to paste it.</key>
+	<string>コピーしたばかりのカードを選び、コピーするには %@、ペーストするには %@ を押します。</string>
+	<key>Select the card you just copied. Press %@, then return to the text field and press ⌘V.</key>
+	<string>コピーしたばかりのカードを選んで %@ を押し、テキスト欄に戻って ⌘V でペーストします。</string>
 	<key>Selected</key>
 	<string>選択済み</string>
 	<key>Selected parts are combined in their original order with line breaks.</key>
@@ -890,6 +904,8 @@ Ready when you are.</key>
 	<string>履歴を表示</string>
 	<key>Show by type or source</key>
 	<string>非表示のカードを表示</string>
+	<key>Show card</key>
+	<string>カードを表示</string>
 	<key>Show clipboard cards</key>
 	<string>クリップボードのカードを表示</string>
 	<key>Show fewer formats</key>
@@ -912,8 +928,6 @@ Ready when you are.</key>
 	<string>サイドバーの幅</string>
 	<key>Single click</key>
 	<string>シングルクリック</string>
-	<key>Single click: %@ · Double click: %@</key>
-	<string>シングルクリック：%@ ／ ダブルクリック：%@</string>
 	<key>Single line</key>
 	<string>1行</string>
 	<key>Small bubble</key>
@@ -938,8 +952,6 @@ Ready when you are.</key>
 	<string>日時を指定</string>
 	<key>Split options</key>
 	<string>分割オプション</string>
-	<key>Split results are examples only and are not saved to history.</key>
-	<string>練習で分割した結果は履歴に保存されません。</string>
 	<key>Split rule</key>
 	<string>分割方法</string>
 	<key>Splitting is unavailable for this item.</key>
@@ -948,8 +960,6 @@ Ready when you are.</key>
 	<string>分割…</string>
 	<key>Start a search</key>
 	<string>検索を開始</string>
-	<key>Start over</key>
-	<string>最初からやり直す</string>
 	<key>Start setup</key>
 	<string>設定を始める</string>
 	<key>Starting With</key>
@@ -1002,6 +1012,10 @@ Ready when you are.</key>
 	<string>元の項目が変更または削除されました。続けるには「分割」を開き直してください。</string>
 	<key>The source exceeds the split size limit.</key>
 	<string>元の内容が分割できるサイズの上限を超えています。</string>
+	<key>Theme color</key>
+	<string>テーマカラー</string>
+	<key>These options apply whenever protection is on. Search terms and allowed app names are visible on screen and accessible to assistive technologies. Clipboard content stays hidden. Protection triggered by detection blocks hover reveals.</key>
+	<string>これらのオプションは保護がオンの間に適用されます。検索語と表示を許可したアプリ名は画面に表示され、支援技術でも読み取れます。クリップボードの内容は非表示のままです。検出によって保護がオンになった場合は、ポインタを重ねても内容は表示されません。</string>
 	<key>Third-party notices</key>
 	<string>サードパーティに関する通知</string>
 	<key>This document lists third-party artwork and sounds, their licenses and sources.</key>
@@ -1010,8 +1024,6 @@ Ready when you are.</key>
 	<string>この文書には、同梱のKenney UI Audioの入手元と変換内容が記載されています。</string>
 	<key>This document records the source and selected files for the bundled SFX Kit sounds.</key>
 	<string>この文書には、同梱のSFX Kitの入手元と使用ファイルが記載されています。</string>
-	<key>This example could not be split. Try a shorter text.</key>
-	<string>このサンプルを分割できませんでした。もっと短いテキストを試してください。</string>
 	<key>This global shortcut could not be registered. Choose another binding.</key>
 	<string>このグローバルショートカットを登録できませんでした。別のキーの組み合わせを選んでください。</string>
 	<key>This notice names the original authors, WhiskyMac modifications and third-party materials.</key>
@@ -1020,8 +1032,8 @@ Ready when you are.</key>
 	<string>このショートカットは使用できないか、すでに割り当てられています。別のキーの組み合わせを選んでください。</string>
 	<key>This shortcut is used by another action</key>
 	<string>このショートカットは別の操作に割り当てられています</string>
-	<key>Toggle manual Privacy Mode</key>
-	<string>手動プライバシーモードを切り替え</string>
+	<key>Toggle privacy protection</key>
+	<string>プライバシー保護を切り替える</string>
 	<key>Toggle the selection in the paste stack</key>
 	<string>選択項目を連続ペーストに追加／取り除く</string>
 	<key>Tools for testing WhiskyMac.</key>
@@ -1034,20 +1046,18 @@ Ready when you are.</key>
 	<string>前後の空白を取り除く</string>
 	<key>Trimmed</key>
 	<string>前後の空白を削除</string>
-	<key>Try it anytime</key>
-	<string>いつでも試せます</string>
 	<key>Try it out</key>
 	<string>試してみる</string>
-	<key>Try it safely with sample content.</key>
-	<string>サンプルで安全に試せます。</string>
-	<key>Try searching for Hello</key>
-	<string>「Hello」で検索してみる</string>
-	<key>Turn off manual protection</key>
-	<string>手動保護をオフにする</string>
+	<key>Try it with your own clipboard</key>
+	<string>自分のクリップボードで試す</string>
+	<key>Turn off privacy protection</key>
+	<string>プライバシー保護をオフにする</string>
 	<key>Turn on Privacy Mode before sharing. Revealed or pasted content can still appear on screen.</key>
 	<string>画面を共有する前にプライバシーモードをオンにしてください。表示した項目やペーストした内容は共有画面に映ることがあります。</string>
-	<key>Turn on manual protection</key>
-	<string>手動保護をオンにする</string>
+	<key>Turn on privacy protection</key>
+	<string>プライバシー保護をオンにする</string>
+	<key>Turn on protection when screen sharing is detected</key>
+	<string>画面共有を検出したら保護をオンにする</string>
 	<key>Two actions share the same shortcut.</key>
 	<string>2つの操作に同じショートカットが割り当てられています。</string>
 	<key>Type shortcut…</key>
@@ -1082,12 +1092,12 @@ Ready when you are.</key>
 	<string>アップデートはGitHubからダウンロードされます。</string>
 	<key>Uppercase</key>
 	<string>大文字</string>
+	<key>Use Card size to resize clipboard cards.</key>
+	<string>クリップボードカードの大きさは「カードサイズ」で調整できます。</string>
 	<key>Use a text card’s menu to edit or split its contents.</key>
 	<string>テキストカードのメニューから内容を編集、分割できます。</string>
 	<key>Use sidebar navigation</key>
 	<string>サイドバーで移動</string>
-	<key>Use the card menu or a shortcut to continue.</key>
-	<string>カードのメニューかショートカットで操作を続けられます。</string>
 	<key>Use the menu bar</key>
 	<string>メニューバーから開く</string>
 	<key>Use the pinned-items shortcut or menu item. In the clipboard panel it selects Pinned; a separate window only shows pinned items.</key>
@@ -1096,6 +1106,8 @@ Ready when you are.</key>
 	<string>カードの上にあるタグを使って、クリップボード履歴を絞り込めます。</string>
 	<key>Use top navigation</key>
 	<string>上部タブで移動</string>
+	<key>Uses Accessibility to detect Zoom and Teams sharing toolbars. Detection may vary by app version and language. System screen sharing, remote desktop, screen recording and browser tabs are outside its scope. Turn on privacy protection before sharing sensitive content.</key>
+	<string>アクセシビリティ機能を使って、ZoomとTeamsの共有ツールバーを検出します。検出できるかどうかはアプリのバージョンや言語によって異なります。システムの画面共有、リモートデスクトップ、画面収録、ブラウザのタブは対象外です。機密情報を共有する前にプライバシー保護をオンにしてください。</string>
 	<key>Uses the configured card action</key>
 	<string>設定したカード操作を使う</string>
 	<key>Version</key>
@@ -1136,16 +1148,20 @@ Ready when you are.</key>
 	<string>GitHubでWhiskyMacを見る</string>
 	<key>WhiskyMac uses the GNU GPL version 3 or later. Read the original for the complete terms.</key>
 	<string>WhiskyMacはGNU GPLバージョン3以降を採用しています。条件の詳細は原文を参照してください。</string>
+	<key>With the text field active, press %@ to open your clipboard history.</key>
+	<string>テキスト欄にフォーカスしたまま %@ を押して、クリップボード履歴を開きます。</string>
 	<key>Without accents</key>
 	<string>アクセント記号を削除</string>
 	<key>Yellow tag</key>
 	<string>黄色のタグ</string>
+	<key>You can continue and grant permissions later.</key>
+	<string>先に進んでから、あとで権限を許可することもできます。</string>
+	<key>You can paste directly into the active app.</key>
+	<string>使用中のアプリに直接ペーストできます。</string>
 	<key>Your Beta is newer than the latest Release. Waiting for a newer Release.</key>
 	<string>お使いのBetaは最新のReleaseより新しいバージョンです。次のReleaseをお待ちください。</string>
 	<key>Your everyday snippet</key>
 	<string>よく使うテキスト</string>
-	<key>Your example lands here.</key>
-	<string>ペーストしたサンプルがここに表示されます。</string>
 	<key>You’re up to date.</key>
 	<string>最新バージョンをお使いです。</string>
 	<key>adds soft clicks, taps, snaps, and bubbles to the copy sound options.</key>
@@ -1180,6 +1196,8 @@ Ready when you are.</key>
 	<string>は、クリップボードにコピーしたときに鳴るクリック音とスイッチ音を提供します。</string>
 	<key>pt</key>
 	<string>pt</string>
+	<key>secret</key>
+	<string>シークレット</string>
 	<key>sidebar tabs navigation</key>
 	<string>サイドバー タブ レイアウト ナビゲーション</string>
 	<key>size width preview restore default</key>

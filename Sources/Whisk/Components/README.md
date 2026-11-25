@@ -15,3 +15,6 @@ role. Keep the native titled `Button` initializer where it is shorter.
 key path for other collections; `indexID` keeps position-based identity for
 unidentified groups. `SettingsRowLabel` gives settings controls a
 consistent icon and title layout.
+
+Both settings search views use `AttributedTextRanges` to apply their own
+highlight styles to matched text ranges.

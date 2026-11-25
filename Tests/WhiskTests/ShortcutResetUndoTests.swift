@@ -145,7 +145,7 @@ import Testing
         var size: NSSize?
         for elapsed in [0.0, 2.5, 4.9] {
             f.time = 10 + elapsed
-            let content = ShortcutResetToast(undo: f.undo, accent: .mint) {}
+            let content = MacOS15ShortcutResetToast(undo: f.undo, accent: .mint) {}
                 .padding(10)
             let host = NSHostingView(rootView: content)
             let window = NSWindow(

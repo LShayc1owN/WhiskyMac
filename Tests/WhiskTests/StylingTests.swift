@@ -21,7 +21,8 @@ import Testing
 
         #expect(first.icon != nil)
         #expect(first.icon === second.icon)
-        #expect(first.surfaceTint(dark: true) != first.surfaceTint(dark: false))
+        #expect(
+            MacOS15SourceAppPalette.cardTint(first, dark: true) != MacOS15SourceAppPalette.cardTint(first, dark: false))
     }
 
     @Test func no_bundle_or_an_unknown_one_falls_back_to_the_gray_style() async {
@@ -46,16 +47,16 @@ import Testing
 @MainActor
 @Suite struct CategoryIconLoading {
     @Test func the_neovim_mark_ships_in_the_resource_bundle_and_loads_once() {
-        let first = CategoryIcons.image(named: "nvim")
-        let second = CategoryIcons.image(named: "nvim")
+        let first = MacOS15CategoryIcons.image(named: "nvim")
+        let second = MacOS15CategoryIcons.image(named: "nvim")
 
         #expect(first != nil)
         #expect(first === second)
     }
 
     @Test func a_missing_resource_is_nil_not_fatal() {
-        #expect(CategoryIcons.image(named: "no-such-icon") == nil)
-        #expect(CategoryIcons.image(named: "no-such-icon") == nil)
+        #expect(MacOS15CategoryIcons.image(named: "no-such-icon") == nil)
+        #expect(MacOS15CategoryIcons.image(named: "no-such-icon") == nil)
     }
 }
 
@@ -71,12 +72,12 @@ import Testing
 
     @Test func default_accent_follows_the_system_in_both_appearances() throws {
         for appearance: NSAppearance.Name in [.darkAqua, .aqua] {
-            let accent = try resolved(.matcha, under: appearance)
+            let accent = try resolved(.macOS15Matcha, under: appearance)
             let system = try resolved(.controlAccentColor, under: appearance)
             #expect(accent == system)
             #expect(accent.alphaComponent == 1)
         }
-        #expect(Color.matcha == Color(nsColor: .matcha))
+        #expect(Color.macOS15Matcha == Color(nsColor: .macOS15Matcha))
     }
 }
 
@@ -89,26 +90,27 @@ import Testing
             CodeToken(kind: .string, start: 20, length: 4),
         ]
 
-        let attributed = CodeTextView.attributed(text, tokens: tokens)
+        let attributed = MacOS15CodeTextView.attributed(text, tokens: tokens)
         let runs = attributed.runs.map { run in
             (String(attributed[run.range].characters), run.appKit.foregroundColor)
         }
 
         #expect(runs.map(\.0) == ["let", " x = ", "1"])
-        #expect(runs[0].1 == CodeTextView.color(for: .keyword))
+        #expect(runs[0].1 == MacOS15CodeTextView.color(for: .keyword))
         #expect(runs[1].1 == NSColor.labelColor)
-        #expect(runs[2].1 == CodeTextView.color(for: .number))
-        #expect(Set([CodeToken.Kind.keyword, .string, .comment, .number].map(CodeTextView.color(for:))).count == 4)
+        #expect(runs[2].1 == MacOS15CodeTextView.color(for: .number))
+        #expect(
+            Set([CodeToken.Kind.keyword, .string, .comment, .number].map(MacOS15CodeTextView.color(for:))).count == 4)
     }
 
     @Test func query_matches_wash_their_ranges_in_the_accent_and_ignore_spans_past_the_end() {
         let spans = [MatchSpan(start: 4, length: 1), MatchSpan(start: 40, length: 2)]
 
-        let code = CodeTextView.attributed("let x = 1", tokens: [], matches: spans)
-        let plain = CodeTextView.highlighted("let x = 1", matches: spans)
+        let code = MacOS15CodeTextView.attributed("let x = 1", tokens: [], matches: spans)
+        let plain = MacOS15CodeTextView.highlighted("let x = 1", matches: spans)
 
         for attributed in [code, plain] {
-            let washed = attributed.runs.filter { $0.appKit.backgroundColor == CodeTextView.matchWash }
+            let washed = attributed.runs.filter { $0.appKit.backgroundColor == MacOS15CodeTextView.matchWash }
             #expect(washed.map { String(attributed[$0.range].characters) } == ["x"])
         }
     }

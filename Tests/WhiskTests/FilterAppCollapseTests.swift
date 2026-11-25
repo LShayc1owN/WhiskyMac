@@ -31,7 +31,7 @@ import Testing
     private struct Row: View {
         @ObservedObject var model: Model
         var body: some View {
-            FilterBarView(
+            MacOS15FilterBarView(
                 filters: model.filters, appScope: model.scope, isPanelVisible: model.visible,
                 onToggleApp: { _ in }, onToggleKind: { _ in }, onFocusApp: { _ in }, onFocusKind: { _ in }
             )
@@ -65,7 +65,7 @@ import Testing
         #expect(!model.scope.isExpanded)
         #expect(initialOffset < 1)
         #expect(collapsedWidth < 1000)
-        #expect(descendants(scroll).filter { $0 is BackdropView }.count == 5)
+        #expect(descendants(scroll).filter { $0 is MacOS15BackdropView }.count == 5)
 
         model.scope.isExpanded = true
         settle()
@@ -80,12 +80,12 @@ import Testing
         #expect(!model.scope.isExpanded)
         #expect(abs(scroll.contentView.bounds.minX - initialOffset) < 1)
         #expect(document.frame.width == collapsedWidth)
-        #expect(descendants(scroll).filter { $0 is BackdropView }.count == 5)
+        #expect(descendants(scroll).filter { $0 is MacOS15BackdropView }.count == 5)
 
         model.scope.update(["app-5"])
         settle()
         #expect(document.frame.width <= collapsedWidth)
-        #expect(descendants(scroll).filter { $0 is BackdropView }.count == 4)
+        #expect(descendants(scroll).filter { $0 is MacOS15BackdropView }.count == 4)
         if let output = ProcessInfo.processInfo.environment["WHISK_UI_ARTIFACTS"] {
             let directory = URL(fileURLWithPath: output)
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)

@@ -159,11 +159,12 @@ import Testing
         let item = rich("CANARY_SECRET", format: "red")
         store.update(HistoryPresenter().present(items: [item], query: "CANARY_QUERY", now: item.copiedAt))
         store.setPrivacy(true)
-        let view = HistoryPanelView(store: store, actions: PanelActionSpy().actions)
+        let view = MacOS15HistoryPanelView(store: store, actions: PanelActionSpy().actions)
         let renderer = ImageRenderer(content: view)
         renderer.proposedSize = ProposedViewSize(width: 1000, height: 430)
         #expect(renderer.nsImage != nil)
-        let host = HistoryPanelHosting.make(store: store, actions: PanelActionSpy().actions)
+        let host = HistoryPanelHosting.make(
+            uiFactory: MacOS15UIFactory(), store: store, actions: PanelActionSpy().actions)
         host.frame = NSRect(x: 0, y: 0, width: 1000, height: 430)
         let window = NSWindow(contentRect: host.frame, styleMask: .borderless, backing: .buffered, defer: false)
         window.isReleasedWhenClosed = false
@@ -266,7 +267,7 @@ import Testing
         let item = anItem(.text("Synthetic visual fixture"))
         let card = try #require(HistoryPresenter().present(items: [item], query: "", now: item.copiedAt).cards.first)
         for scheme in [ColorScheme.light, .dark] {
-            let view = ItemCardView(card: card, actions: PanelActionSpy().actions)
+            let view = MacOS15ItemCardView(card: card, actions: PanelActionSpy().actions)
                 .environment(\.colorScheme, scheme)
             let renderer = ImageRenderer(content: view)
             renderer.proposedSize = ProposedViewSize(width: 240, height: 240)
@@ -288,7 +289,7 @@ import Testing
             store.setPrivacy(protected)
             for expanded in [false, true] {
                 store.expandedVersions = expanded
-                let view = PreviewOverlayView(store: store, actions: PanelActionSpy().actions)
+                let view = MacOS15PreviewOverlayView(store: store, actions: PanelActionSpy().actions)
                 let host = NSHostingView(rootView: view)
                 host.frame = NSRect(x: 0, y: 0, width: 900, height: 360)
                 let window = NSWindow(contentRect: host.frame, styleMask: .borderless, backing: .buffered, defer: false)

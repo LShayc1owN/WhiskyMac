@@ -8,7 +8,6 @@ import SwiftUI
 @available(macOS 26, *)
 private enum MacOS26AboutLinks {
     static let project = "https://github.com/LShayc1owN/WhiskyMac"
-    static let developer = "https://github.com/LShayc1owN"
     static let upstream = "https://github.com/nathan-poncet/whisk"
     static let issues = "https://github.com/LShayc1owN/WhiskyMac/issues/new"
     static let donation = "https://buymeacoffee.com/funclinkrev"
@@ -17,6 +16,8 @@ private enum MacOS26AboutLinks {
 
 @available(macOS 26, *)
 struct MacOS26AboutSettings: View {
+    @Environment(\.interfaceTypography) private var typography
+
     let distribution: Distribution
     @ObservedObject var updateChecker: UpdateChecker
     @ObservedObject var general: GeneralSettingsStore
@@ -48,7 +49,7 @@ struct MacOS26AboutSettings: View {
             Text(localized("Dependencies and credits"))
         }
         Section {
-            translations
+            translationCredits
                 .macOS26SettingsSearchAnchor("translations")
         } header: {
             Text(localized("Translation contributors"))
@@ -78,7 +79,11 @@ struct MacOS26AboutSettings: View {
     }
 
     private var identity: some View {
-        HStack(spacing: 16) {
+        let layout =
+            typography.usesLargeLayout
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
+            : AnyLayout(HStackLayout(spacing: 16))
+        return layout {
             Group {
                 if let icon = Self.appIcon {
                     Image(nsImage: icon).resizable().scaledToFit()
@@ -90,16 +95,16 @@ struct MacOS26AboutSettings: View {
                         .background(.tint.opacity(0.1), in: MacOS26SettingsSurface.rounded(minimum: 18))
                 }
             }
-            .frame(width: 64, height: 64)
+            .frame(width: max(64, typography.points(36)), height: max(64, typography.points(36)))
             .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 6) {
                 ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 10) { identityHeading }
+                    HStack(spacing: 10) { identityHeading }.fixedSize(horizontal: true, vertical: false)
                     VStack(alignment: .leading, spacing: 4) { identityHeading }
                 }
                 Text(appSummary)
-                    .font(.callout)
+                    .font(typography.font(.callout))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -110,54 +115,32 @@ struct MacOS26AboutSettings: View {
     @ViewBuilder
     private var identityHeading: some View {
         Text(AppIdentity.displayName)
-            .font(.title2.weight(.semibold))
+            .font(typography.font(.title2).weight(.semibold))
             .accessibilityAddTraits(.isHeader)
-        if let version = buildInfo.versionWithChannel {
-            let tint: Color =
-                switch buildInfo.channel {
-                case .debug: .red
-                case .beta: .yellow
-                case .release: .green
-                }
-            Text(verbatim: "\(localized("Version")) \(version)")
-                .font(.caption.weight(.medium).monospacedDigit())
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .background(tint.opacity(0.22), in: .capsule)
-                .fixedSize()
+        if let number = buildInfo.versionNumber {
+            MacOS26VersionLabel(
+                version: "\(localized("Version")) \(number)", buildInfo: buildInfo, typography: typography)
         }
     }
 
     @ViewBuilder
     private var updateRows: some View {
-        HStack(spacing: 12) {
-            updateIcon
-                .frame(width: 32, height: 32)
-                .background(.tint.opacity(0.1), in: .rect(cornerRadius: 8))
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(localized("Software Update"))
-                    .font(.headline)
-                    .accessibilityAddTraits(.isHeader)
-                Text(updateStatus)
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                if let release = updateChecker.availableRelease {
-                    Link(localized("Download update on GitHub"), destination: release.page)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+        let layout =
+            typography.usesLargeLayout
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
+            : AnyLayout(HStackLayout(spacing: 12))
+        layout {
+            updateSummary
             Button(localized("Check for updates"), systemImage: "arrow.clockwise") {
                 updateChecker.checkNow()
             }
-            .buttonStyle(.bordered)
+            .macOS26SettingsAction()
             .disabled(!updateChecker.canCheckForUpdates || updateChecker.state == .checking)
         }
         .macOS26SettingsSearchAnchor("checkUpdates")
         MacOS26MenuRow(
             localized("Update channel"),
-            selection: Binding(get: { updateChecker.channel }, set: updateChecker.setChannel)
+            selection: Binding(get: { updateChecker.channel }, set: updateChecker.setChannel), display: \.selectionTitle
         ) {
             ForEach(UpdateChannel.allCases, id: \.self) { channel in
                 Text(channel.selectionTitle).tag(channel)
@@ -165,6 +148,29 @@ struct MacOS26AboutSettings: View {
         }
         .macOS26SettingsSearchAnchor("updateChannel")
         Toggle(localized("Check for updates at launch"), isOn: $general.checkForUpdates)
+    }
+
+    private var updateSummary: some View {
+        HStack(spacing: 12) {
+            updateIcon
+                .font(typography.font(.body))
+                .frame(width: typography.room(32), height: typography.room(32))
+                .background(.tint.opacity(0.1), in: .rect(cornerRadius: 8))
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(localized("Software Update"))
+                    .font(typography.font(.headline))
+                    .accessibilityAddTraits(.isHeader)
+                Text(updateStatus)
+                    .font(typography.font(.callout))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let release = updateChecker.availableRelease {
+                    Link(localized("Download update on GitHub"), destination: release.page)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 
     @ViewBuilder
@@ -178,33 +184,56 @@ struct MacOS26AboutSettings: View {
         }
     }
 
-    private var translations: some View {
-        Grid(alignment: .leading, horizontalSpacing: 18, verticalSpacing: 12) {
-            ForEach(AppLanguage.allCases.filter { $0 != .system }) { language in
-                GridRow(alignment: .firstTextBaseline) {
-                    Text(language.label)
+    private var translationCredits: some View {
+        let groups = TranslationCredits.byLanguage
+        return ViewThatFits(in: .horizontal) {
+            Grid(alignment: .leading, horizontalSpacing: 18, verticalSpacing: 12) {
+                ForEach(groups) { group in
+                    GridRow(alignment: .firstTextBaseline) {
+                        Text(group.language.label).accessibilityAddTraits(.isHeader)
+                        contributors(in: group)
+                    }
+                }
+            }
+            .fixedSize(horizontal: true, vertical: false)
+            VStack(alignment: .leading, spacing: 12) {
+                ForEach(groups) { group in
                     VStack(alignment: .leading, spacing: 4) {
-                        HStack(alignment: .firstTextBaseline, spacing: 4) {
-                            inlineLink("ChatGPT", to: "https://chatgpt.com/")
-                            Text(verbatim: "By")
-                            inlineLink("OpenAI", to: "https://openai.com/")
-                        }
-                        if language == .simplifiedChinese {
-                            MacOS26DeveloperProfile(name: "LinShay 琳曦")
-                        }
+                        Text(group.language.label).accessibilityAddTraits(.isHeader)
+                        contributors(in: group)
                     }
                 }
             }
         }
     }
 
-    @ViewBuilder
-    private func inlineLink(_ title: String, to address: String) -> some View {
-        if let destination = URL(string: address) {
-            Link(title, destination: destination)
-        } else {
-            Text(title)
+    private func contributors(in group: TranslationCredits.LanguageGroup) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            ForEach(group.products) { credit in
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    creditIcon(TranslationCredits.aiProductSymbol, label: localized("AI assistance"))
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Link(credit.product.title, destination: credit.product.destination)
+                        Text(verbatim: "By")
+                        Link(credit.provider.title, destination: credit.provider.destination)
+                    }
+                    .buttonStyle(.link)
+                }
+            }
+            ForEach(group.humans) { contributor in
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    creditIcon(contributor.kind.symbol, label: localized("Human contributors"))
+                    MacOS26DeveloperProfile(name: contributor.name, homepages: contributor.homepages)
+                }
+            }
         }
+    }
+
+    private func creditIcon(_ symbol: String, label: String) -> some View {
+        Image(systemName: symbol)
+            .foregroundStyle(.secondary)
+            .frame(width: typography.room(16))
+            .accessibilityLabel(label)
     }
 
     private var appSummary: AttributedString {
@@ -232,7 +261,13 @@ struct MacOS26AboutSettings: View {
 
     private var upstreamCredit: AttributedString {
         var text = AttributedString(localized("Whisk is the upstream project for WhiskyMac."))
-        if let range = text.range(of: "Whisk") { text[range].link = URL(string: MacOS26AboutLinks.upstream) }
+        guard let range = text.range(of: "Whisk") else { return text }
+        var link = AttributedString("Whisk")
+        var arrow = AttributedString("\u{00A0}↗")
+        arrow.font = typography.font(.caption2).weight(.semibold)
+        link.append(arrow)
+        link.link = URL(string: MacOS26AboutLinks.upstream)
+        text.replaceSubrange(range, with: link)
         return text
     }
 
@@ -265,10 +300,13 @@ struct MacOS26AboutSettings: View {
 
 @available(macOS 26, *)
 struct MacOS26DeveloperSettings: View {
+    @Environment(\.interfaceTypography) private var typography
+
     var body: some View {
         Section {
             VStack(alignment: .leading, spacing: 10) {
-                MacOS26DeveloperProfile(name: "Lin Shay").font(.headline)
+                MacOS26DeveloperProfile(name: "Lin Shay", homepages: ProfileHomepage.developerHomepages)
+                    .font(typography.font(.headline))
                 Text(
                     localized(
                         "LinShay (琳曦) independently maintains WhiskyMac, with a focus on a more comfortable clipboard experience on macOS."
@@ -289,37 +327,38 @@ struct MacOS26DeveloperSettings: View {
 @available(macOS 26, *)
 private struct MacOS26DeveloperProfile: View {
     let name: String
+    let homepages: [ProfileHomepage]
     @State private var isPresented = false
     @State private var dismissal: Task<Void, Never>?
 
     var body: some View {
-        Button {
-            dismissal?.cancel()
-            isPresented = true
-        } label: {
-            Label(name, systemImage: "arrow.up.right")
-        }
-        .buttonStyle(.link)
-        .help(localized("View profile links"))
-        .onHover { hovering in
-            if hovering {
+        Label(name, systemImage: "arrow.up.right")
+            .beButton {
                 dismissal?.cancel()
                 isPresented = true
-            } else {
-                dismissAfterHover()
             }
-        }
-        .popover(isPresented: $isPresented) {
-            VStack(alignment: .leading, spacing: 8) {
-                externalLink(localized("Lin Shay on GitHub"), to: MacOS26AboutLinks.developer)
-                externalLink("Buy Me a Coffee", to: MacOS26AboutLinks.donation)
-            }
-            .padding(12)
+            .buttonStyle(.link)
+            .help(localized("View profile links"))
             .onHover { hovering in
-                if hovering { dismissal?.cancel() } else { dismissAfterHover() }
+                if hovering {
+                    dismissal?.cancel()
+                    isPresented = true
+                } else {
+                    dismissAfterHover()
+                }
             }
-        }
-        .onDisappear { dismissal?.cancel() }
+            .popover(isPresented: $isPresented) {
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(homepages) { homepage in
+                        externalLink(homepage.title, to: homepage.destination.absoluteString)
+                    }
+                }
+                .padding(12)
+                .onHover { hovering in
+                    if hovering { dismissal?.cancel() } else { dismissAfterHover() }
+                }
+            }
+            .onDisappear { dismissal?.cancel() }
     }
 
     private func dismissAfterHover() {
@@ -339,74 +378,116 @@ private func externalLink(_ title: String, to address: String) -> some View {
             Label(title, systemImage: destination.scheme == "mailto" ? "envelope" : "arrow.up.right")
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .buttonStyle(.bordered)
+        .macOS26SettingsAction()
     }
 }
 
 @available(macOS 26, *)
 struct MacOS26LegalSettings: View {
+    @Environment(\.interfaceTypography) private var typography
+
     @ObservedObject var search: SettingsSearchModel
     @State private var document = LegalDocument.license
     @State private var showsOriginal = false
 
     private var fileURL: URL? { LegalDocuments.url(for: document) }
 
+    private var minimumReaderHeight: CGFloat { max(140, typography.lineHeight(13) * 4 + 32) }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text(localized("Document"))
-                    .font(.headline)
-                    .accessibilityHidden(true)
-                Spacer()
-                Picker(localized("Document"), selection: $document) {
-                    ForEach(LegalDocument.allCases) { document in Text(document.title).tag(document) }
+            Group {
+                if typography.isStandard {
+                    HStack {
+                        Text(localized("Document")).font(typography.font(.headline)).accessibilityHidden(true)
+                        Spacer()
+                        Picker(localized("Document"), selection: $document) { documents }
+                            .labelsHidden()
+                            .pickerStyle(.menu)
+                            .frame(maxWidth: 280)
+                    }
+                } else {
+                    MacOS26MenuRow(localized("Document"), selection: $document, display: \.title) { documents }
                 }
-                .labelsHidden()
-                .pickerStyle(.menu)
-                .frame(maxWidth: 280)
             }
             .macOS26SettingsSearchAnchor("licenses")
-            Picker(localized("Reading mode"), selection: $showsOriginal) {
-                Text(localized("Overview")).tag(false)
-                Text(localized("Original text")).tag(true)
+
+            if typography.isStandard {
+                Picker(localized("Reading mode"), selection: $showsOriginal) { readingModes }
+                    .pickerStyle(.segmented)
+            } else {
+                MacOS26MenuRow(localized("Reading mode"), selection: $showsOriginal, display: readingModeTitle) {
+                    readingModes
+                }
             }
-            .pickerStyle(.segmented)
 
             if !showsOriginal {
                 Text(localized("The overview is a reading aid. Refer to the original text for the complete terms."))
-                    .font(.caption)
+                    .font(typography.font(.caption))
                     .foregroundStyle(.secondary)
             }
 
             ScrollView {
                 Text(showsOriginal ? originalText : document.overview)
-                    .font(showsOriginal ? .system(size: 12, design: .monospaced) : .body)
+                    .font(showsOriginal ? typography.font(size: 12, design: .monospaced) : typography.font(.body))
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(16)
             }
             .id(document)
-            .frame(maxHeight: .infinity)
+            .id(showsOriginal)
+            .frame(minHeight: minimumReaderHeight, idealHeight: minimumReaderHeight, maxHeight: .infinity)
             .background(.fill.tertiary, in: MacOS26SettingsSurface.rounded(minimum: 22))
 
             if let fileURL {
                 Text(fileURL.path)
-                    .font(.caption)
+                    .font(typography.font(.caption))
                     .foregroundStyle(.secondary)
-                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
                     .textSelection(.enabled)
-                HStack(spacing: 10) {
-                    Button(localized("Open source file")) { NSWorkspace.shared.open(fileURL) }
-                    Button(localized("Show in Finder"), systemImage: "folder") {
-                        NSWorkspace.shared.activateFileViewerSelecting([fileURL])
-                    }
+                let layout =
+                    typography.usesLargeLayout
+                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8)) : AnyLayout(HStackLayout(spacing: 10))
+                layout {
+                    fileActionLabel(localized("Open source file"), symbol: "doc.fill")
+                        .beButton { NSWorkspace.shared.open(fileURL) }
+                        .macOS26SettingsAction()
+                    fileActionLabel(localized("Show in Finder"), symbol: "folder.fill")
+                        .beButton { NSWorkspace.shared.activateFileViewerSelecting([fileURL]) }
+                        .macOS26SettingsAction()
                 }
-                .buttonStyle(.bordered)
             }
         }
         .environment(\.macOS26SettingsSearchHighlight, search.highlightedAnchor)
         .padding(.horizontal, 24)
         .padding(.bottom, 24)
+    }
+
+    private var documents: some View {
+        ForEach(LegalDocument.allCases) { document in Text(document.title).tag(document) }
+    }
+
+    private func readingModeTitle(_ original: Bool) -> String {
+        original ? localized("Original text") : localized("Overview")
+    }
+
+    @ViewBuilder private var readingModes: some View {
+        Text(readingModeTitle(false)).tag(false)
+        Text(readingModeTitle(true)).tag(true)
+    }
+
+    private func fileActionLabel(_ title: String, symbol: String) -> some View {
+        Label {
+            HStack(spacing: 4) {
+                Text(title)
+                Image(systemName: "arrow.up.right")
+                    .font(typography.font(.caption2).weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+            }
+        } icon: {
+            Image(systemName: symbol)
+        }
     }
 
     private var originalText: String {

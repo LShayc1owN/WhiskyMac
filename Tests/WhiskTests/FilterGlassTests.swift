@@ -90,7 +90,7 @@ import Testing
     private struct Row: View {
         @ObservedObject var model: Model
         var body: some View {
-            FilterBarView(
+            MacOS15FilterBarView(
                 filters: model.filters, isPanelVisible: model.visible,
                 onToggleApp: { _ in }, onToggleKind: { _ in }, onFocusApp: { _ in }, onFocusKind: { _ in }
             )
@@ -126,9 +126,9 @@ import Testing
         }
     }
 
-    private func backgrounds(_ view: NSView?) -> [BackdropView] {
+    private func backgrounds(_ view: NSView?) -> [MacOS15BackdropView] {
         guard let view else { return [] }
-        return (view as? BackdropView).map { [$0] } ?? view.subviews.flatMap { backgrounds($0) }
+        return (view as? MacOS15BackdropView).map { [$0] } ?? view.subviews.flatMap { backgrounds($0) }
     }
 
     private func scrollView(_ view: NSView?) -> NSScrollView? {

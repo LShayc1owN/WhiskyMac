@@ -220,7 +220,7 @@ private final class FilePreviewScript: @unchecked Sendable {
         let items = [anItem(.fileReferences(["/synthetic/complex.svg"]))]
         state.update(HistoryPresenter().present(items: items, query: "", now: Date()))
         let controller = PanelController(
-            stateStore: state, actions: PanelActionSpy().actions,
+            uiFactory: MacOS15UIFactory(), stateStore: state, actions: PanelActionSpy().actions,
             keyBindings: KeyBindingsStore(defaults: sandbox.defaults),
             vimBindings: VimBindingsStore(defaults: sandbox.defaults), vimMode: { false })
         controller.preparePresentation(pins: false, style: nil)
@@ -230,7 +230,7 @@ private final class FilePreviewScript: @unchecked Sendable {
             styleMask: .borderless, backing: .buffered, defer: false)
         window.isReleasedWhenClosed = false
         let host = NSHostingView(
-            rootView: FilePreviewView(
+            rootView: MacOS15FilePreviewView(
                 names: ["complex.svg"], overflow: 0, thumbnailPath: "/synthetic/complex.svg", size: .card,
                 store: thumbnails))
         host.sizingOptions = []

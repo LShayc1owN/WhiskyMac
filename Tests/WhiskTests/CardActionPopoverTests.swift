@@ -26,7 +26,7 @@ import Testing
             Group {
                 if model.mounted {
                     Color.clear.frame(width: 200, height: 100)
-                        .cardActionPopover(isPresented: $model.presented) {
+                        .macOS15CardActionPopover(isPresented: $model.presented) {
                             let _ = model.builds += 1
                             VStack {
                                 Text("Synthetic editor")
@@ -46,6 +46,7 @@ import Testing
         model.presented = false
         let ordering = CardPopoverCoordinator()
         let owner = FloatingPanel()
+        MacOS15UIFactory().configure(window: owner, for: .history)
         owner.appearance = AppearanceMode.dark.nsAppearance
         owner.keepsOpenOnResignKey = { ordering.presentationID != nil }
         owner.setFrame(NSRect(x: -10000, y: -10000, width: 500, height: 300), display: false)
@@ -99,15 +100,24 @@ import Testing
         let ordering = CardPopoverCoordinator()
         ordering.presentationChanged = { state.cardMenuOpen = $0 }
         let owner = FloatingPanel()
+        MacOS15UIFactory().configure(window: owner, for: .history)
         owner.keyHandler = { ordering.handleKey($0) }
         owner.keepsOpenOnResignKey = { state.cardMenuOpen }
-        owner.setFrame(NSRect(x: -10000, y: -10000, width: 500, height: 300), display: false)
+        // Normal regression runs use offscreen windows. A local WindowServer
+        // probe also verifies occlusion where the user could actually see it.
+        let checksOcclusion = ProcessInfo.processInfo.environment["WHISK_CHECK_VISIBLE_WINDOW_ORDER"] == "1"
+        var ownerFrame = NSRect(x: -10000, y: -10000, width: 500, height: 300)
+        if checksOcclusion {
+            let screen = try #require(NSScreen.main).visibleFrame
+            ownerFrame.origin = NSPoint(x: screen.midX - 250, y: screen.midY - 150)
+        }
+        owner.setFrame(ownerFrame, display: false)
         let root = NSView(frame: NSRect(x: 0, y: 0, width: 500, height: 300))
         owner.contentView = root
         let anchor = NSView(frame: NSRect(x: 100, y: 30, width: 200, height: 100))
         root.addSubview(anchor)
         let preview = NSPanel(
-            contentRect: NSRect(x: -10000, y: -10000, width: 500, height: 300),
+            contentRect: ownerFrame,
             styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         preview.isReleasedWhenClosed = false
         preview.level = .statusBar
@@ -116,7 +126,7 @@ import Testing
         let card = try #require(HistoryPresenter().present(items: [item], query: "", now: Date()).cards.first)
         let spy = PanelActionSpy()
         var performed: [CardAction] = []
-        let coordinator = CardActionPopover<AnyView>.Coordinator()
+        let coordinator = MacOS15CardActionPopover<AnyView>.Coordinator()
         coordinator.anchor = anchor
         coordinator.ordering = ordering
         coordinator.reduceMotion = true
@@ -137,7 +147,7 @@ import Testing
             if previewFirst { preview.orderFront(nil) }
             ordering.previewWindow = preview
             coordinator.content = AnyView(
-                CardActionMenu(
+                MacOS15CardActionMenu(
                     card: card, actions: spy.actions, perform: { performed.append($0) }, editPinnedItem: {},
                     dismiss: { coordinator.close() }
                 ).environment(\.cardPopoverCoordinator, ordering))
@@ -154,13 +164,9 @@ import Testing
             preview.setFrame(menu.frame, display: true)
             preview.orderFront(nil)
             ordering.previewWindow = preview
-            try await Task.sleep(for: .milliseconds(100))
             #expect(menu.level.rawValue > preview.level.rawValue)
-            let windows = (CGWindowListCopyWindowInfo(.optionAll, kCGNullWindowID) as? [[String: Any]] ?? [])
-                .compactMap { ($0[kCGWindowNumber as String] as? NSNumber)?.intValue }
-            let menuIndex = try #require(windows.firstIndex(of: menu.windowNumber))
-            let previewIndex = try #require(windows.firstIndex(of: preview.windowNumber))
-            #expect(menuIndex < previewIndex, "The WindowServer must place the actual menu above the preview")
+            #expect(menu.frame.intersects(preview.frame))
+            try await expectMenu(menu, above: preview, checkingOcclusion: checksOcclusion)
             #expect(menu.contentView?.hitTest(NSPoint(x: 30, y: 30)) != nil)
             if !previewFirst {
                 owner.sendEvent(try key(125, "\u{f701}", window: owner))
@@ -192,6 +198,34 @@ import Testing
         try await Task.sleep(for: .milliseconds(100))
         coordinator.outsideInteraction(in: nil)
         #expect(!owner.isVisible && !preview.isVisible && !state.cardMenuOpen && !presented)
+    }
+
+    private func expectMenu(_ menu: NSWindow, above preview: NSWindow, checkingOcclusion: Bool) async throws {
+        let clock = ContinuousClock()
+        let deadline = clock.now + .seconds(2)
+        let options: CGWindowListOption = checkingOcclusion ? .optionOnScreenOnly : .optionAll
+        let ids = [menu.windowNumber, preview.windowNumber]
+        var order: [Int] = []
+        var levels: [Int: Int] = [:]
+        repeat {
+            let snapshot = CGWindowListCopyWindowInfo(options, kCGNullWindowID) as? [[String: Any]]
+            levels.removeAll(keepingCapacity: true)
+            order.removeAll(keepingCapacity: true)
+            for row in snapshot ?? [] {
+                guard let number = row[kCGWindowNumber as String] as? Int, ids.contains(number),
+                    let layer = row[kCGWindowLayer as String] as? Int
+                else { continue }
+                levels[number] = layer
+                order.append(number)
+            }
+            if let front = levels[menu.windowNumber], let back = levels[preview.windowNumber], front > back,
+                !checkingOcclusion || order == ids
+            {
+                return
+            }
+            try await Task.sleep(for: .milliseconds(20))
+        } while clock.now < deadline
+        Issue.record("WindowServer layers \(levels), order \(order), expected menu above preview \(ids)")
     }
 
     private func settle(_ host: NSView) async {

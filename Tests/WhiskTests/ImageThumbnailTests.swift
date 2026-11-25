@@ -38,6 +38,18 @@ private final class ImageDecodeRecorder {
         return data as Data
     }
 
+    @Test func spotlight_thumbnail_requests_use_the_bounded_async_loader() async throws {
+        let id = UUID()
+        let store = ImageThumbnailStore()
+        let request = try #require(ImageThumbnailRequest.spotlight(id: id, payload: .image(ViewFixtures.png)))
+        #expect(request.id == id && request.maxPixelSize == 512)
+        #expect(await load(request, from: store) != nil)
+
+        let malformed = try #require(ImageThumbnailRequest.spotlight(id: UUID(), payload: .image(Data([0]))))
+        #expect(await load(malformed, from: store) == nil)
+        #expect(ImageThumbnailRequest.spotlight(id: id, payload: .image(Data(count: 8 * 1024 * 1024 + 1))) == nil)
+    }
+
     private func load(_ request: ImageThumbnailRequest, from store: ImageThumbnailStore) async -> NSImage? {
         await withCheckedContinuation { continuation in
             store.load(request) { continuation.resume(returning: $0) }
@@ -217,12 +229,15 @@ private final class ImageDecodeRecorder {
     }
 
     @Test func rendering_size_is_bounded_and_small_geometry_changes_share_a_size() {
-        #expect(ImageThumbnailView.pixelSize(for: CGSize(width: 10000, height: 10000), scale: 2, fills: true) == 512)
-        #expect(ImageThumbnailView.pixelSize(for: CGSize(width: 10000, height: 10000), scale: 2, fills: false) == 2048)
-        #expect(ImageThumbnailView.pixelSize(for: .zero, scale: 2, fills: true) == 0)
         #expect(
-            ImageThumbnailView.pixelSize(for: CGSize(width: 150.1, height: 100), scale: 2, fills: true)
-                == ImageThumbnailView.pixelSize(for: CGSize(width: 150.2, height: 100), scale: 2, fills: true))
+            MacOS15ImageThumbnailView.pixelSize(for: CGSize(width: 10000, height: 10000), scale: 2, fills: true) == 512)
+        #expect(
+            MacOS15ImageThumbnailView.pixelSize(for: CGSize(width: 10000, height: 10000), scale: 2, fills: false)
+                == 2048)
+        #expect(MacOS15ImageThumbnailView.pixelSize(for: .zero, scale: 2, fills: true) == 0)
+        #expect(
+            MacOS15ImageThumbnailView.pixelSize(for: CGSize(width: 150.1, height: 100), scale: 2, fills: true)
+                == MacOS15ImageThumbnailView.pixelSize(for: CGSize(width: 150.2, height: 100), scale: 2, fills: true))
     }
 
     @Test func image_preview_keeps_its_source_header_visible_above_the_bitmap() throws {
@@ -232,7 +247,7 @@ private final class ImageDecodeRecorder {
         state.detailSource = { $0 == item.id ? item : nil }
         state.update(HistoryPresenter().present(items: [item], query: "", now: item.copiedAt, selectedID: item.id))
         state.preparePreview()
-        let host = NSHostingView(rootView: PreviewOverlayView(store: state).environment(\.colorScheme, .light))
+        let host = NSHostingView(rootView: MacOS15PreviewOverlayView(store: state).environment(\.colorScheme, .light))
         host.sizingOptions = []
         let window = NSWindow(
             contentRect: NSRect(x: -10000, y: -10000, width: 800, height: 620),
@@ -276,7 +291,7 @@ private final class ImageDecodeRecorder {
         #expect(controller.select(item.id))
         #expect(board.written == [.image(original)])
         #expect(SaveToDisk.proposal(for: .image(original))?.data == original)
-        let provider = ItemCardView.dragProvider(for: .image(original))
+        let provider = MacOS15ItemCardView.dragProvider(for: .image(original))
         #expect(provider.canLoadObject(ofClass: NSImage.self))
         let exported: Data? = await withCheckedContinuation { continuation in
             provider.loadDataRepresentation(forTypeIdentifier: "public.png") { data, _ in

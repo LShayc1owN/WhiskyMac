@@ -145,8 +145,8 @@ import Testing
     }
 
     @Test func spotlight_pixels_outside_the_pointer_region_are_transparent() throws {
-        let content = SpotlightCanvas(
-            payload: .text(String(repeating: "SYNTHETIC SAMPLE\n", count: 12)),
+        let content = MacOS15SpotlightCanvas(
+            content: .text(String(repeating: "SYNTHETIC SAMPLE\n", count: 12)),
             point: CGPoint(x: 110, y: 110)
         )
         .frame(width: 220, height: 220)
@@ -172,23 +172,21 @@ import Testing
             .fileReferences(["/synthetic/file.txt"]), .image(Data()),
         ] {
             let renderer = ImageRenderer(
-                content: SpotlightCanvas(payload: payload, point: CGPoint(x: 100, y: 100))
+                content: MacOS15SpotlightCanvas(content: SpotlightExcerpt(payload), point: CGPoint(x: 100, y: 100))
                     .frame(width: 220, height: 220))
             #expect(renderer.nsImage != nil)
         }
-        #expect(SpotlightCanvas.thumbnail(Data([0])) == nil)
-        #expect(SpotlightCanvas.thumbnail(Data(count: 8 * 1024 * 1024 + 1)) == nil)
-        #expect(SpotlightCanvas.thumbnail(ViewFixtures.png) != nil)
         let state = HistoryViewStateStore()
         state.privacyInteractions.hover = .preview
         state.setSpotlightAllowed(true)
         state.setPanelVisible(true)
         state.setPrivacy(true)
         state.update(HistoryPresenter().present(items: [anItem(.text("HOVER-CANARY"))], query: "", now: Date()))
-        let host = HistoryPanelHosting.make(store: state, actions: PanelActionSpy().actions)
+        let host = HistoryPanelHosting.make(
+            uiFactory: MacOS15UIFactory(), store: state, actions: PanelActionSpy().actions)
         #expect(host.accessibilityChildren()?.isEmpty == true)
         #expect(host.accessibilityLabel() == localized("Content hidden by Privacy Mode"))
-        let renderer = ImageRenderer(content: PrivacySpotlightView(store: state))
+        let renderer = ImageRenderer(content: MacOS15PrivacySpotlightView(store: state))
         renderer.proposedSize = ProposedViewSize(width: 800, height: 340)
         #expect(renderer.nsImage != nil)
     }

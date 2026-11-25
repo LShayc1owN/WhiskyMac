@@ -14,7 +14,10 @@ struct AppBuildInfo: Equatable {
 
     let version: String?
     let channel: Channel
-    let versionWithChannel: String?
+    let versionNumber: String?
+    let channelLabel: String
+
+    var versionWithChannel: String? { versionNumber.map { "\($0) \(channelLabel)" } }
 
     static let betaVersion = #/(?i)(v?[0-9]+(?:\.[0-9]+){1,3})-?beta(?:[.-]?([0-9]+))?/#
 
@@ -40,16 +43,11 @@ struct AppBuildInfo: Equatable {
             channel = .release
         }
 
-        if let version, !version.isEmpty {
-            let versionNumber = beta.map { String($0.1) } ?? version
-            let label = "\(versionNumber) \(channel.rawValue)"
-            if channel == .beta, let number = beta?.2 {
-                versionWithChannel = "\(label) \(number)"
-            } else {
-                versionWithChannel = label
-            }
+        versionNumber = beta.map { String($0.1) } ?? version.flatMap { $0.isEmpty ? nil : $0 }
+        if channel == .beta, let number = beta?.2 {
+            channelLabel = "\(channel.rawValue) \(number)"
         } else {
-            versionWithChannel = nil
+            channelLabel = channel.rawValue
         }
     }
 }

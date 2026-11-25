@@ -95,10 +95,16 @@ final class ScriptedPasteboard: Pasteboard {
     private(set) var writtenRTF: [Data?] = []
     private(set) var accessRequests = 0
 
+    private var paused = false
+    func setCapturePaused(_ paused: Bool) {
+        if self.paused && !paused { pendingSnapshots.removeAll() }
+        self.paused = paused
+    }
+
     init() {}
 
     func readIfChanged() -> PasteboardSnapshot? {
-        guard access == .granted else { return nil }
+        guard !paused, access == .granted else { return nil }
         return pendingSnapshots.isEmpty ? nil : pendingSnapshots.removeFirst()
     }
 

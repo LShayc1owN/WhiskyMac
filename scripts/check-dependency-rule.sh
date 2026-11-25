@@ -47,3 +47,4 @@ if [ "$violations" -ne 0 ]; then
 fi
 
 echo "Dependency Rule: OK"
+python3 scripts/check-ui-boundaries.py

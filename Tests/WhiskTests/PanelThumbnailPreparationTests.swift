@@ -102,7 +102,7 @@ import Testing
             // No event loop, async view task, or decode between mounting and sampling.
             let firstDraw = ImageRenderer(
                 content:
-                    ImageThumbnailView(id: item.id, content: .stored(reference), fills: true, thumbnails: images)
+                    MacOS15ImageThumbnailView(id: item.id, content: .stored(reference), fills: true, thumbnails: images)
                     .frame(width: 120, height: 80))
             let pixels = NSBitmapImageRep(cgImage: try #require(firstDraw.cgImage))
             let center = try #require(
@@ -134,7 +134,7 @@ import Testing
         let state = HistoryViewStateStore()
         state.update(HistoryPresenter().present(items: [item], query: "", now: item.copiedAt, selectedID: item.id))
         let panel = PanelController(
-            stateStore: state, actions: PanelActionSpy().actions,
+            uiFactory: MacOS15UIFactory(), stateStore: state, actions: PanelActionSpy().actions,
             keyBindings: KeyBindingsStore(defaults: defaults.defaults),
             vimBindings: VimBindingsStore(defaults: defaults.defaults), vimMode: { false })
         var windowsAlreadyShown: [Bool] = []

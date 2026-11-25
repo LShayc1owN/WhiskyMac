@@ -53,12 +53,13 @@ enum SaveSplit {
             throw SplitFailure.stale
         }
         let next = History(items: additions + remaining, capacity: policy.capacity)
-        guard ids.isSubset(of: Set(next.items.map(\.id))) else { throw SplitFailure.capacity }
-        if request.mode == .keepOriginal, !next.items.contains(where: { $0.id == source.id }) {
+        let kept = Set(next.items.lazy.map(\.id))
+        guard ids.isSubset(of: kept) else { throw SplitFailure.capacity }
+        if request.mode == .keepOriginal, !kept.contains(source.id) {
             throw SplitFailure.capacity
         }
         return SplitSaveAssessment(
             history: next,
-            evictedCount: remaining.filter { previous in !next.items.contains(where: { $0.id == previous.id }) }.count)
+            evictedCount: additions.count + remaining.count - next.items.count)
     }
 }

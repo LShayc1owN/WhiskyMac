@@ -32,12 +32,12 @@ struct HistoryFilter: Equatable {
     }
 
     /// The selected facets, independent of the text query and its ranking.
-    func includes(_ item: ClipboardItem) -> Bool {
+    func includes(_ item: ClipboardItem, recognition: SecretRecognition = .init()) -> Bool {
         if handoffOnly, item.source?.origin != .handoffMarker { return false }
         if !tags.isEmpty, !item.isPinned || item.pinnedMetadata.tags.isDisjoint(with: tags) { return false }
         if pinnedOnly, !item.isPinned { return false }
         if !sources.isEmpty, !sources.contains(where: { item.source?.matches($0) ?? false }) { return false }
-        return categories.isEmpty || categories.contains(item.category)
+        return categories.isEmpty || recognition.category(of: item).isIncluded(in: categories)
     }
 }
 
@@ -49,15 +49,19 @@ struct HistoryFilter: Equatable {
 struct FilterHistory {
     init() {}
 
-    func callAsFunction(_ history: History, filter: HistoryFilter) -> [ClipboardItem] {
+    func callAsFunction(
+        _ history: History, filter: HistoryFilter, recognition: SecretRecognition = .init()
+    ) -> [ClipboardItem] {
         guard filter != HistoryFilter() else { return history.items }
         let query = ParsedQuery(filter.query, mode: filter.searchMatchMode)
         if !query.ranksMatches {
-            return history.items.filter { filter.includes($0) && query.score($0) != nil }
+            return history.items.filter {
+                filter.includes($0, recognition: recognition) && query.score($0, recognition: recognition) != nil
+            }
         }
         var scored: [(item: ClipboardItem, score: Int, recency: Int)] = []
-        for (recency, item) in history.items.enumerated() where filter.includes(item) {
-            guard let score = query.score(item) else { continue }
+        for (recency, item) in history.items.enumerated() where filter.includes(item, recognition: recognition) {
+            guard let score = query.score(item, recognition: recognition) else { continue }
             scored.append((item, score, recency))
         }
         scored.sort {
@@ -109,37 +113,43 @@ struct ParsedQuery {
     /// nil means no match; a larger score ranks earlier. Operators are
     /// gates; each free word contributes its best fuzzy score across the
     /// content and the source application.
-    func score(_ item: ClipboardItem) -> Int? {
+    func score(_ item: ClipboardItem, recognition: SecretRecognition = .init()) -> Int? {
         if pinnedOnly, !item.isPinned { return nil }
         for term in appTerms where !sourceMatches(item, term) {
             return nil
         }
-        for term in typeTerms where !item.category.rawValue.hasPrefix(term) {
-            return nil
+        if !typeTerms.isEmpty {
+            let category = recognition.category(of: item)
+            guard typeTerms.allSatisfy({ category.matches(typePrefix: $0) }) else { return nil }
         }
         guard hasText else { return 0 }
         let source = sourceText(item)
+        let text: String? =
+            if item.pinnedMetadata.hidesContent {
+                nil
+            } else if recognition.masks(item) {
+                item.secretMatch?.visiblePrefix
+            } else {
+                item.payload.searchableText
+            }
+        let parts = recognition.hidesContent(of: item) ? nil : item.splitGroup?.parts
         if let phrase {
             if phrase.firstMatch(in: item.pinnedMetadata.note) != nil
                 || source.flatMap({ phrase.firstMatch(in: $0) }) != nil
             {
                 return 0
             }
-            guard !item.pinnedMetadata.hidesContent else { return nil }
-            if item.payload.searchableText.flatMap({ phrase.firstMatch(in: $0) }) != nil
-                || item.splitGroup?.parts.contains(where: { phrase.firstMatch(in: $0.text) != nil }) == true
+            if text.flatMap({ phrase.firstMatch(in: $0) }) != nil
+                || parts?.contains(where: { phrase.firstMatch(in: $0.text) != nil }) == true
             {
                 return 0
             }
             return nil
         }
-        var text = item.pinnedMetadata.hidesContent ? nil : item.payload.searchableText
-        if !item.pinnedMetadata.hidesContent, let group = item.splitGroup {
-            text = ([text].compactMap { $0 } + group.parts.map(\.text)).joined(separator: "\n")
-        }
+        let combinedText = parts.map { ([text].compactMap { $0 } + $0.map(\.text)).joined(separator: "\n") } ?? text
         var total = 0
         for word in words {
-            let content = text.flatMap { word.score(in: $0) }
+            let content = combinedText.flatMap { word.score(in: $0) }
             let note = word.score(in: item.pinnedMetadata.note)
             let sourceScore = source.flatMap { word.score(in: $0) }
             guard let best = [content, note, sourceScore].compactMap({ $0 }).max() else { return nil }

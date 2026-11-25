@@ -5,6 +5,8 @@ import SwiftUI
 
 @available(macOS 26, *)
 struct MacOS26HistoryCard: View, Equatable {
+    private static let sourceFontSize = NSFont.preferredFont(forTextStyle: .callout, options: [:]).pointSize * 1.1
+
     let card: CardViewState
     let actions: PanelActions
     let keyBindings: KeyBindingsStore?
@@ -30,7 +32,7 @@ struct MacOS26HistoryCard: View, Equatable {
     @Environment(\.cardPopoverCoordinator) private var popoverCoordinator
 
     private var shape: RoundedRectangle { MacOS26CardSurface.outline }
-    private var focusColor: Color { .readableAccent(in: scheme) }
+    private var focusColor: Color { .macOS26ReadableAccent(in: scheme) }
     private var isFocused: Bool { card.isSelected && showsSelection }
     private var zoomedSide: CGFloat { side * HistoryViewStateStore.selectionZoom }
     private var slotInset: CGFloat { (zoomedSide - side) / 2 }
@@ -45,10 +47,11 @@ struct MacOS26HistoryCard: View, Equatable {
 
     var body: some View {
         cardBody
+            .interfaceType(.standard)
             .scaleEffect(card.isSelected ? HistoryViewStateStore.selectionZoom : 1)
             .frame(width: zoomedSide, height: zoomedSide)
             .contentShape(.rect)
-            .grabPointer()
+            .macOS26GrabPointer()
             .onDrag(offerDrag)
             .gesture(
                 TapGesture(count: 2).exclusively(before: TapGesture()).onEnded { value in
@@ -63,7 +66,7 @@ struct MacOS26HistoryCard: View, Equatable {
                     .padding(card.isSelected ? 10 : slotInset + 10)
             }
             .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: card.isSelected)
-            .background(CardRightClick { perform(interactions.rightClick) })
+            .background(MacOS26CardRightClick { perform(interactions.rightClick) })
             .onHover { inside in
                 isHovering = inside
                 hoverChanged(inside)
@@ -146,12 +149,14 @@ struct MacOS26HistoryCard: View, Equatable {
                 if let icon = source.icon {
                     Image(nsImage: icon).resizable().scaledToFit()
                 } else {
-                    Image(systemName: "doc.on.clipboard").font(.callout).foregroundStyle(.secondary)
+                    Image(systemName: "doc.on.clipboard")
+                        .font(.system(size: Self.sourceFontSize))
+                        .foregroundStyle(.secondary)
                 }
             }
-            .frame(width: 20, height: 20)
+            .frame(width: 22, height: 22)
             Text(card.sourceLabel)
-                .font(.callout.weight(.semibold))
+                .font(.system(size: Self.sourceFontSize, weight: .semibold))
                 .lineLimit(1)
                 .help(
                     card.sourceKey == "origin:handoff-marker"
@@ -169,17 +174,17 @@ struct MacOS26HistoryCard: View, Equatable {
         if !card.pinnedMetadata.note.isEmpty {
             Text(card.pinnedMetadata.note).font(.callout.weight(.semibold)).lineLimit(side < 175 ? 1 : 2)
         }
-        if card.isSplitGroup || card.variantIDs.count > 1 || card.stackPosition != nil || card.isPinned {
+        if card.isSplitGroup || card.variantCount > 1 || card.stackPosition != nil || card.isPinned {
             HStack(spacing: 6) {
                 if card.isSplitGroup { countBadge(card.splitCount, symbol: "square.on.square") }
-                if card.variantIDs.count > 1 { countBadge(card.variantIDs.count, symbol: "doc.on.doc") }
+                if card.variantCount > 1 { countBadge(card.variantCount, symbol: "doc.on.doc") }
                 if let position = card.stackPosition {
                     countBadge(position, symbol: "square.stack.3d.up.fill").foregroundStyle(focusColor)
                 }
                 if card.isPinned {
                     Image(systemName: "pin.fill")
                     ForEach(PinTagColor.allCases.filter(card.pinnedMetadata.tags.contains)) { tag in
-                        Circle().fill(tag.color).frame(width: 6, height: 6)
+                        Circle().fill(tag.macOS26Color).frame(width: 6, height: 6)
                     }
                 }
             }
@@ -210,35 +215,33 @@ struct MacOS26HistoryCard: View, Equatable {
     }
 
     private var actionButton: some View {
-        Button {
-            perform(.menu)
-        } label: {
-            Image(systemName: "ellipsis")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(scheme == .dark ? Color(white: 0.94) : Color(white: 0.16))
-                .frame(width: 25, height: 25)
-                .contentShape(.circle)
-        }
-        .buttonStyle(.plain)
-        .background(.fill.quaternary, in: .circle)
-        .glassEffect(reduceTransparency ? .identity : .regular.interactive(), in: .circle)
-        .accessibilityLabel(localized("Actions"))
-        .help(localized("Actions"))
-        .cardActionPopover(isPresented: $showingActions) {
-            if canExport() {
-                if editingPin {
-                    MacOS26CardPinEditor(value: card.pinnedMetadata) { value in
-                        guard canExport() else { return }
-                        actions.updatePinnedMetadata(card.id, value)
-                        closeActions()
+        Image(systemName: "ellipsis")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(scheme == .dark ? Color(white: 0.94) : Color(white: 0.16))
+            .frame(width: 25, height: 25)
+            .contentShape(.circle)
+            .beButton { perform(.menu) }
+            .buttonStyle(.plain)
+            .background(.fill.quaternary, in: .circle)
+            .glassEffect(reduceTransparency ? .identity : .regular.interactive(), in: .circle)
+            .accessibilityLabel(localized("Actions"))
+            .help(localized("Actions"))
+            .macOS26CardActionPopover(isPresented: $showingActions) {
+                if canExport() {
+                    if editingPin {
+                        MacOS26PinnedItemEditor(value: card.pinnedMetadata) { value in
+                            guard canExport() else { return }
+                            actions.updatePinnedMetadata(card.id, value)
+                            closeActions()
+                        }
+                        .padding(16)
+                    } else {
+                        MacOS26CardActionList(
+                            card: card, keyBindings: keyBindings, pinnedWorkspace: pinnedWorkspace,
+                            run: runCommand, transform: runTransform, dismiss: closeActions)
                     }
-                } else {
-                    MacOS26CardActionList(
-                        card: card, keyBindings: keyBindings, pinnedWorkspace: pinnedWorkspace,
-                        run: runCommand, transform: runTransform, dismiss: closeActions)
                 }
             }
-        }
     }
 
     private var accessibilityValue: String {
@@ -253,7 +256,7 @@ struct MacOS26HistoryCard: View, Equatable {
     }
 
     private func offerDrag() -> NSItemProvider {
-        guard canExport(), !card.contentHidden, !card.isSplitGroup, card.variantIDs.count <= 1 else {
+        guard canExport(), !card.contentHidden, !card.isSplitGroup, card.variantCount <= 1 else {
             return NSItemProvider()
         }
         actions.dragBegan()

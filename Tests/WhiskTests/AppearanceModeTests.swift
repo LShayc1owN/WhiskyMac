@@ -35,22 +35,22 @@ import Testing
             HistoryPresenter().present(
                 items: items, query: "", now: Date(), selectedID: item.id, filters: FilterContext(chips: chips)))
         let controller = PanelController(
-            stateStore: state, actions: PanelActionSpy().actions,
+            uiFactory: MacOS15UIFactory(), stateStore: state, actions: PanelActionSpy().actions,
             keyBindings: KeyBindingsStore(defaults: sandbox.defaults),
             vimBindings: VimBindingsStore(defaults: sandbox.defaults),
             appearanceMode: appearance.clipboardAppearance, vimMode: { false })
         let search = SettingsSearchModel()
         let hosting = NSHostingController(
-            rootView: SettingsView(
+            rootView: MacOS15SettingsView(
                 store: KeyBindingsStore(defaults: sandbox.defaults),
                 general: GeneralSettingsStore(defaults: sandbox.defaults), loginItem: LoginItemManager(),
                 vimBindings: VimBindingsStore(defaults: sandbox.defaults), appearance: appearance, search: search
             ).environment(\.settingsAccessibilityOverride, SettingsAccessibilityValues(reduceMotion: true)))
         let window = NSWindow(contentViewController: hosting)
         window.isReleasedWhenClosed = false
-        SettingsWindowConfiguration.apply(to: window)
+        MacOS15SettingsWindowConfiguration.apply(to: window)
         window.appearance = appearance.settingsAppearance.nsAppearance
-        let toolbar = SettingsSearchToolbar(window: window, search: search, appearance: appearance)
+        let toolbar = MacOS15SettingsSearchToolbar(window: window, search: search, appearance: appearance)
         window.setContentSize(NSSize(width: 840, height: 720))
         window.setFrameOrigin(NSPoint(x: -10000, y: -10000))
         window.orderFront(nil)
@@ -78,7 +78,7 @@ import Testing
             await settle(hosting.view)
             await settle(try #require(history.contentView))
             #expect(match(toolbar.fieldHost.effectiveAppearance) == .aqua)
-            let surfaces = descendants(try #require(history.contentView)).compactMap { $0 as? BackdropView }
+            let surfaces = descendants(try #require(history.contentView)).compactMap { $0 as? MacOS15BackdropView }
             #expect(!surfaces.isEmpty)
             #expect(surfaces.allSatisfy { match($0.effectiveAppearance) == .darkAqua })
             try capture(window, name: "appearance-\(navigation)-settings-light")
@@ -91,15 +91,20 @@ import Testing
         await settle(try #require(history.contentView))
         #expect(match(history.effectiveAppearance) == .aqua)
         #expect(match(toolbar.fieldHost.effectiveAppearance) == .darkAqua)
-        let surfaces = descendants(try #require(history.contentView)).compactMap { $0 as? BackdropView }
+        let surfaces = descendants(try #require(history.contentView)).compactMap { $0 as? MacOS15BackdropView }
         #expect(!surfaces.isEmpty)
         #expect(surfaces.allSatisfy { match($0.effectiveAppearance) == .aqua })
         try capture(window, name: "appearance-settings-dark")
         try capture(history, name: "appearance-clipboard-light")
 
+        let visibleBeforePreview = Set(NSApp.windows.filter(\.isVisible).map(ObjectIdentifier.init))
         state.toggleExplicitPreview()
-        let preview = try #require(
-            NSApp.windows.first { $0.isVisible && $0.contentView is NSHostingView<PreviewOverlayView> })
+        let opened = NSApp.windows.filter {
+            $0 is NSPanel && $0.isVisible && !visibleBeforePreview.contains(ObjectIdentifier($0))
+                && $0.contentView is TestHostingSurface
+        }
+        #expect(opened.count == 1)
+        let preview = try #require(opened.first)
         #expect(match(preview.effectiveAppearance) == .aqua)
         await settle(try #require(preview.contentView))
         try capture(preview, name: "appearance-clipboard-preview-light")
@@ -132,10 +137,10 @@ import Testing
         // A light gray reference also leaves room for the tint on selected surfaces.
         let background = NSColor(srgbRed: 0.86, green: 0.86, blue: 0.86, alpha: 1)
         for color in colors {
-            let ink = try #require(color.readableAccent(in: .light).usingColorSpace(.sRGB))
+            let ink = try #require(color.macOS15ReadableAccent(in: .light).usingColorSpace(.sRGB))
             #expect((luminance(background) + 0.05) / (luminance(ink) + 0.05) >= 4.5)
             #expect(abs(ink.hueComponent - color.hueComponent) < 0.06)
-            #expect(color.readableAccent(in: .dark) == color)
+            #expect(color.macOS15ReadableAccent(in: .dark) == color)
         }
     }
 
@@ -150,7 +155,7 @@ import Testing
 
     @Test func native_material_preview_can_differ_from_its_settings_window() async throws {
         _ = NSApplication.shared
-        let host = NSHostingView(rootView: CardSizePreview(side: 220).environment(\.colorScheme, .dark))
+        let host = NSHostingView(rootView: MacOS15CardSizePreview(side: 220).environment(\.colorScheme, .dark))
         let window = NSWindow(
             contentRect: NSRect(x: -10000, y: -10000, width: 240, height: 240),
             styleMask: .borderless, backing: .buffered, defer: false)
@@ -160,10 +165,10 @@ import Testing
         window.orderFront(nil)
         defer { window.close() }
         await settle(host)
-        let material = try #require(descendants(host).compactMap { $0 as? BackdropView }.first)
+        let material = try #require(descendants(host).compactMap { $0 as? MacOS15BackdropView }.first)
         #expect(match(window.effectiveAppearance) == .aqua)
         #expect(match(material.effectiveAppearance) == .darkAqua)
-        host.rootView = CardSizePreview(side: 220).environment(\.colorScheme, .light)
+        host.rootView = MacOS15CardSizePreview(side: 220).environment(\.colorScheme, .light)
         await settle(host)
         #expect(match(material.effectiveAppearance) == .aqua)
     }

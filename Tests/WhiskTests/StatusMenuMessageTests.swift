@@ -16,11 +16,11 @@ import Testing
         let text = localized(
             "No supported toolbar detected. Other sharing or recording may still be active.",
             bundle: bundle)
-        #expect(StatusMenuMessage.formattedText(text).contains("\n"))
+        #expect(MacOS15StatusMenuMessage.formattedText(text).contains("\n"))
 
-        let item = StatusMenuMessage.item(for: text)
-        let view = try #require(item.view as? NSHostingView<StatusMenuMessage>)
-        #expect(view.frame.width == StatusMenuMessage.width)
+        let item = MacOS15StatusMenuMessage.item(for: text)
+        let view = try #require(item.view as? NSHostingView<MacOS15StatusMenuMessage>)
+        #expect(view.frame.width == MacOS15StatusMenuMessage.width)
         #expect(view.frame.height > 30)
         #expect(item.title.isEmpty)
     }

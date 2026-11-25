@@ -5,10 +5,12 @@
 
 import AppKit
 import Carbon.HIToolbox
+import Combine
 import SwiftUI
 
 /// Paste-style panel pinned to the bottom of the main screen. Non-activating,
 /// so the frontmost application keeps focus while the user picks an item.
+@MainActor
 final class PanelController {
     struct Sizing: Equatable {
         var cardSide: CGFloat
@@ -33,7 +35,8 @@ final class PanelController {
     /// Where the panel and its preview go on the screen they rose on.
     private var layout: PanelLayout?
 
-    private let backgroundVeil = BackgroundVeilController()
+    private let uiFactory: any AppUIFactory
+    private let backgroundVeil: BackgroundVeilController
 
     var appearanceMode: AppearanceMode {
         didSet {
@@ -53,9 +56,12 @@ final class PanelController {
     private let vimBindings: VimBindingsStore
 
     init(
+        uiFactory: any AppUIFactory,
         stateStore: HistoryViewStateStore, actions: PanelActions, keyBindings: KeyBindingsStore,
         vimBindings: VimBindingsStore, appearanceMode: AppearanceMode = .system, vimMode: @escaping () -> Bool
     ) {
+        self.uiFactory = uiFactory
+        self.backgroundVeil = BackgroundVeilController(uiFactory: uiFactory)
         self.stateStore = stateStore
         self.actions = actions
         self.keyBindings = keyBindings
@@ -65,6 +71,8 @@ final class PanelController {
         popoverCoordinator.presentationChanged = { [weak stateStore] in stateStore?.cardMenuOpen = $0 }
         historyPanel = FloatingPanel()
         pinsPanel = FloatingPanel()
+        uiFactory.configure(window: historyPanel, for: .history)
+        uiFactory.configure(window: pinsPanel, for: .pinned)
         panel = historyPanel
         applyWindowAppearance()
         panel.keyHandler = { [weak self] event in
@@ -114,18 +122,24 @@ final class PanelController {
             MainActor.assumeIsolated { MouseActivity.lastMove = Date() }
             return event
         }
-        // AppKit posts this on the main thread; a nil queue keeps the
-        // hop out and the windows move in the same turn.
-        screenObserver = NotificationCenter.default.addObserver(
-            forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: nil
-        ) { [weak self] _ in
+        screenObserver = MainRunLoop.observe(NSApplication.didChangeScreenParametersNotification) { [weak self] _ in
             self?.screensDidChange()
         }
-        accessibilityObserver = NSWorkspace.shared.notificationCenter.addObserver(
-            forName: NSWorkspace.accessibilityDisplayOptionsDidChangeNotification, object: nil, queue: .main
+        accessibilityObserver = MainRunLoop.observe(
+            NSWorkspace.accessibilityDisplayOptionsDidChangeNotification, in: NSWorkspace.shared.notificationCenter
         ) { [weak self] _ in
             self?.accessibilityDidChange()
         }
+        let session = stateStore.sensitiveSession
+        sensitiveVisibilityObserver = session.$ids.combineLatest(session.$isProtected)
+            .map { !$0.isEmpty && !$1 }
+            .removeDuplicates()
+            .dropFirst()
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                guard let self, !showingPinned else { return }
+                cardSizeDidChange()
+            }
         pinsPanel.keyHandler = panel.keyHandler
         pinsPanel.onClose = panel.onClose
         pinsPanel.onCancel = panel.onCancel
@@ -138,7 +152,7 @@ final class PanelController {
 
     }
 
-    deinit {
+    isolated deinit {
         popoverCoordinator.dismiss()
         for window in [historyPanel, pinsPanel] {
             window.onClose = nil
@@ -162,6 +176,7 @@ final class PanelController {
     }
 
     private var mouseMonitor: Any?
+    private var sensitiveVisibilityObserver: AnyCancellable?
     private var screenObserver: NSObjectProtocol?
     private var accessibilityObserver: NSObjectProtocol?
 
@@ -204,7 +219,7 @@ final class PanelController {
 
     /// The screen the panel rises on: the one under the pointer, else the
     /// first — the primary display — when the pointer sits on no screen.
-    static func screenIndex(under point: CGPoint, frames: [CGRect]) -> Int? {
+    nonisolated static func screenIndex(under point: CGPoint, frames: [CGRect]) -> Int? {
         guard !frames.isEmpty else { return nil }
         return frames.firstIndex { $0.contains(point) } ?? 0
     }
@@ -287,12 +302,15 @@ final class PanelController {
     /// Lays the panel out on the screen, and the preview with it when
     /// one is up.
     private func place(on screen: NSScreen) {
-        let layout = PanelLayout(
-            screen: PanelLayout.Screen(screen), cardSide: stateStore.cardSide, tagScale: stateStore.filterTagScale)
+        let layout = uiFactory.panelLayout(
+            screen: PanelLayout.Screen(screen), cardSide: stateStore.cardSide, tagScale: stateStore.filterTagScale,
+            typography: stateStore.interfaceTypography,
+            showsSensitiveCopies: !showingPinned && !stateStore.sensitiveSession.isProtected
+                && !stateStore.sensitiveSession.ids.isEmpty)
         self.layout = layout
         let frame =
             pinnedStyle == .mouseList
-            ? PinnedWindowLayout.frame(pointer: NSEvent.mouseLocation, visibleFrame: screen.visibleFrame) : layout.panel
+            ? uiFactory.pinnedFrame(pointer: NSEvent.mouseLocation, visibleFrame: screen.visibleFrame) : layout.panel
         panel.setFrame(frame, display: true)
         backgroundVeil.updateFrame(frame)
         if previewPanel?.isVisible == true {
@@ -328,7 +346,7 @@ final class PanelController {
         hidePreview()
         // One beat after session start, so the system has already
         // snapshotted the drag image from the still-opaque card.
-        let fade = Timer(timeInterval: 0.03, repeats: false) { [weak self] _ in
+        ghostFadeTimer = MainRunLoop.timer(interval: 0.03, repeats: false) { [weak self] in
             guard let self else { return }
             panel.ignoresMouseEvents = true
             NSAnimationContext.runAnimationGroup { context in
@@ -338,17 +356,13 @@ final class PanelController {
             }
             self.backgroundVeil.fadeForDrag()
         }
-        ghostFadeTimer = fade
-        RunLoop.main.add(fade, forMode: .common)
         // SwiftUI's onDrag never reports the session's end; the mouse
         // button is the signal — released means dropped or cancelled.
-        let watcher = Timer(timeInterval: 0.08, repeats: true) { [weak self] _ in
+        dragEndWatcher = MainRunLoop.timer(interval: 0.08, repeats: true) { [weak self] in
             if NSEvent.pressedMouseButtons & 1 == 0 {
                 self?.dragDidEnd()
             }
         }
-        dragEndWatcher = watcher
-        RunLoop.main.add(watcher, forMode: .common)
     }
 
     /// Dropping consumes the selection like Return does: the panel closes
@@ -385,18 +399,9 @@ final class PanelController {
                 backing: .buffered,
                 defer: false
             )
-            preview.isFloatingPanel = true
             preview.appearance = appearanceMode.nsAppearance
-            preview.level = .statusBar
-            preview.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-            preview.backgroundColor = .clear
-            preview.isOpaque = false
-            preview.hasShadow = false
-            let hosting = NSHostingView(rootView: PreviewOverlayView(store: stateStore, actions: actions))
-            // The window's frame is the one measure of the preview; the
-            // view fills it rather than asking for a size of its own.
-            hosting.sizingOptions = []
-            preview.contentView = hosting
+            uiFactory.configure(window: preview, for: .preview)
+            preview.contentView = uiFactory.makePreviewContent(context: historyUIContext)
             previewPanel = preview
         }
         guard let preview = previewPanel, let layout else { return }
@@ -415,7 +420,7 @@ final class PanelController {
     }
 
     private func updateSplitPanel() {
-        if stateStore.splitSession == nil && stateStore.splitGroupSession == nil && stateStore.splitVersions.isEmpty {
+        if !stateStore.hasAuxiliaryContent {
             if let splitPanel {
                 panel.removeChildWindow(splitPanel); splitPanel.orderOut(nil); splitPanel.contentView = nil
             }
@@ -425,22 +430,23 @@ final class PanelController {
         }
         guard panel.isVisible, !stateStore.isProtected else { stateStore.closeSplitSessions(); return }
         let dialog = splitPanel ?? SplitDialogPanel()
+        uiFactory.configure(window: dialog, for: .split)
         dialog.appearance = appearanceMode.nsAppearance
         splitPanel = dialog
         dialog.cancel = { [weak stateStore] in stateStore?.closeSplitSessions() }
         dialog.lostFocus = { [weak self] in self?.hide() }
-        if !stateStore.splitVersions.isEmpty {
-            dialog.contentView = NSHostingView(rootView: SplitVersionView(store: stateStore))
-            dialog.setContentSize(NSSize(width: 500, height: 380))
-        } else if let session = stateStore.splitSession {
-            dialog.contentView = NSHostingView(
-                rootView: SplitContentView(session: session) { [weak stateStore] in stateStore?.closeSplitSessions() })
-            dialog.setContentSize(NSSize(width: 660, height: 740))
-        } else if let session = stateStore.splitGroupSession {
-            dialog.contentView = NSHostingView(
-                rootView: SplitGroupView(session: session) { [weak stateStore] in stateStore?.closeSplitSessions() })
-            dialog.setContentSize(NSSize(width: 540, height: 540))
-        }
+        guard
+            let content = uiFactory.makeSplitContent(
+                context: historyUIContext, dismiss: { [weak stateStore] in stateStore?.closeSplitSessions() })
+        else { return }
+        dialog.contentView = content.view
+        let typography = stateStore.interfaceTypography
+        let preferred = content.preferredSize
+        let screenSize = (panel.screen ?? NSScreen.main)?.visibleFrame.size ?? preferred
+        dialog.setContentSize(
+            NSSize(
+                width: min(typography.room(preferred.width), screenSize.width),
+                height: min(typography.room(preferred.height), screenSize.height)))
         if let screen = panel.screen {
             let frame = screen.visibleFrame
             let size = NSSize(
@@ -454,16 +460,18 @@ final class PanelController {
         dialog.makeKeyAndOrderFront(nil)
     }
 
+    private var historyUIContext: HistoryUIContext {
+        HistoryUIContext(
+            store: stateStore, actions: actions, keyBindings: keyBindings,
+            popoverCoordinator: popoverCoordinator)
+    }
+
     private func installContent() {
         if panel === historyPanel { pinsPanel.contentView = nil } else { historyPanel.contentView = nil }
-        if pinnedStyle == .mouseList {
-            panel.contentView = NSHostingView(
-                rootView: PinnedListView(store: stateStore, actions: actions, keyBindings: keyBindings)
-                    .environment(\.cardPopoverCoordinator, popoverCoordinator))
-        } else {
-            panel.contentView = HistoryPanelHosting.make(
-                store: stateStore, actions: actions, keyBindings: keyBindings, popoverCoordinator: popoverCoordinator)
-        }
+        panel.contentView = HistoryPanelHosting.make(
+            uiFactory: uiFactory, store: stateStore, actions: actions,
+            keyBindings: keyBindings, popoverCoordinator: popoverCoordinator,
+            presentation: pinnedStyle == .mouseList ? .pinnedList : .history)
     }
 
     func appearanceDidChange() {
@@ -471,10 +479,25 @@ final class PanelController {
         hidePreview()
         if panel.isVisible { installContent() } else { panel.contentView = nil }
     }
-    func privacyDidChange() {
+    func privacyDidChange(animated: Bool = false) {
         popoverCoordinator.dismiss()
         hidePreview()
-        if panel.isVisible { installContent() } else { panel.contentView = nil }
+        guard panel.isVisible else {
+            panel.contentView = nil
+            return
+        }
+
+        let duration = animated && dragEndWatcher == nil ? Self.fadeDuration(0.20) : 0
+        // Fade through the backdrop with a synchronous swap so the old cards
+        // are never kept on screen during the privacy transition.
+        if duration > 0 { panel.alphaValue = 0 }
+        installContent()
+        guard duration > 0 else { return }
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = duration
+            context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            panel.animator().alphaValue = 1
+        }
     }
 
     private func hidePreview() {
@@ -506,15 +529,7 @@ final class FloatingPanel: NSPanel {
             backing: .buffered,
             defer: false
         )
-        isFloatingPanel = true
-        isReleasedWhenClosed = false
-        level = .statusBar
-        collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        backgroundColor = .clear
-        isOpaque = false
-        hasShadow = false
-        isMovable = false
-        hidesOnDeactivate = false
+
     }
 
     override var canBecomeKey: Bool { true }
@@ -559,11 +574,7 @@ private final class SplitDialogPanel: NSPanel {
     init() {
         super.init(
             contentRect: .zero, styleMask: [.titled, .closable, .nonactivatingPanel], backing: .buffered, defer: false)
-        title = localized("Split…")
-        isReleasedWhenClosed = false
-        isFloatingPanel = true
-        level = .statusBar
-        collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+
     }
     override var canBecomeKey: Bool { true }
     override func cancelOperation(_ sender: Any?) { cancel?() }

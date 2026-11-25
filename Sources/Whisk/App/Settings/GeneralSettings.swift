@@ -50,7 +50,7 @@ final class GeneralSettingsStore: ObservableObject {
     /// 0 stands for unlimited.
     static let capacityChoices = [100, 250, 500, 1000, 0]
     static let cardSideRange: ClosedRange<Double> = 160...500
-    static let defaultCardSide: Double = 200
+    static let defaultCardSide: Double = 260
     static let filterTagScaleRange: ClosedRange<Double> = 0.75...2
     static let defaultFilterTagScale: Double = 1
 
@@ -150,6 +150,15 @@ final class GeneralSettingsStore: ObservableObject {
         filterTagScale = Self.boundedFilterTagScale(scale)
     }
 
+    @Published private(set) var filterCategoryOrder: FilterCategoryOrder {
+        didSet { defaults.set(filterCategoryOrder.savedIDs, forKey: "filterCategoryOrder") }
+    }
+
+    func setFilterCategoryOrder(_ order: FilterCategoryOrder) {
+        guard order != filterCategoryOrder else { return }
+        filterCategoryOrder = order
+    }
+
     @Published var excludedApps: [ExcludedApp] {
         didSet {
             do {
@@ -157,6 +166,14 @@ final class GeneralSettingsStore: ObservableObject {
             } catch {
                 logger.log(.excludedAppsWriteFailed)
             }
+        }
+    }
+
+    @Published var secretRecognition: SecretRecognition {
+        didSet {
+            defaults.set(secretRecognition.enabled, forKey: "secretRecognitionEnabled")
+            defaults.set(secretRecognition.mask, forKey: "secretRecognitionMask")
+            defaults.set(secretRecognition.classify, forKey: "secretRecognitionClassify")
         }
     }
 
@@ -222,12 +239,17 @@ final class GeneralSettingsStore: ObservableObject {
         linkPreviews = defaults.object(forKey: "linkPreviews") == nil ? false : defaults.bool(forKey: "linkPreviews")
         filterTagScale = Self.boundedFilterTagScale(
             (defaults.object(forKey: "filterTagScale") as? NSNumber)?.doubleValue ?? Self.defaultFilterTagScale)
+        filterCategoryOrder = FilterCategoryOrder(savedIDs: defaults.stringArray(forKey: "filterCategoryOrder") ?? [])
         if let savedSide = defaults.object(forKey: "cardSide") as? NSNumber {
             cardSide = Self.boundedCardSide(savedSide.doubleValue)
         } else {
             let presetSides: [String: Double] = ["small": 160, "medium": 200, "large": 250]
             cardSide = defaults.string(forKey: "cardSize").flatMap { presetSides[$0] } ?? Self.defaultCardSide
         }
+        secretRecognition = SecretRecognition(
+            enabled: defaults.object(forKey: "secretRecognitionEnabled") as? Bool ?? true,
+            mask: defaults.object(forKey: "secretRecognitionMask") as? Bool ?? true,
+            classify: defaults.object(forKey: "secretRecognitionClassify") as? Bool ?? true)
         sensitiveApps =
             defaults.data(forKey: "sensitiveApps").flatMap {
                 try? JSONDecoder().decode([ExcludedApp].self, from: $0)

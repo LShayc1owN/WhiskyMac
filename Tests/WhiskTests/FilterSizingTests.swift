@@ -39,7 +39,7 @@ import Vision
     private struct Row: View {
         @ObservedObject var model: Model
         var body: some View {
-            FilterBarView(
+            MacOS15FilterBarView(
                 filters: model.filters, tagScale: model.scale, appScope: model.scope,
                 onToggleApp: { _ in }, onToggleKind: { _ in }, onFocusApp: { _ in }, onFocusKind: { _ in }
             )
@@ -66,7 +66,7 @@ import Vision
             defer { window.contentView = nil; window.close() }
             for scale in [0.75, 1, 2, 1] {
                 model.scale = scale
-                window.setContentSize(NSSize(width: 320, height: FilterTagMetrics(scale: scale).rowHeight + 12))
+                window.setContentSize(NSSize(width: 320, height: MacOS15FilterTagMetrics(scale: scale).rowHeight + 12))
                 for expanded in [false, true] {
                     model.scope.isExpanded = expanded
                     model.active = "app.whisk"
@@ -101,7 +101,7 @@ import Vision
             model.scope.isExpanded = true
             model.focus = "app.long"
             await settle(host)
-            let material = descendants(host).compactMap { $0 as? BackdropView }
+            let material = descendants(host).compactMap { $0 as? MacOS15BackdropView }
             #expect(material.contains { $0.bounds.width > 320 }, "Long labels must extend into horizontal scrolling")
         }
     }

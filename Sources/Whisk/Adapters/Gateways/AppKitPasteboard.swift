@@ -20,7 +20,11 @@ final class AppKitPasteboard: Whisk.Pasteboard {
     private let didWrite: () -> Void
     private let readQueue: DispatchQueue
     private var lastKnownAccess: PasteboardAccess
+    private let revisionLock = NSLock()
     private var readRevision: UInt64 = 0
+    private var currentRevision: UInt64 { revisionLock.withLock { readRevision } }
+    private func invalidateReads() { revisionLock.withLock { readRevision &+= 1 } }
+    private var capturePaused = false
     private var failedReadCount = 0
     private var retryChangeCount: Int?
 
@@ -59,17 +63,30 @@ final class AppKitPasteboard: Whisk.Pasteboard {
     /// the read that makes it ask, and the app is listed in System
     /// Settings from then on; elsewhere it is a no-op.
     func requestAccess() {
-        readRevision &+= 1
+        invalidateReads()
         _ = board.string(forType: .string)
         lastKnownAccess = Self.systemAccess(board)
+    }
+
+    func setCapturePaused(_ paused: Bool) {
+        guard capturePaused != paused else { return }
+        capturePaused = paused
+        invalidateReads()
+        if !paused {
+            // Sample at the resume action, not at a later worker tick: a copy
+            // made immediately after resuming must still be captured.
+            lastChangeCount = board.changeCount
+            retryChangeCount = nil
+            failedReadCount = 0
+        }
     }
 
     /// A read the system would answer with an alert would stop the app
     /// in its tracks at every change, so the poll never makes one.
     func readIfChanged() -> PasteboardSnapshot? {
-        readRevision &+= 1
+        invalidateReads()
         lastKnownAccess = Self.systemAccess(board)
-        guard lastKnownAccess == .granted else { return nil }
+        guard !capturePaused, lastKnownAccess == .granted else { return nil }
         let count = board.changeCount
         guard count != lastChangeCount else { return nil }
         lastChangeCount = count
@@ -80,18 +97,20 @@ final class AppKitPasteboard: Whisk.Pasteboard {
     /// starts another read until this one returns.
     func readIfChangedAsync(_ completion: @escaping (PasteboardSnapshot?) -> Void) {
         precondition(Thread.isMainThread)
-        let revision = readRevision
+        let revision = currentRevision
+        let readContents = !capturePaused
         let previousCount = lastChangeCount
         // Even accessBehavior and changeCount cross into the pasteboard
         // service. A poll must not wait for that service on the UI thread.
         readQueue.async { [self] in
             let access = Self.systemAccess(board)
-            let count = access == .granted ? board.changeCount : previousCount
-            let result = access == .granted && count != previousCount ? snapshot(for: count) : nil
+            let count = readContents && access == .granted ? board.changeCount : previousCount
+            let changed = count != previousCount && currentRevision == revision
+            let result = changed ? snapshot(for: count) : nil
             DispatchQueue.main.async { [self] in
                 // Own writes and explicit synchronous reads supersede the
                 // worker. Validate local state here; never call the service.
-                guard revision == readRevision else { completion(nil); return }
+                guard currentRevision == revision else { completion(nil); return }
                 lastKnownAccess = access
                 guard access == .granted, count != lastChangeCount else {
                     completion(nil)
@@ -160,7 +179,7 @@ final class AppKitPasteboard: Whisk.Pasteboard {
             write(.image(data), rtf: rtf, notify: notify)
             return
         }
-        readRevision &+= 1
+        invalidateReads()
         board.clearContents()
         let succeeded: Bool
         switch payload {

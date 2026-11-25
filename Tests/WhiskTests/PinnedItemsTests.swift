@@ -249,7 +249,7 @@ import Vision
         let item = anItem(.text("SECRET-CANARY"), pinned: true).withPinnedMetadata(details)
         let state = HistoryViewStateStore()
         state.update(HistoryPresenter().present(items: [item], query: "", now: .now, selectedID: item.id))
-        let host = NSHostingView(rootView: PinnedListView(store: state, actions: PanelActionSpy().actions))
+        let host = NSHostingView(rootView: MacOS15PinnedListView(store: state, actions: PanelActionSpy().actions))
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 400, height: 560),
             styleMask: .borderless, backing: .buffered, defer: false)
@@ -281,9 +281,9 @@ import Vision
         let protected = try visibleText("pins-protected.png")
         #expect(!protected.localizedCaseInsensitiveContains("Shipping details"))
         #expect(!protected.contains("SECRET"))
-        let editor = ImageRenderer(content: PinnedItemEditor(value: details, save: { _ in }).padding())
+        let editor = ImageRenderer(content: MacOS15PinnedItemEditor(value: details, save: { _ in }).padding())
         #expect(editor.nsImage != nil)
-        for tag in PinTagColor.allCases { #expect(!tag.label.isEmpty); _ = tag.color }
+        for tag in PinTagColor.allCases { #expect(!tag.label.isEmpty); _ = tag.macOS15Color }
     }
 
     @Test func pinned_surface_reuses_a_second_window_without_activation_and_restores_main_scope() throws {
@@ -295,7 +295,7 @@ import Vision
         var actions = spy.actions
         actions.preparePinned = { requests.append($0) }
         var controller: PanelController? = PanelController(
-            stateStore: state, actions: actions,
+            uiFactory: MacOS15UIFactory(), stateStore: state, actions: actions,
             keyBindings: KeyBindingsStore(defaults: sandbox.defaults),
             vimBindings: VimBindingsStore(defaults: sandbox.defaults),
             vimMode: { false })
@@ -357,7 +357,7 @@ import Vision
             CGRect(x: -1920, y: -300, width: 1920, height: 1080), CGRect(x: 0, y: 0, width: 300, height: 400),
         ] {
             for pointer in [frame.origin, CGPoint(x: frame.maxX, y: frame.maxY), CGPoint(x: -9999, y: 9999)] {
-                let result = PinnedWindowLayout.frame(pointer: pointer, visibleFrame: frame)
+                let result = MacOS15PinnedWindowLayout.frame(pointer: pointer, visibleFrame: frame)
                 #expect(frame.contains(result))
             }
         }

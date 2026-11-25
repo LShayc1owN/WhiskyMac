@@ -23,6 +23,16 @@ import Testing
         #expect(AppBuildInfo(version: "not-a-beta-version", isDebug: false).channel == .release)
     }
 
+    @Test func version_number_and_channel_label_are_available_separately() {
+        let release = AppBuildInfo(version: "0.1.14", isDebug: false)
+        #expect(release.versionNumber == "0.1.14" && release.channelLabel == "Release")
+        let beta = AppBuildInfo(version: "0.9.0-beta.2", isDebug: false)
+        #expect(beta.versionNumber == "0.9.0" && beta.channelLabel == "Beta 2")
+        let debug = AppBuildInfo(version: "0.9.0-beta.2", isDebug: true)
+        #expect(debug.versionNumber == "0.9.0" && debug.channelLabel == "Debug")
+        #expect(AppBuildInfo(version: "", isDebug: false).versionNumber == nil)
+    }
+
     @Test func version_badges_append_the_channel_once_and_keep_beta_numbers() {
         #expect(AppBuildInfo(version: "0.9.0", isDebug: false).versionWithChannel == "0.9.0 Release")
         #expect(AppBuildInfo(version: "0.9.0-beta", isDebug: false).versionWithChannel == "0.9.0 Beta")

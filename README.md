@@ -4,16 +4,26 @@
 <p align="center"><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.it.md">Italiano</a></p>
 
 > [!NOTE]
-> WhiskyMac is an independent modification of [Whisk](https://github.com/nathan-poncet/whisk). It is in development: this repository is private, and public app downloads are not configured yet. The instructions below are for building from this checkout.
+> WhiskyMac is under active development as an independent project based on [Whisk](https://github.com/nathan-poncet/whisk). The features below describe the current source tree. Check the release notes for the features and signing status of each download.
+
+## Download and get started
+
+**[Latest GitHub release](https://github.com/LShayc1owN/WhiskyMac/releases/latest)**
+
+1. Download the app ZIP, unzip it, and move `WhiskyMac.app` to Applications.
+2. Open WhiskyMac and follow the Welcome Guide. If macOS asks for clipboard permission, choose **Allow Clipboard Access…** from the WhiskyMac menu.
+3. Copy something in another app, then click the WhiskyMac menu bar icon or choose **Show History** to find it. You can enable a global shortcut in Settings.
 
 ## Highlights
 
-- **Find your clips.** Keep text, rich text, links, images, files and colors locally. Search content or source apps; filter by app, type, pins, color tags and Handoff attribution. Text containing file paths has its own filter and supports `type:path`.
-- **Reuse content your way.** Copy, paste directly or as plain text, drag into another app, preview, edit and queue clips in the paste stack. Matching rich-text versions stay grouped; keyboard and optional Vim navigation are available.
-- **Split and organize.** Split text by lines, paragraphs or separators, or extract HTTP(S) links. Review the parts, then add cards, replace the original or save a group. Choose the original or individual group parts when copying or pasting.
-- **Keep important items.** Pins can have searchable notes, seven color tags and permanently masked content. View pins in history or a separate window. Set retention and capacity for unpinned history; clearing it supports Undo.
-- **Control what appears.** Manual Privacy Mode masks the panel. Optional Zoom/Teams sharing-toolbar detection has limited coverage. Search, filters and a pointer-area reveal can be enabled separately while content stays masked. Sensitive apps use an expiring memory-only session; excluded apps are not captured.
-- **Make it yours.** Customize card size, frosted appearance, status icon, interactions, shortcuts and optional copy sounds. Settings search and shortcut-reset Undo simplify changes. A first-run practice space leaves your real clipboard and history untouched. The interface supports English, French, German, Italian, Simplified Chinese, Traditional Chinese and Japanese.
+- **Find your clips.** Text, rich text, code, links, images, files and colors are kept locally. Search by content or source app with fuzzy, contains, whole-word, starts-with or ends-with matching. Filter by app, type, pins, color tags or Handoff. Use `type:path` to find file paths copied as text.
+- **Reuse clips.** Preview, edit, drag, copy, paste directly or as plain text, and queue clips for pasting. Choose among grouped rich-text versions and navigate with the keyboard or optional Vim bindings.
+- **Split and organize.** Split text by lines, paragraphs or separators, or extract HTTP(S) links. Review the parts, then add cards, replace the original or save a group. When copying or pasting a group, choose the original or selected parts.
+- **Keep history organized.** Pin clips with searchable notes, seven color tags and an option to always hide their contents. Open pins in the history panel or in a separate window. Temporarily hide older clips by time, content type or Handoff source. Set the retention and capacity for unpinned history, or clear it with an Undo option.
+- **Control what’s visible.** Manual Privacy Mode masks cards and lets you configure search, filters and pointer-area reveal. You can also reveal a single card in place from its menu. Optional Zoom/Teams screen-sharing detection covers supported sharing toolbars. Copies from sensitive apps expire in memory, and excluded apps are skipped.
+- **Mask likely secrets.** Local recognition looks for common API keys, tokens, cookies and hashes. Card masking and categorization under **Secret** are separately configurable. Masking controls what the card displays.
+- **Match your Mac.** macOS 26 and later use native Liquid Glass for controls in history and Settings. macOS 15 uses a frosted interface. Choose light, dark or system appearance independently for the history panel and Settings.
+- **Make it yours.** Adjust card size, the menu bar icon, card interactions, keyboard shortcuts and optional copy sounds. Search Settings or reset shortcuts by category with Undo. The interface supports English, French, German, Italian, Simplified Chinese, Traditional Chinese and Japanese.
 
 For detailed behavior and limits, see the [project scope](docs/PROJECT.md) and [changelog](CHANGELOG.md).
 
@@ -25,10 +35,7 @@ You need macOS 15 or later, the macOS 26 SDK and a full Xcode installation. From
 swift run Whisk
 swift test
 ./scripts/localizations.sh check
-./scripts/build-app.sh 0.0.0 native
 ```
-
-The packaging script creates `dist/WhiskyMac.app` and `dist/WhiskyMac.zip`. The internal Swift target and executable are still named `Whisk`. Without a signing identity, the package is signed ad hoc; it is not notarized or ready for App Store submission.
 
 ## Privacy and data
 
@@ -48,7 +55,7 @@ The [upstream App Store/TestFlight exception](LICENSE-EXCEPTION-APP-STORE.md) is
 
 ## Releases and support
 
-Public source, support and privacy-policy URLs are still blank in [release-config.json](release-config.json); release validation rejects them until configured. Installable builds should be published through GitHub Releases with corresponding source, not committed as packages. Packaged apps include legal files in `Contents/Resources/Legal`, accessible through **Licenses and notices…** in the menu bar.
+The automated release workflow validates the public source, support and privacy policy URLs in [release-config.json](release-config.json). Packaged apps include the license files under `Contents/Resources/Legal`. Open them from **Licenses and Notices…** in the WhiskyMac menu.
 
 If WhiskyMac helps you, you can support its independent development with a voluntary donation:
 

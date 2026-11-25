@@ -126,6 +126,7 @@ final class SplitGroupSession: ObservableObject {
     @Published var original = false { didSet { if original { selected = [] } } }
     @Published private(set) var error: String?
     let action: CardAction
+    let hidesContent: Bool
     let plain: Bool
     let query: String
     private let parsedQuery: ParsedQuery
@@ -134,12 +135,13 @@ final class SplitGroupSession: ObservableObject {
     private let export: (ClipboardItem, Set<UUID>, Bool, Bool, Bool) throws -> Void
     var completed: () -> Void = {}
     init(
-        source: ClipboardItem, action: CardAction, plain: Bool, query: String,
+        source: ClipboardItem, action: CardAction, plain: Bool, query: String, hideContent: Bool = false,
         searchMatchMode: SearchMatchMode = .fuzzy,
         current: @escaping (UUID) -> ClipboardItem?, allowed: @escaping () -> Bool,
         export: @escaping (ClipboardItem, Set<UUID>, Bool, Bool, Bool) throws -> Void
     ) {
         self.source = source; self.action = action; self.plain = plain; self.query = query
+        hidesContent = hideContent || source.pinnedMetadata.hidesContent
         parsedQuery = ParsedQuery(query, mode: searchMatchMode)
         self.current = current; self.allowed = allowed; self.export = export
         selected = source.splitGroup?.parts.first.map { [$0.id] } ?? []
@@ -153,7 +155,7 @@ final class SplitGroupSession: ObservableObject {
         if enabled { selected.insert(id) } else { selected.remove(id) }
     }
     func matches(_ part: SplitPart) -> Bool {
-        parsedQuery.matchesText(part.text)
+        !hidesContent && parsedQuery.matchesText(part.text)
     }
     func invalidateIfNeeded() { if !valid { invalidate() } }
     func invalidate() { source = nil; selected = []; original = false; error = SplitFailure.stale.message }

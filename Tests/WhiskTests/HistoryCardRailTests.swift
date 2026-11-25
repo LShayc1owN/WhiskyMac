@@ -67,15 +67,11 @@ import Testing
             contentOffset: CGPoint(x: rtl ? 2256 : 2224, y: 0), contentSize: CGSize(width: 44786, height: 226),
             contentInsets: EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16),
             containerSize: CGSize(width: 1480, height: 226))
-        #expect(
-            CardRailLayout.revealOffset(index: 10, side: 210, stride: 224, geometry: geometry, rightToLeft: rtl) == nil)
-        #expect(
-            CardRailLayout.revealOffset(index: 15, side: 210, stride: 224, geometry: geometry, rightToLeft: rtl) == nil)
-        #expect(
-            CardRailLayout.revealOffset(index: 3, side: 210, stride: 224, geometry: geometry, rightToLeft: rtl) == 672)
-        #expect(
-            CardRailLayout.revealOffset(index: 150, side: 210, stride: 224, geometry: geometry, rightToLeft: rtl)
-                == 32330)
+        let viewport = CardRailViewport(geometry, count: 200, side: 210, stride: 224, rtl: rtl)
+        #expect(viewport.revealOffset(index: 10, side: 210, stride: 224) == nil)
+        #expect(viewport.revealOffset(index: 15, side: 210, stride: 224) == nil)
+        #expect(viewport.revealOffset(index: 3, side: 210, stride: 224) == 672)
+        #expect(viewport.revealOffset(index: 150, side: 210, stride: 224) == 32330)
     }
 }
 
@@ -85,6 +81,7 @@ import Testing
     func native_scroll_reveals_distant_selection_and_returns_to_the_first_card(rtl: Bool) throws {
         _ = NSApplication.shared
         let store = HistoryViewStateStore()
+        store.configureCards(side: 200)
         let items = (0..<200).map { anItem(.text("Rail item \($0)"), from: "App \($0)", bundle: "synthetic.app-\($0)") }
         let appScope = FilterAppScope(visibleSourceKeys: [])
         let presenter = HistoryPresenter()
@@ -95,7 +92,7 @@ import Testing
         actions.metadataEditorChanged = { editorEvents.append($0) }
         func root(_ revision: Int) -> AnyView {
             AnyView(
-                HistoryCardRail(
+                MacOS15HistoryCardRail(
                     store: store, actions: actions, keyBindings: nil, returnToLatestRevision: revision,
                     appScope: appScope
                 )
@@ -138,7 +135,7 @@ import Testing
         checkVisibleSources()
         #expect(abs(initialExtent - (CGFloat(items.count) * store.cardStride - HistoryViewStateStore.cardGap)) < 0.5)
         func visibleGlass() -> Int {
-            descendants(scroll).compactMap { $0 as? BackdropView }.filter {
+            descendants(scroll).compactMap { $0 as? MacOS15BackdropView }.filter {
                 $0.convert($0.bounds, to: document).intersects(scroll.documentVisibleRect)
             }.count
         }
@@ -151,17 +148,17 @@ import Testing
             checkVisibleSources()
             #expect(abs(document.frame.width - initialExtent) < 0.5)
         }
-        let previousGlass = Set(descendants(scroll).filter { $0 is BackdropView }.map(ObjectIdentifier.init))
+        let previousGlass = Set(descendants(scroll).filter { $0 is MacOS15BackdropView }.map(ObjectIdentifier.init))
         scroll.contentView.scroll(to: NSPoint(x: scroll.contentView.bounds.minX + store.cardStride, y: 0))
         scroll.reflectScrolledClipView(scroll.contentView)
         settle()
-        let currentGlass = Set(descendants(scroll).filter { $0 is BackdropView }.map(ObjectIdentifier.init))
+        let currentGlass = Set(descendants(scroll).filter { $0 is MacOS15BackdropView }.map(ObjectIdentifier.init))
         #expect(editorEvents.isEmpty, "Unmounting ordinary cards must not dismiss another card's editor")
         #expect(previousGlass.intersection(currentGlass).count >= 10)
         for index in [150, 3, 180] {
             store.update(presenter.present(items: items, query: "", now: Date(), selectedID: items[index].id))
             settle()
-            let glass = descendants(scroll).compactMap { $0 as? BackdropView }
+            let glass = descendants(scroll).compactMap { $0 as? MacOS15BackdropView }
             let selected = glass.filter { abs($0.bounds.width - store.zoomedCardSide) < 0.5 }
             #expect(selected.count == 1)
             #expect(
@@ -187,7 +184,8 @@ import Testing
         }
         settle()
         let selected = try #require(
-            descendants(scroll).first { abs($0.bounds.width - store.zoomedCardSide) < 0.5 && $0 is BackdropView })
+            descendants(scroll).first { abs($0.bounds.width - store.zoomedCardSide) < 0.5 && $0 is MacOS15BackdropView }
+        )
         #expect(
             scroll.documentVisibleRect.insetBy(dx: -0.5, dy: -0.5).contains(
                 selected.convert(selected.bounds, to: document)))
@@ -202,7 +200,7 @@ import Testing
             presenter.present(items: Array(items.prefix(3)), query: "Rail", now: Date(), selectedID: items[0].id))
         window.setContentSize(NSSize(width: 1800, height: 270))
         settle()
-        #expect(descendants(scroll).filter { $0 is BackdropView }.count == 3)
+        #expect(descendants(scroll).filter { $0 is MacOS15BackdropView }.count == 3)
         #expect(visibleGlass() == 3)
     }
 
@@ -214,14 +212,16 @@ import Testing
         store.configureCards(side: side)
         let spy = PanelActionSpy()
         let controller = PanelController(
-            stateStore: store, actions: spy.actions, keyBindings: KeyBindingsStore(defaults: sandbox.defaults),
+            uiFactory: MacOS15UIFactory(), stateStore: store, actions: spy.actions,
+            keyBindings: KeyBindingsStore(defaults: sandbox.defaults),
             vimBindings: VimBindingsStore(defaults: sandbox.defaults), vimMode: { false })
         let screen = try #require(NSScreen.main)
         controller.preparePresentation(pins: false, style: nil, on: screen)
-        let host = try #require(controller.activeWindow.contentView as? NSHostingView<HistoryPanelView>)
-        let expected = PanelLayout(screen: PanelLayout.Screen(screen), cardSide: store.cardSide).panel
+        let content = try #require(controller.activeWindow.contentView)
+        let host = try #require(content as? TestHostingSurface)
+        let expected = MacOS15PanelLayout(screen: MacOS15PanelLayout.Screen(screen), cardSide: store.cardSide).panel
         #expect(controller.activeWindow.frame == expected)
-        #expect(host.frame.size == expected.size)
+        #expect(content.frame.size == expected.size)
         #expect(host.sizingOptions.isEmpty)
         #expect(!controller.activeWindow.isVisible)
     }
@@ -233,7 +233,8 @@ import Testing
         store.configureCards(side: 1000)
         store.update(HistoryPresenter().present(items: [anItem(.text("Large card"))], query: "", now: Date()))
         store.setPrivacy(protected)
-        let host = HistoryPanelHosting.make(store: store, actions: PanelActionSpy().actions)
+        let host = HistoryPanelHosting.make(
+            uiFactory: MacOS15UIFactory(), store: store, actions: PanelActionSpy().actions)
         let window = NSWindow(
             contentRect: NSRect(x: -10000, y: 0, width: 1200, height: 700),
             styleMask: .borderless, backing: .buffered, defer: false)

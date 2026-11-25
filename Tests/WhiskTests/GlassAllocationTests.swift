@@ -35,7 +35,7 @@ import Testing
         let cards = (0..<12).map { _ in view(radius: 18) }
         let masks = cards.compactMap(\.maskImage)
         #expect(masks.count == cards.count && Set(masks.map(ObjectIdentifier.init)).count == 1)
-        let veil = GradientVeilView()
+        let veil = MacOS15GradientVeilView()
         let size = NSSize(width: 1512, height: 440)
         veil.setFrameSize(size)
         veil.layout()
@@ -84,7 +84,7 @@ import Testing
         host.wantsLayer = true
         host.layer?.backgroundColor = NSColor.white.cgColor
         window.contentView = host
-        let veil = GradientVeilView(frame: host.bounds)
+        let veil = MacOS15GradientVeilView(frame: host.bounds)
         veil.state = .active
         veil.blendingMode = .behindWindow
         veil.material = .hudWindow
@@ -121,9 +121,9 @@ import Testing
         #expect(maxDifference < 0.025)
     }
 
-    private func view(radius: CGFloat?) -> BackdropView {
+    private func view(radius: CGFloat?) -> MacOS15BackdropView {
         _ = NSApplication.shared
-        let view = BackdropView(frame: NSRect(x: 0, y: 0, width: 200, height: 200))
+        let view = MacOS15BackdropView(frame: NSRect(x: 0, y: 0, width: 200, height: 200))
         view.wantsLayer = true
         view.cornerRadius = radius
         view.layout()
@@ -270,7 +270,7 @@ import Testing
             contentRect: NSRect(x: 0, y: 0, width: 1512, height: 430),
             styleMask: .borderless, backing: .buffered, defer: false)
         window.isReleasedWhenClosed = false
-        let host = NSHostingView(rootView: HistoryPanelView(store: store, actions: PanelActionSpy().actions))
+        let host = NSHostingView(rootView: MacOS15HistoryPanelView(store: store, actions: PanelActionSpy().actions))
         host.sizingOptions = []
         window.contentView = host
         defer { window.contentView = nil; window.close() }
@@ -290,7 +290,7 @@ import Testing
             scroll.contentView.scroll(to: NSPoint(x: CGFloat(index) * store.cardStride, y: 0))
             scroll.reflectScrolledClipView(scroll.contentView)
             settle()
-            let glass = descendants(scroll).filter { $0 is BackdropView }.count
+            let glass = descendants(scroll).filter { $0 is MacOS15BackdropView }.count
             #expect(glass > 0 && glass <= 13)
             print("Card rail at \(index): native glass=\(glass)")
         }
@@ -299,7 +299,7 @@ import Testing
             for _ in 0..<8 {
                 host.layoutSubtreeIfNeeded()
                 RunLoop.main.run(until: Date().addingTimeInterval(0.025))
-                let glass = descendants(scroll).filter { $0 is BackdropView }.count
+                let glass = descendants(scroll).filter { $0 is MacOS15BackdropView }.count
                 #expect(glass > 0 && glass <= 13)
             }
         }

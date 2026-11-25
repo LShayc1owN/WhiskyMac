@@ -80,7 +80,7 @@ import Testing
         _ = NSApplication.shared
         let original =
             "func run() { return 1 }\n" + String(repeating: "Long preview line\n", count: 60_000) + "END-MARKER"
-        let surface = TextPreviewView.Surface(frame: NSRect(x: 0, y: 0, width: 400, height: 300))
+        let surface = MacOS15TextPreviewView.Surface(frame: NSRect(x: 0, y: 0, width: 400, height: 300))
         let tokens = code ? CodeHighlighter.tokens(in: original) : []
         surface.update(text: original, tokens: tokens, monospaced: code)
         #expect(surface.textView.string == original)

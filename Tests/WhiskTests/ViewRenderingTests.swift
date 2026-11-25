@@ -118,15 +118,15 @@ enum ViewFixtures {
 
     static let spy = PanelActionSpy()
 
-    static func card(_ card: CardViewState, showsSelection: Bool = true) -> ItemCardView {
-        ItemCardView(card: card, actions: spy.actions, showsSelection: showsSelection)
+    static func card(_ card: CardViewState, showsSelection: Bool = true) -> MacOS15ItemCardView {
+        MacOS15ItemCardView(card: card, actions: spy.actions, showsSelection: showsSelection)
     }
 }
 
 @MainActor
 @Suite struct CardRendering {
     @Test func inline_size_preview_keeps_the_actual_card_dimensions() async throws {
-        let window = hostOffscreen(CardSizePreviewViewport(side: 500), 332, 516)
+        let window = hostOffscreen(MacOS15CardSizePreviewViewport(side: 500), 332, 516)
         defer { window.close() }
         let host = try #require(window.contentView)
         try await Task.sleep(for: .milliseconds(350))
@@ -158,17 +158,17 @@ enum ViewFixtures {
             for side in [160.0, 183.5, 250.0] {
                 let extent = side * HistoryViewStateStore.selectionZoom
                 let plainWindow = hostOffscreen(
-                    ItemCardView(card: plain, actions: spy.actions, side: side), extent, extent)
+                    MacOS15ItemCardView(card: plain, actions: spy.actions, side: side), extent, extent)
                 let groupWindow = hostOffscreen(
-                    ItemCardView(card: grouped, actions: spy.actions, side: side), extent, extent)
+                    MacOS15ItemCardView(card: grouped, actions: spy.actions, side: side), extent, extent)
                 defer { plainWindow.close(); groupWindow.close() }
                 let plainHost = try #require(plainWindow.contentView)
                 let groupHost = try #require(groupWindow.contentView)
                 pump(plainHost); pump(groupHost)
                 #expect(groupHost.fittingSize == plainHost.fittingSize)
                 #expect(
-                    descendants(groupHost).filter { $0 is BackdropView }.count
-                        == descendants(plainHost).filter { $0 is BackdropView }.count)
+                    descendants(groupHost).filter { $0 is MacOS15BackdropView }.count
+                        == descendants(plainHost).filter { $0 is MacOS15BackdropView }.count)
             }
         }
 
@@ -181,9 +181,9 @@ enum ViewFixtures {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
             for scheme in [ColorScheme.light, .dark] {
                 let board = HStack(alignment: .top, spacing: 28) {
-                    ItemCardView(card: plain, actions: spy.actions)
-                    ItemCardView(card: grouped, actions: spy.actions)
-                    CardGroupIndicator(count: 1000)
+                    MacOS15ItemCardView(card: plain, actions: spy.actions)
+                    MacOS15ItemCardView(card: grouped, actions: spy.actions)
+                    MacOS15CardGroupIndicator(count: 1000)
                 }
                 .padding(28)
                 .environment(\.colorScheme, scheme)
@@ -219,7 +219,7 @@ enum ViewFixtures {
         #expect(window.contentView != nil)
 
         for side in [CGFloat(160), 200, 250, 183.5] {
-            let sized = ItemCardView(card: state.cards[0], actions: ViewFixtures.spy.actions, side: side)
+            let sized = MacOS15ItemCardView(card: state.cards[0], actions: ViewFixtures.spy.actions, side: side)
             #expect(render(sized, side * 1.05, side * 1.05) != nil, "card at \(side)")
         }
     }
@@ -227,9 +227,9 @@ enum ViewFixtures {
     /// Four names under a thumbnail overflow the small card; the card picks
     /// the fullest layout that fits and counts the rest in the last line.
     @Test func a_files_card_lays_out_only_the_names_that_fit_its_height() throws {
-        typealias Fit = FilePreviewView.Fit
-        let withThumbnail = FilePreviewView.fits(names: 4, overflow: 1, thumbnail: true)
-        let bare = FilePreviewView.fits(names: 3, overflow: 0, thumbnail: false)
+        typealias Fit = MacOS15FilePreviewView.Fit
+        let withThumbnail = MacOS15FilePreviewView.fits(names: 4, overflow: 1, thumbnail: true)
+        let bare = MacOS15FilePreviewView.fits(names: 3, overflow: 0, thumbnail: false)
 
         #expect(
             withThumbnail == [
@@ -245,7 +245,7 @@ enum ViewFixtures {
                 Fit(thumbnail: false, shown: 1, hidden: 2),
             ])
         #expect(
-            FilePreviewView.fits(names: 0, overflow: 0, thumbnail: true) == [
+            MacOS15FilePreviewView.fits(names: 0, overflow: 0, thumbnail: true) == [
                 Fit(thumbnail: true, shown: 0, hidden: 0), Fit(thumbnail: false, shown: 0, hidden: 0),
             ])
 
@@ -253,7 +253,7 @@ enum ViewFixtures {
         let files = try #require(ViewFixtures.state().cards.last)
         #expect(files.kindLabel == localized("files"))
         for side in [CGFloat(160), 200, 250] {
-            let sized = ItemCardView(card: files, actions: ViewFixtures.spy.actions, side: side)
+            let sized = MacOS15ItemCardView(card: files, actions: ViewFixtures.spy.actions, side: side)
             #expect(render(sized, side * 1.05, side * 1.05) != nil, "files card at \(side)")
             #expect(hostOffscreen(sized, side * 1.05, side * 1.05).contentView != nil)
         }
@@ -262,16 +262,18 @@ enum ViewFixtures {
     @Test func link_and_file_previews_render_loaded_and_bare_at_both_sizes() {
         ViewFixtures.seedPreviews()
 
-        for size in [LinkPreviewView.Size.card, .large] {
-            #expect(render(LinkPreviewView(address: ViewFixtures.richLink, size: size), 300, 300) != nil)
-            #expect(render(LinkPreviewView(address: ViewFixtures.bareLink, size: size), 300, 300) != nil)
-            #expect(render(LinkPreviewView(address: "not a url at all", size: size), 300, 300) != nil)
+        for size in [MacOS15LinkPreviewView.Size.card, .large] {
+            #expect(render(MacOS15LinkPreviewView(address: ViewFixtures.richLink, size: size), 300, 300) != nil)
+            #expect(render(MacOS15LinkPreviewView(address: ViewFixtures.bareLink, size: size), 300, 300) != nil)
+            #expect(render(MacOS15LinkPreviewView(address: "not a url at all", size: size), 300, 300) != nil)
         }
-        for size in [FilePreviewView.Size.card, .large] {
-            let view = FilePreviewView(
+        for size in [MacOS15FilePreviewView.Size.card, .large] {
+            let view = MacOS15FilePreviewView(
                 names: ["a.txt", "b.txt"], overflow: 3, thumbnailPath: ViewFixtures.thumbnailed, size: size)
             #expect(render(view, 300, 300) != nil)
-            #expect(render(FilePreviewView(names: ["c"], overflow: 0, thumbnailPath: nil, size: size), 300, 300) != nil)
+            #expect(
+                render(MacOS15FilePreviewView(names: ["c"], overflow: 0, thumbnailPath: nil, size: size), 300, 300)
+                    != nil)
         }
     }
 }
@@ -280,14 +282,14 @@ enum ViewFixtures {
 @Suite struct ChipBarRendering {
     @Test func the_chip_row_renders_active_focused_and_suppressed_chips() {
         let filters = ViewFixtures.state().filters
-        let bar = FilterBarView(
+        let bar = MacOS15FilterBarView(
             filters: filters, onToggleApp: { _ in }, onToggleKind: { _ in }, onFocusApp: { _ in },
             onFocusKind: { _ in })
-        let suppressed = FilterBarView(
+        let suppressed = MacOS15FilterBarView(
             filters: filters, cursorSuppressed: true, onToggleApp: { _ in }, onToggleKind: { _ in },
             onFocusApp: { _ in }, onFocusKind: { _ in })
 
-        let hover = FilterBarView(
+        let hover = MacOS15FilterBarView(
             filters: filters, appTrigger: .hover,
             onSelectApp: { _ in }, onToggleApp: { _ in }, onToggleKind: { _ in },
             onFocusApp: { _ in }, onFocusKind: { _ in })
@@ -309,7 +311,7 @@ enum ViewFixtures {
                     id: "b", label: "Bare", sourceBundleID: nil, icon: nil, accessibilityLabel: "Bare",
                     isActive: false, isFocused: true),
             ])
-        let bar = FilterBarView(
+        let bar = MacOS15FilterBarView(
             filters: odd, onToggleApp: { _ in }, onToggleKind: { _ in }, onFocusApp: { _ in }, onFocusKind: { _ in })
 
         #expect(render(bar, 400, 44) != nil)
@@ -317,8 +319,8 @@ enum ViewFixtures {
 
     @Test func a_chip_row_that_fits_is_stretched_to_its_viewport_and_a_wide_one_still_scrolls() throws {
         let items = ViewFixtures.items()
-        func row(_ chips: [ChipEntry]) -> FilterBarView {
-            FilterBarView(
+        func row(_ chips: [ChipEntry]) -> MacOS15FilterBarView {
+            MacOS15FilterBarView(
                 filters: HistoryPresenter().present(
                     items: items, query: "", now: ViewFixtures.now, filters: FilterContext(chips: chips)
                 ).filters,
@@ -344,7 +346,7 @@ enum ViewFixtures {
         let store = HistoryViewStateStore()
         let spy = PanelActionSpy()
         store.update(ViewFixtures.state())
-        let window = hostOffscreen(HistoryPanelView(store: store, actions: spy.actions), 1200, 430)
+        let window = hostOffscreen(MacOS15HistoryPanelView(store: store, actions: spy.actions), 1200, 430)
         let hosting = try #require(window.contentView)
         pump(hosting)
 
@@ -363,7 +365,7 @@ enum ViewFixtures {
         let spy = PanelActionSpy()
         store.update(
             HistoryPresenter().present(items: [], query: "", now: ViewFixtures.now, clipboardAccess: .requiresConsent))
-        let window = hostOffscreen(HistoryPanelView(store: store, actions: spy.actions), 1200, 430)
+        let window = hostOffscreen(MacOS15HistoryPanelView(store: store, actions: spy.actions), 1200, 430)
         let hosting = try #require(window.contentView)
         pump(hosting)
 
@@ -382,8 +384,8 @@ private func pump(_ hosting: NSView) {
 }
 
 @MainActor
-private func collectBackdrops(_ view: NSView) -> [BackdropView] {
-    (view as? BackdropView).map { [$0] } ?? view.subviews.flatMap(collectBackdrops)
+private func collectBackdrops(_ view: NSView) -> [MacOS15BackdropView] {
+    (view as? MacOS15BackdropView).map { [$0] } ?? view.subviews.flatMap(collectBackdrops)
 }
 
 /// SwiftUI backs its ScrollView with an NSScrollView on macOS.
@@ -400,8 +402,8 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
 @Suite struct PanelRendering {
     private let spy = PanelActionSpy()
 
-    private func panel(_ store: HistoryViewStateStore) -> HistoryPanelView {
-        HistoryPanelView(store: store, actions: spy.actions)
+    private func panel(_ store: HistoryViewStateStore) -> MacOS15HistoryPanelView {
+        MacOS15HistoryPanelView(store: store, actions: spy.actions)
     }
 
     @Test func a_hosted_panel_follows_state_changes_selection_focus_modes_and_close() throws {
@@ -484,14 +486,14 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
         store.endEditing()
 
         #expect(editor.width > 600)
-        #expect(editor.width <= HistoryPanelView.editorMaxWidth)
+        #expect(editor.width <= MacOS15HistoryPanelView.editorMaxWidth)
         #expect(within(2, editor.midX, 1720))
 
         store.update(HistoryPresenter().present(items: [], query: "zzz", now: ViewFixtures.now))
         let slab = try contentBackdrop()
 
         #expect(slab.width > 300)
-        #expect(slab.width <= HistoryPanelView.emptyStateMaxWidth)
+        #expect(slab.width <= MacOS15HistoryPanelView.emptyStateMaxWidth)
         #expect(within(2, slab.midX, 1720))
     }
 
@@ -501,7 +503,7 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
 
         for card in state.cards where card.transformable {
             store.beginEditing(card)
-            let editor = EditItemView(store: store, card: card, onSave: { _ in }, onCancel: {})
+            let editor = MacOS15EditItemView(store: store, card: card, onSave: { _ in }, onCancel: {})
             #expect(render(editor, 900, 300) != nil, "editor for \(card.kindLabel)")
             store.setEditingText("")
             #expect(render(editor, 900, 300) != nil, "blank editor for \(card.kindLabel)")
@@ -519,11 +521,11 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
 
         for index in 0..<count {
             store.update(ViewFixtures.state(selecting: index))
-            #expect(render(PreviewOverlayView(store: store), 700, 480) != nil, "overlay \(index)")
+            #expect(render(MacOS15PreviewOverlayView(store: store), 700, 480) != nil, "overlay \(index)")
         }
         store.update(ViewFixtures.state(selecting: nil))
-        #expect(render(PreviewOverlayView(store: store), 700, 480) != nil)
-        #expect(hostOffscreen(PreviewOverlayView(store: store), 700, 480).contentView != nil)
+        #expect(render(MacOS15PreviewOverlayView(store: store), 700, 480) != nil)
+        #expect(hostOffscreen(MacOS15PreviewOverlayView(store: store), 700, 480).contentView != nil)
     }
 
     /// The window decides the size — a short screen hands the overlay
@@ -533,17 +535,285 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
         let store = HistoryViewStateStore()
         let count = ViewFixtures.items().count
         let smallest = CGSize(
-            width: PanelLayout.previewMinimumHeight * 700 / 480, height: PanelLayout.previewMinimumHeight)
+            width: MacOS15PanelLayout.previewMinimumHeight * 700 / 480, height: MacOS15PanelLayout.previewMinimumHeight)
 
         for index in 0..<count {
             store.update(ViewFixtures.state(selecting: index))
-            let small = try #require(render(PreviewOverlayView(store: store), smallest.width, smallest.height))
+            let small = try #require(render(MacOS15PreviewOverlayView(store: store), smallest.width, smallest.height))
             #expect(within(1, small.size.width, smallest.width), "overlay \(index)")
             #expect(within(1, small.size.height, smallest.height), "overlay \(index)")
-            let large = try #require(render(PreviewOverlayView(store: store), 700, 480))
+            let large = try #require(render(MacOS15PreviewOverlayView(store: store), 700, 480))
             #expect(within(1, large.size.width, 700), "overlay \(index)")
             #expect(within(1, large.size.height, 480), "overlay \(index)")
         }
+    }
+}
+
+@MainActor
+@Suite(.serialized) struct OverlayTypographyLayoutTests {
+    private let percentages =
+        ProcessInfo.processInfo.environment["WHISK_EXHAUSTIVE_TYPOGRAPHY"] == "1"
+        ? Array(InterfaceTypography.percentRange) : [85, 100, 150, 151, 200, 250, 300]
+    private let longAppName = "Zwischenablage Vorschau für die Dokumentenverwaltung und Zusammenarbeit"
+
+    @Test func long_preview_metadata_leaves_room_for_the_content_in_every_language() async throws {
+        let savedLanguage = AppLocalization.language
+        defer { AppLocalization.language = savedLanguage }
+        let store = HistoryViewStateStore()
+        let item = anItem(
+            .text(String(repeating: "Read the entire clipboard preview here. ", count: 20)), from: longAppName)
+        let presenter = HistoryPresenter()
+
+        for language in AppLanguage.allCases {
+            AppLocalization.language = language.code
+            presenter.invalidateLocalizedLabels()
+            store.update(presenter.present(items: [item], query: "", now: .now, selectedID: item.id))
+            let fixture = Surface()
+            defer { fixture.window.close() }
+            for percent in percentages {
+                let typography = InterfaceTypography(percent: percent)
+                let height = MacOS15PanelLayout.previewMinimumHeight
+                let width = floor(height * 700 / 480)
+                let view = await fixture.render(
+                    MacOS15PreviewOverlayView(store: store).interfaceType(typography), width, height)
+                let context = Comment(rawValue: "\(language.rawValue) at \(percent)%")
+                let surface = try #require(
+                    scrollViews(in: view).compactMap { $0 as? MacOS15TextPreviewView.Surface }.first, context)
+                #expect(surface.contentSize.height >= typography.lineHeight(13) * 2, context)
+                #expect(surface.contentSize.width <= width - 39, context)
+                #expect(
+                    view.bounds.insetBy(dx: -1, dy: -1).contains(view.convert(surface.bounds, from: surface)), context)
+                try saveBitmap(view, as: "preview-\(language.rawValue)-\(percent)")
+            }
+        }
+    }
+
+    @Test func pinned_editor_leaves_save_outside_the_scrollable_form_at_largest_size() async throws {
+        let savedLanguage = AppLocalization.language
+        defer { AppLocalization.language = savedLanguage }
+        let metadata = PinnedMetadata(note: longAppName, hidesContent: true, tags: [.blue, .orange])
+
+        for language in AppLanguage.allCases {
+            AppLocalization.language = language.code
+            let fixture = Surface()
+            defer { fixture.window.close() }
+            for percent in percentages {
+                let typography = InterfaceTypography(percent: percent)
+                let width = min(typography.room(320), (NSScreen.main?.visibleFrame.width ?? 700) - 64)
+                let editor = MacOS15PinnedItemEditor(value: metadata, save: { _ in })
+                    .interfaceType(typography)
+                    .background(Color(nsColor: .windowBackgroundColor))
+                let view = await fixture.render(editor, width, 280)
+                let context = Comment(rawValue: language.rawValue)
+                if !typography.usesLargeLayout {
+                    #expect(view.fittingSize.width <= width + 1, context)
+                    continue
+                }
+                let scroll = try #require(scrollViews(in: view).first { $0.bounds.width > width / 2 }, context)
+                let viewport = view.convert(scroll.bounds, from: scroll)
+                #expect(scroll.documentVisibleRect.height < (scroll.documentView?.bounds.height ?? 0), context)
+                #expect(viewport.height >= 100, context)
+                #expect(view.bounds.height - viewport.height >= typography.lineHeight(13), context)
+                if percent == 300 { try saveBitmap(view, as: "pinned-editor-\(language.rawValue)") }
+            }
+        }
+    }
+
+    @Test func large_format_choices_and_pin_lists_keep_scrollable_viewports() async throws {
+        let savedLanguage = AppLocalization.language
+        defer { AppLocalization.language = savedLanguage }
+        let actions = PanelActionSpy().actions
+        let base = NSAttributedString(string: "An example with the original formatting.")
+        let rtf = try #require(RichTextCodec.encode(base))
+        let items = (0..<3).map { _ in
+            ClipboardItem(
+                id: UUID(), payload: .text(base.string), source: nil, copiedAt: .now, isPinned: false, rtf: rtf)
+        }
+        let pin = anItem(.text("Hidden sample"), pinned: true).withPinnedMetadata(
+            PinnedMetadata(note: longAppName, hidesContent: true, tags: Set(PinTagColor.allCases)))
+        let filters = FilterContext(chips: PinTagColor.allCases.map(ChipEntry.tag), pinnedOnly: true)
+        let preview = HistoryViewStateStore()
+        preview.detailsSource = { ids in ids.compactMap { id in items.first { $0.id == id } } }
+        let pins = HistoryViewStateStore()
+        let presenter = HistoryPresenter()
+
+        for language in AppLanguage.allCases {
+            AppLocalization.language = language.code
+            presenter.invalidateLocalizedLabels()
+            preview.update(presenter.present(items: items, query: "", now: .now, selectedID: items[0].id))
+            preview.preparePreview()
+            preview.pendingAction = .paste
+            #expect(preview.previewItems.count == items.count)
+            pins.update(presenter.present(items: [pin], query: "", now: .now, selectedID: pin.id, filters: filters))
+
+            let previewSurface = Surface()
+            let pinSurface = Surface()
+            defer { previewSurface.window.close(); pinSurface.window.close() }
+            for percent in percentages {
+                let typography = InterfaceTypography(percent: percent)
+                let context = Comment(rawValue: "\(language.rawValue) at \(percent)%")
+                let previewView = await previewSurface.render(
+                    MacOS15PreviewOverlayView(store: preview, actions: actions).interfaceType(typography), 350, 240)
+                let pinView = await pinSurface.render(
+                    MacOS15PinnedListView(store: pins, actions: actions).interfaceType(typography), 400, 560)
+                let formatScroll = try #require(scrollViews(in: previewView).first { $0.bounds.height >= 100 }, context)
+                if typography.usesLargeLayout {
+                    #expect(
+                        formatScroll.documentVisibleRect.height < (formatScroll.documentView?.bounds.height ?? 0),
+                        context)
+                }
+                let pinsScroll = try #require(
+                    scrollViews(in: pinView).max { $0.bounds.height < $1.bounds.height }, context)
+                #expect(pinsScroll.bounds.height >= typography.lineHeight(13) * 2, context)
+                let pinViewport = pinView.convert(pinsScroll.bounds, from: pinsScroll)
+                #expect(pinView.bounds.insetBy(dx: -1, dy: -1).contains(pinViewport), context)
+                try saveBitmap(previewView, as: "preview-formats-\(language.rawValue)-\(percent)")
+                try saveBitmap(pinView, as: "pinned-list-\(language.rawValue)-\(percent)")
+            }
+        }
+    }
+
+    @Test func compact_editors_give_the_document_room_below_localized_instructions() async throws {
+        let savedLanguage = AppLocalization.language
+        defer { AppLocalization.language = savedLanguage }
+
+        let text = "Editable text for the layout check.\nSecond line in the sample document."
+        let richText = NSAttributedString(string: text, attributes: [.font: NSFont.systemFont(ofSize: 17)])
+        let store = HistoryViewStateStore()
+        let item = anItem(.text(text), from: longAppName)
+        let presenter = HistoryPresenter()
+        for language in AppLanguage.allCases {
+            AppLocalization.language = language.code
+            presenter.invalidateLocalizedLabels()
+            store.update(presenter.present(items: [item], query: "", now: .now, selectedID: item.id))
+            let card = try #require(store.state.selectedCard)
+            store.beginEditing(card)
+            defer { store.endEditing() }
+
+            let fixture = Surface()
+            defer { fixture.window.close() }
+            for format in ["plain", "rich"] {
+                for percent in percentages {
+                    let typography = InterfaceTypography(percent: percent)
+                    store.editingRichText = format == "rich" ? richText : nil
+                    let editor = MacOS15EditItemView(store: store, card: card, onSave: { _ in }, onCancel: {})
+                        .interfaceType(typography)
+                        .background(Color(nsColor: .windowBackgroundColor))
+                    let view = await fixture.render(editor, 390, 300)
+                    let context = Comment(rawValue: "\(language.rawValue) at \(percent)% (\(format))")
+                    let scroll = try #require(scrollViews(in: view).first { $0.documentView is NSTextView }, context)
+                    let editorFrame = view.convert(scroll.bounds, from: scroll)
+                    #expect(view.bounds.insetBy(dx: -1, dy: -1).contains(editorFrame), context)
+                    let minimumHeight =
+                        format == "rich"
+                        ? InterfaceTypography.standard.lineHeight(17) * 2 : typography.lineHeight(13) * 2
+                    #expect(scroll.contentSize.height >= minimumHeight, context)
+                    if format == "rich" {
+                        let document = try #require(scroll.documentView as? NSTextView, context)
+                        #expect(document.string == text, context)
+                        let font = document.textStorage?.attribute(.font, at: 0, effectiveRange: nil) as? NSFont
+                        #expect(font?.pointSize == 17, context)
+                    }
+                    if percent == 300 {
+                        try saveBitmap(view, as: "editor-\(language.rawValue)-\(format)-\(percent)")
+                    }
+                }
+            }
+        }
+    }
+
+    @Test func narrow_history_search_wraps_its_prompt_and_keeps_the_field_inside_the_panel() async throws {
+        let savedLanguage = AppLocalization.language
+        defer { AppLocalization.language = savedLanguage }
+        let store = HistoryViewStateStore()
+        store.setPrivacyPermissions(allowSearch: true, showSourceApps: true)
+        let actions = PanelActionSpy().actions
+
+        for language in AppLanguage.allCases {
+            AppLocalization.language = language.code
+            store.update(ViewFixtures.state())
+            let fixture = Surface()
+            defer { fixture.window.close() }
+            for percent in percentages {
+                let typography = InterfaceTypography(percent: percent)
+                let height = MacOS15PanelLayout.panelHeight(forCardSide: store.cardSide, typography: typography)
+                store.interfaceTypography = typography
+                if percent == 300 {
+                    let prompt = ClipboardSearchPrompt(count: 12_345, typography: typography)
+                    func fieldHeight(showingPrompt: Bool) -> CGFloat {
+                        NSHostingView(
+                            rootView: TextField(prompt.label, text: .constant(""), prompt: Text(verbatim: ""))
+                                .textFieldStyle(.plain)
+                                .macOS15ClipboardSearchPrompt(prompt, accent: .red, isVisible: showingPrompt)
+                                .font(typography.font(size: 14))
+                                .frame(width: 240)
+                        ).fittingSize.height
+                    }
+                    #expect(fieldHeight(showingPrompt: true) > fieldHeight(showingPrompt: false) + 10)
+                }
+                for protected in [false, true] {
+                    store.setPrivacy(protected)
+                    let panel = MacOS15HistoryPanelView(store: store, actions: actions)
+                        .interfaceType(typography)
+                        .environment(\.colorScheme, .light)
+                        .background(Color(nsColor: .windowBackgroundColor))
+                    let view = await fixture.render(panel, 540, height)
+                    let context = Comment(rawValue: "\(language.rawValue) at \(percent)% (privacy=\(protected))")
+                    let views = descendants(of: view)
+                    let field = try #require(views.compactMap { $0 as? NSTextField }.first, context)
+                    let fieldBounds = view.convert(field.bounds, from: field)
+                    #expect(view.bounds.insetBy(dx: -1, dy: -1).contains(fieldBounds), context)
+                    #expect(fieldBounds.height >= typography.lineHeight(14) - 2, context)
+                    if percent == 300 {
+                        try saveBitmap(
+                            view, as: "history-search-\(language.rawValue)-\(protected ? "protected" : "normal")")
+                    }
+                }
+            }
+        }
+    }
+
+    @MainActor
+    private final class Surface {
+        let window: NSWindow
+        let host = NSHostingView(rootView: AnyView(EmptyView()))
+
+        init() {
+            _ = NSApplication.shared
+            window = NSWindow(contentRect: .zero, styleMask: .borderless, backing: .buffered, defer: false)
+            window.isReleasedWhenClosed = false
+            host.sizingOptions = []
+            window.contentView = host
+        }
+
+        func render(_ view: some View, _ width: CGFloat, _ height: CGFloat) async -> NSView {
+            host.rootView = AnyView(view)
+            window.setContentSize(NSSize(width: width, height: height))
+            await Task.yield()
+            host.layoutSubtreeIfNeeded()
+            host.displayIfNeeded()
+            return host
+        }
+    }
+
+    private func descendants(of view: NSView) -> [NSView] {
+        [view] + view.subviews.flatMap(descendants(of:))
+    }
+
+    private func scrollViews(in view: NSView) -> [NSScrollView] {
+        (view as? NSScrollView).map { [$0] } ?? view.subviews.flatMap(scrollViews(in:))
+    }
+
+    private func saveBitmap(_ view: NSView, as name: String) throws {
+        guard let destination = ProcessInfo.processInfo.environment["WHISK_OVERLAY_TYPOGRAPHY_ARTIFACTS"] else {
+            return
+        }
+        let directory = URL(fileURLWithPath: destination)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let bitmap = try #require(view.bitmapImageRepForCachingDisplay(in: view.bounds))
+        view.cacheDisplay(in: view.bounds, to: bitmap)
+        let png = try #require(bitmap.representation(using: .png, properties: [:]))
+        try png.write(to: directory.appendingPathComponent(name + ".png"))
     }
 }
 
@@ -555,7 +825,7 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
         let general = GeneralSettingsStore(defaults: sandbox.defaults)
         let vim = VimBindingsStore(defaults: sandbox.defaults)
         let login = LoginItemManager()
-        let view = SettingsView(store: bindings, general: general, loginItem: login, vimBindings: vim)
+        let view = MacOS15SettingsView(store: bindings, general: general, loginItem: login, vimBindings: vim)
 
         #expect(hostOffscreen(view, 560, 720).contentView != nil)
 
@@ -568,24 +838,24 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
 
         #expect(hostOffscreen(view, 560, 720).contentView != nil)
         #expect(render(view, 560, 720) != nil)
-        #expect(hostOffscreen(view, 560, SettingsWindowSize.minimumHeight).contentView != nil)
+        #expect(hostOffscreen(view, 560, MacOS15SettingsWindowSize.minimumHeight).contentView != nil)
 
-        let storeBuild = SettingsView(
+        let storeBuild = MacOS15SettingsView(
             store: bindings, general: general, loginItem: login, vimBindings: vim, distribution: .appStore)
         #expect(render(storeBuild, 560, 720) != nil)
     }
 
     @Test func the_blur_veil_and_native_materials_take_a_window() throws {
-        let veil = hostOffscreen(GradientBlurVeil(), 800, 430)
+        let veil = hostOffscreen(MacOS15GradientBlurVeil(), 800, 430)
         let material = hostOffscreen(
-            Text("material").padding().background(NativeMaterialBackground(material: .underWindowBackground))
-                .padding().background(NativeMaterialBackground(cornerRadius: 12)), 300, 120)
-        let settingsSurface = hostOffscreen(
-            Text("Settings").padding().settingsSurface(
-                in: RoundedRectangle(cornerRadius: SettingsSurface.groupCornerRadius, style: .continuous)),
+            Text("material").padding().background(MacOS15NativeMaterialBackground(material: .underWindowBackground))
+                .padding().background(MacOS15NativeMaterialBackground(cornerRadius: 12)), 300, 120)
+        let macOS15SettingsSurface = hostOffscreen(
+            Text("Settings").padding().macOS15SettingsSurface(
+                in: RoundedRectangle(cornerRadius: MacOS15SettingsSurface.groupCornerRadius, style: .continuous)),
             300, 120)
         let reducedGlass = hostOffscreen(
-            Text("Reduced transparency").padding().settingsSurface(in: Capsule())
+            Text("Reduced transparency").padding().macOS15SettingsSurface(in: Capsule())
                 .environment(\.settingsAccessibilityOverride, SettingsAccessibilityValues(reduceTransparency: true)),
             300, 120)
 
@@ -597,16 +867,16 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
         #expect(Set(backdrops.map(\.material)) == [.hudWindow, .underWindowBackground])
         #expect(backdrops.allSatisfy { $0.blendingMode == .behindWindow && $0.state == .active })
         #expect(backdrops.allSatisfy { $0.maskImage != nil && $0.layer?.borderWidth == 0 })
-        #expect(settingsSurface.contentView != nil)
+        #expect(macOS15SettingsSurface.contentView != nil)
         #expect(reducedGlass.contentView != nil)
     }
 
     @Test func the_settings_window_is_transparent_with_full_size_glass_content() {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: SettingsWindowSize.width, height: 720),
+            contentRect: NSRect(x: 0, y: 0, width: MacOS15SettingsWindowSize.width, height: 720),
             styleMask: [.titled, .closable], backing: .buffered, defer: false)
         window.isReleasedWhenClosed = false
-        SettingsWindowConfiguration.apply(to: window)
+        MacOS15SettingsWindowConfiguration.apply(to: window)
         window.title = localized("WhiskyMac Settings")
 
         #expect(!window.isOpaque)
@@ -616,9 +886,9 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
         #expect(window.titleVisibility == .hidden)
         #expect(window.title == localized("WhiskyMac Settings"))
 
-        let backdrop = hostOffscreen(SettingsWindowBackdrop(), 840, 720)
+        let backdrop = hostOffscreen(MacOS15SettingsWindowBackdrop(), 840, 720)
         let reducedBackdrop = hostOffscreen(
-            SettingsWindowBackdrop().environment(
+            MacOS15SettingsWindowBackdrop().environment(
                 \.settingsAccessibilityOverride, SettingsAccessibilityValues(reduceTransparency: true)), 840, 720)
         #expect(backdrop.contentView != nil)
         #expect(reducedBackdrop.contentView != nil)
@@ -634,12 +904,12 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
         try Data("dragged".utf8).write(to: file)
         let url = try #require(URL(string: "https://example.com"))
 
-        #expect(ItemCardView.dragProvider(for: .text("hello")).canLoadObject(ofClass: NSString.self))
-        #expect(ItemCardView.dragProvider(for: .link(url)).canLoadObject(ofClass: NSURL.self))
-        #expect(ItemCardView.dragProvider(for: .image(ViewFixtures.png)).canLoadObject(ofClass: NSImage.self))
-        #expect(!ItemCardView.dragProvider(for: .image(Data([0x01]))).canLoadObject(ofClass: NSImage.self))
-        #expect(!ItemCardView.dragProvider(for: .files([file.path])).registeredTypeIdentifiers.isEmpty)
-        #expect(ItemCardView.dragProvider(for: .files([])).registeredTypeIdentifiers.isEmpty)
+        #expect(MacOS15ItemCardView.dragProvider(for: .text("hello")).canLoadObject(ofClass: NSString.self))
+        #expect(MacOS15ItemCardView.dragProvider(for: .link(url)).canLoadObject(ofClass: NSURL.self))
+        #expect(MacOS15ItemCardView.dragProvider(for: .image(ViewFixtures.png)).canLoadObject(ofClass: NSImage.self))
+        #expect(!MacOS15ItemCardView.dragProvider(for: .image(Data([0x01]))).canLoadObject(ofClass: NSImage.self))
+        #expect(!MacOS15ItemCardView.dragProvider(for: .files([file.path])).registeredTypeIdentifiers.isEmpty)
+        #expect(MacOS15ItemCardView.dragProvider(for: .files([])).registeredTypeIdentifiers.isEmpty)
     }
 }
 
@@ -650,8 +920,8 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
         let store = HistoryViewStateStore()
         let card = ViewFixtures.state().cards[0]
 
-        _ = ItemCardView(card: card, actions: PanelActionSpy().actions)
-        #expect(render(CodeTextView(text: "let a = 1", tokens: []), 200, 100) != nil)
+        _ = MacOS15ItemCardView(card: card, actions: PanelActionSpy().actions)
+        #expect(render(MacOS15CodeTextView(text: "let a = 1", tokens: []), 200, 100) != nil)
         _ = UpdateChecker()
         _ = PanelKeyRouter(
             stateStore: store, actions: PanelActionSpy().actions,
@@ -672,13 +942,13 @@ private func firstScrollView(in view: NSView) -> NSScrollView? {
             contentRect: NSRect(x: 0, y: 0, width: 120, height: 80), styleMask: .borderless, backing: .buffered,
             defer: false)
         window.isReleasedWhenClosed = false
-        let backdrop = BackdropView()
+        let backdrop = MacOS15BackdropView()
         backdrop.wantsLayer = true
         backdrop.cornerRadius = 8
         window.contentView = backdrop
         backdrop.layoutSubtreeIfNeeded()
         backdrop.updateLayer()
-        let veil = GradientVeilView()
+        let veil = MacOS15GradientVeilView()
         veil.wantsLayer = true
         veil.frame = NSRect(x: 0, y: 0, width: 120, height: 80)
         veil.layoutSubtreeIfNeeded()

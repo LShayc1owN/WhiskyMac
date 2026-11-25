@@ -39,6 +39,8 @@ protocol Pasteboard {
     func readIfChanged() -> PasteboardSnapshot?
     /// Delivers a read on the main thread. System adapters may perform it on a worker.
     func readIfChangedAsync(_ completion: @escaping (PasteboardSnapshot?) -> Void)
+    /// Pause content reads; on resume baseline the current revision without reading its contents.
+    func setCapturePaused(_ paused: Bool)
     func write(_ payload: Payload, rtf: Data?)
     /// Stages a paste without copy-only feedback.
     func writeForPaste(_ payload: Payload, rtf: Data?)

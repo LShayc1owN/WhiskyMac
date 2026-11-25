@@ -7,8 +7,10 @@ import AppKit
 import SwiftUI
 
 /// Main-thread ownership of the background, including interrupted fades.
+@MainActor
 final class BackgroundVeilController {
-    typealias AlphaAnimation = (NSPanel, CGFloat, TimeInterval, @escaping () -> Void) -> Void
+    typealias AlphaAnimation =
+        @MainActor (NSPanel, CGFloat, TimeInterval, @escaping @MainActor @Sendable () -> Void) -> Void
 
     private enum Phase { case visible, dragging, transparent, closing }
     private var phase = Phase.visible
@@ -17,36 +19,39 @@ final class BackgroundVeilController {
     var appearanceMode: AppearanceMode = .system {
         didSet { window?.appearance = appearanceMode.nsAppearance }
     }
+    private let uiFactory: any AppUIFactory
     private let makeWindow: () -> NSPanel
-    private let orderBelow: (NSPanel, Int) -> Void
+    private let orderBelow: @MainActor (NSPanel, Int) -> Void
     private let animateAlpha: AlphaAnimation
     private let reduceTransparency: () -> Bool
     private let reduceMotion: () -> Bool
 
     init(
-        makeWindow: @escaping () -> NSPanel = BackgroundVeilController.makeWindow,
-        orderBelow: @escaping (NSPanel, Int) -> Void = { $0.order(.below, relativeTo: $1) },
+        uiFactory: any AppUIFactory,
+        makeWindow: (() -> NSPanel)? = nil,
+        orderBelow: @escaping @MainActor (NSPanel, Int) -> Void = { $0.order(.below, relativeTo: $1) },
         animateAlpha: @escaping AlphaAnimation = { window, alpha, duration, complete in
             NSAnimationContext.runAnimationGroup(
                 { context in
                     context.duration = duration
                     context.timingFunction = CAMediaTimingFunction(name: .easeOut)
                     window.animator().alphaValue = alpha
-                }, completionHandler: complete)
+                }, completionHandler: { DispatchQueue.main.async { complete() } })
         },
         reduceTransparency: @escaping () -> Bool = {
             NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency
         },
         reduceMotion: @escaping () -> Bool = { NSWorkspace.shared.accessibilityDisplayShouldReduceMotion }
     ) {
-        self.makeWindow = makeWindow
+        self.uiFactory = uiFactory
+        self.makeWindow = makeWindow ?? { Self.makeWindow(uiFactory: uiFactory) }
         self.orderBelow = orderBelow
         self.animateAlpha = animateAlpha
         self.reduceTransparency = reduceTransparency
         self.reduceMotion = reduceMotion
     }
 
-    deinit { dispose() }
+    isolated deinit { dispose() }
 
     func show(frame: NSRect, belowWindowNumber number: Int) {
         guard !reduceTransparency() else { dispose(); return }
@@ -62,10 +67,7 @@ final class BackgroundVeilController {
     }
 
     func updateFrame(_ panelFrame: NSRect) {
-        // Keep the veil's bottom aligned with the panel while lowering its top edge.
-        var frame = panelFrame
-        frame.size.height = (panelFrame.height * 0.93).rounded()
-        window?.setFrame(frame, display: true)
+        window?.setFrame(uiFactory.backgroundFrame(for: panelFrame), display: true)
     }
 
     func hide() {
@@ -116,7 +118,10 @@ final class BackgroundVeilController {
         window.close()
     }
 
-    private func animate(_ window: NSPanel, to alpha: CGFloat, duration: TimeInterval, complete: @escaping () -> Void) {
+    private func animate(
+        _ window: NSPanel, to alpha: CGFloat, duration: TimeInterval,
+        complete: @escaping @MainActor @Sendable () -> Void
+    ) {
         if reduceMotion() {
             window.alphaValue = alpha
             complete()
@@ -125,22 +130,15 @@ final class BackgroundVeilController {
         }
     }
 
-    static func makeWindow() -> NSPanel {
+    static func makeWindow(uiFactory: any AppUIFactory) -> NSPanel {
         let window = NSPanel(
             contentRect: .zero,
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
-        window.isReleasedWhenClosed = false
-        window.isFloatingPanel = true
-        window.level = .statusBar
-        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        window.backgroundColor = .clear
-        window.isOpaque = false
-        window.hasShadow = false
-        window.ignoresMouseEvents = true
-        window.contentView = NSHostingView(rootView: GradientBlurVeil())
+        uiFactory.configure(window: window, for: .backgroundVeil)
+        window.contentView = uiFactory.makeBackgroundContent()
         return window
     }
 }

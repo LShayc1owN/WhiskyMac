@@ -8,7 +8,8 @@ import Testing
 @MainActor
 @Suite(.serialized)
 struct MacOS26SettingsToolbarTests {
-    @Test func search_uses_a_native_toolbar_item_and_nonactivating_glass_results() async throws {
+    @Test(.enabled(if: ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 26))
+    func search_uses_a_native_toolbar_item_and_nonactivating_glass_results() async throws {
         guard #available(macOS 26, *) else { return }
         let fixture = try Fixture()
         let window = fixture.window
@@ -57,7 +58,8 @@ struct MacOS26SettingsToolbarTests {
         #expect(!panel.isVisible && fixture.search.query.isEmpty)
     }
 
-    @Test func layout_controls_stay_at_the_leading_edge_and_top_brand_stays_trailing() async throws {
+    @Test(.enabled(if: ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 26))
+    func layout_controls_stay_at_the_leading_edge_and_top_brand_stays_trailing() async throws {
         guard #available(macOS 26, *) else { return }
         let fixture = try Fixture()
         defer { fixture.window.close() }
@@ -88,7 +90,31 @@ struct MacOS26SettingsToolbarTests {
         }
     }
 
-    @Test func layout_toggle_honors_the_recorder_and_search_commands_pass_through_to_ime() async throws {
+    @Test(.enabled(if: ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 26))
+    func native_search_field_fits_the_localized_prompt_at_maximum_size() async throws {
+        guard #available(macOS 26, *) else { return }
+        let original = AppLocalization.language
+        defer { AppLocalization.language = original }
+        let fixture = try Fixture()
+        defer { fixture.window.close() }
+        fixture.appearance.setInterfaceFontPercent(300)
+        for language in AppLanguage.allCases {
+            AppLocalization.language = language.code
+            fixture.search.refresh(context: fixture.search.context)
+            await settle(fixture.window)
+            let field = fixture.toolbar.searchField
+            let cell = try #require(field.cell as? NSSearchFieldCell)
+            let font = try #require(field.font)
+            let prompt = try #require(field.placeholderString) as NSString
+            let rect = cell.searchTextRect(forBounds: field.bounds).intersection(field.visibleRect)
+            #expect(prompt as String == localized("Search settings"))
+            #expect(rect.width + 1 >= prompt.size(withAttributes: [.font: font]).width)
+            #expect(rect.height + 2 >= font.ascender - font.descender)
+        }
+    }
+
+    @Test(.enabled(if: ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 26))
+    func layout_toggle_honors_the_recorder_and_search_commands_pass_through_to_ime() async throws {
         guard #available(macOS 26, *) else { return }
         let fixture = try Fixture()
         defer { fixture.window.close() }

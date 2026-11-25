@@ -296,7 +296,7 @@ final class IsolatedDefaults {
         #expect(!store.vimNavigation)
         #expect(!store.linkPreviews)
         #expect(!store.lightweightMode)
-        #expect(store.cardSide == 200)
+        #expect(store.cardSide == 260)
         #expect(store.excludedApps.isEmpty)
         #expect(store.policy == .standard)
     }
@@ -351,7 +351,7 @@ final class IsolatedDefaults {
         #expect(logger.messages.count == 1)
     }
 
-    @Test(arguments: zip(["small", "medium", "large", "unknown"], [160.0, 200, 250, 200]))
+    @Test(arguments: zip(["small", "medium", "large", "unknown"], [160.0, 200, 250, 260]))
     func older_card_size_presets_load_without_overriding_a_saved_continuous_size(preset: String, side: Double) throws {
         let sandbox = try IsolatedDefaults()
         sandbox.defaults.set(preset, forKey: "cardSize")
@@ -372,7 +372,7 @@ final class IsolatedDefaults {
         migrated.setCardSide(100)
         #expect(migrated.cardSide == 160)
         migrated.setCardSide(.infinity)
-        #expect(migrated.cardSide == 200)
+        #expect(migrated.cardSide == 260)
         migrated.setCardSide(400)
         #expect(migrated.cardSide == 400)
         migrated.setCardSide(499.5)
@@ -387,13 +387,18 @@ final class IsolatedDefaults {
     @Test func size_drafts_only_persist_after_save_and_restore_the_last_saved_value() throws {
         let sandbox = try IsolatedDefaults()
         let settings = GeneralSettingsStore(defaults: sandbox.defaults)
-        var cardDraft = SizeSettingDraft(proposedValue: 237.25)
+        let input = CardSizeInput(locale: Locale(identifier: "de"))
+        var cardDraft = SizeSettingDraft(proposedValue: try #require(input.parse(" 237,25 ")))
+        #expect(cardDraft.value(saved: settings.cardSide) == 237.25)
+        #expect(input.format(237.25) == "237,25")
+        #expect(input.parse("150") == 160 && input.parse("800") == 500)
+        #expect(input.parse("") == nil && input.parse("NaN") == nil && input.parse("260 pt") == nil)
         var tagDraft = SizeSettingDraft(proposedValue: 1.5)
         #expect(sandbox.defaults.object(forKey: "cardSide") == nil)
         #expect(sandbox.defaults.object(forKey: "filterTagScale") == nil)
         #expect(cardDraft.hasChanges(saved: settings.cardSide))
         cardDraft.revert()
-        #expect(cardDraft.value(saved: settings.cardSide) == 200)
+        #expect(cardDraft.value(saved: settings.cardSide) == 260)
         #expect(!cardDraft.hasChanges(saved: settings.cardSide))
         cardDraft.proposedValue = 500
         cardDraft.save(using: settings.setCardSide)

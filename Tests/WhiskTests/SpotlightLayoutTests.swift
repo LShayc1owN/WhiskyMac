@@ -48,7 +48,7 @@ import Testing
         for (width, height) in [(200, 100), (100, 200)] {
             let image = try circleImage(width: width, height: height)
             let bitmap = try render(
-                SpotlightCanvas(payload: .image(Data()), point: CGPoint(x: 110, y: 110), thumbnail: image)
+                MacOS15SpotlightCanvas(content: .image, point: CGPoint(x: 110, y: 110), thumbnail: image)
                     .frame(width: 220, height: 220), name: "spotlight-image-\(width)x\(height).png")
             var pixels: [CGPoint] = []
             for y in 0..<bitmap.pixelsHigh {
@@ -70,30 +70,32 @@ import Testing
 
     @Test func image_layout_fits_its_container_and_centers_letterboxing() {
         #expect(
-            SpotlightGeometry.imageRect(
+            MacOS15SpotlightGeometry.imageRect(
                 imageSize: CGSize(width: 400, height: 200),
                 canvasSize: CGSize(width: 200, height: 200)) == CGRect(x: 0, y: 50, width: 200, height: 100))
         #expect(
-            SpotlightGeometry.imageRect(
+            MacOS15SpotlightGeometry.imageRect(
                 imageSize: CGSize(width: 200, height: 400),
                 canvasSize: CGSize(width: 200, height: 200)) == CGRect(x: 50, y: 0, width: 100, height: 200))
-        #expect(SpotlightGeometry.imageRect(imageSize: .zero, canvasSize: CGSize(width: 200, height: 200)) == .zero)
-        #expect(SpotlightGeometry.imageRect(imageSize: CGSize(width: 200, height: 100), canvasSize: .zero) == .zero)
+        #expect(
+            MacOS15SpotlightGeometry.imageRect(imageSize: .zero, canvasSize: CGSize(width: 200, height: 200)) == .zero)
+        #expect(
+            MacOS15SpotlightGeometry.imageRect(imageSize: CGSize(width: 200, height: 100), canvasSize: .zero) == .zero)
     }
 
     @Test func card_size_is_identical_before_during_and_after_reveal() throws {
         _ = NSApplication.shared
         let image = try circleImage(width: 200, height: 100)
         for side: CGFloat in [160, 200, 250] {
-            let host = NSHostingView(rootView: SpotlightCardSurface(side: side))
+            let host = NSHostingView(rootView: MacOS15SpotlightCardSurface(side: side))
             #expect(host.fittingSize == CGSize(width: side, height: side))
-            host.rootView = SpotlightCardSurface(
-                side: side, payload: .image(Data()),
+            host.rootView = MacOS15SpotlightCardSurface(
+                side: side, content: .image,
                 point: CGPoint(x: side / 2, y: side / 2), thumbnail: image)
             host.layoutSubtreeIfNeeded()
             #expect(host.fittingSize == CGSize(width: side, height: side))
-            host.rootView = SpotlightCardSurface(
-                side: side, payload: .text(String(repeating: "long text\n", count: 100)),
+            host.rootView = MacOS15SpotlightCardSurface(
+                side: side, content: .text(String(repeating: "long text\n", count: 100)),
                 point: CGPoint(x: side / 2, y: side / 2))
             host.layoutSubtreeIfNeeded()
             #expect(host.fittingSize == CGSize(width: side, height: side))
@@ -101,20 +103,20 @@ import Testing
                 SpotlightPreferences(diameter: 40, blurRadius: 20),
                 SpotlightPreferences(diameter: 320, blurRadius: 0),
             ] {
-                host.rootView = SpotlightCardSurface(
-                    side: side, payload: .text("synthetic"), point: CGPoint(x: side / 2, y: side / 2),
+                host.rootView = MacOS15SpotlightCardSurface(
+                    side: side, content: .text("synthetic"), point: CGPoint(x: side / 2, y: side / 2),
                     spotlight: settings)
                 host.layoutSubtreeIfNeeded()
                 #expect(host.fittingSize == CGSize(width: side, height: side))
             }
-            host.rootView = SpotlightCardSurface(side: side)
+            host.rootView = MacOS15SpotlightCardSurface(side: side)
             #expect(host.fittingSize == CGSize(width: side, height: side))
         }
     }
 
     @Test func default_reveal_uses_150_point_diameter_and_50_point_soft_edge() throws {
         let bitmap = try render(
-            SpotlightCanvas(payload: .text(""), point: CGPoint(x: 110, y: 110))
+            MacOS15SpotlightCanvas(content: .text(""), point: CGPoint(x: 110, y: 110))
                 .frame(width: 220, height: 220), name: "spotlight-transition.png")
         let center = try #require(bitmap.colorAt(x: 110, y: 110))
         let inner = try #require(bitmap.colorAt(x: 130, y: 110))
@@ -125,14 +127,34 @@ import Testing
         #expect(transition.alphaComponent > 0.1 && transition.alphaComponent < 0.9)
         #expect(outside.alphaComponent == 0)
         #expect(
-            SpotlightGeometry.revealBounds(around: CGPoint(x: 110, y: 110))
+            MacOS15SpotlightGeometry.revealBounds(around: CGPoint(x: 110, y: 110))
                 == CGRect(x: 35, y: 35, width: 150, height: 150))
+    }
+
+    @Test func showing_a_card_displays_image_pixels_outside_the_spotlight() throws {
+        let image = try circleImage(width: 200, height: 100)
+        let settings = SpotlightPreferences(diameter: 40, blurRadius: 20)
+        let entire = try render(
+            MacOS15SpotlightCardSurface(
+                side: 220, content: .image, thumbnail: image,
+                spotlight: settings, showsFullCard: true),
+            name: "privacy-show-card.png")
+        let local = try render(
+            MacOS15SpotlightCardSurface(
+                side: 220, content: .image, point: CGPoint(x: 110, y: 110),
+                thumbnail: image, spotlight: settings),
+            name: "privacy-spotlight-card.png")
+        #expect(entire.pixelsWide == 220 && entire.pixelsHigh == 220)
+        let fullPixel = try #require(entire.colorAt(x: 175, y: 110)?.usingColorSpace(.deviceRGB))
+        let localPixel = try #require(local.colorAt(x: 175, y: 110)?.usingColorSpace(.deviceRGB))
+        #expect(fullPixel.blueComponent > 0.9 && fullPixel.redComponent < 0.1)
+        #expect(localPixel.redComponent > 0.1 || localPixel.blueComponent < 0.9)
     }
 
     @Test func custom_range_and_blur_change_only_the_bounded_mask() throws {
         func sample(_ settings: SpotlightPreferences, _ suffix: String) throws -> NSBitmapImageRep {
             try render(
-                SpotlightCanvas(payload: .text(""), point: CGPoint(x: 140, y: 140), spotlight: settings)
+                MacOS15SpotlightCanvas(content: .text(""), point: CGPoint(x: 140, y: 140), spotlight: settings)
                     .frame(width: 280, height: 280), name: "spotlight-custom-\(suffix).png")
         }
         let small = try sample(SpotlightPreferences(diameter: 80, blurRadius: 10), "small")
@@ -149,28 +171,33 @@ import Testing
             #expect(try #require(bitmap.colorAt(x: 245, y: 140)).alphaComponent == 0)
         }
         #expect(
-            SpotlightGeometry.revealBounds(
+            MacOS15SpotlightGeometry.revealBounds(
                 around: CGPoint(x: 140, y: 140), spotlight: .init(diameter: 200, blurRadius: 80))
                 == CGRect(x: 40, y: 40, width: 200, height: 200))
     }
 
     @Test func long_text_keeps_the_first_line_at_its_natural_size() throws {
         let prefix = "MMMMMMMM\nMMMMMMMM\n"
-        let short = try render(
-            SpotlightCanvas(payload: .text(prefix), point: CGPoint(x: 70, y: 45))
-                .frame(width: 220, height: 220).environment(\.colorScheme, .light), name: "spotlight-text-short.png")
-        let long = try render(
-            SpotlightCanvas(
-                payload: .text(prefix + String(repeating: "MMMMMMMM\n", count: 100)),
-                point: CGPoint(x: 70, y: 45)
-            ).frame(width: 220, height: 220).environment(\.colorScheme, .light),
-            name: "spotlight-text-long.png")
+        // Sample both glyph runs in the same render/color environment. Two
+        // separate snapshots of even identical input can differ at a feathered pixel.
+        let pair = try render(
+            HStack(spacing: 0) {
+                MacOS15SpotlightCanvas(content: .text(prefix), point: CGPoint(x: 70, y: 45))
+                    .frame(width: 220, height: 220)
+                MacOS15SpotlightCanvas(
+                    content: .text(prefix + String(repeating: "MMMMMMMM\n", count: 100)),
+                    point: CGPoint(x: 70, y: 45)
+                )
+                .frame(width: 220, height: 220)
+            }.environment(\.colorScheme, .light), name: "spotlight-text-pair.png")
+        #expect(pair.pixelsWide == 440 && pair.pixelsHigh == 220)
         var darkPixels = 0
         for y in 12..<40 {
             for x in 12..<100 {
-                let a = try #require(short.colorAt(x: x, y: y)?.usingColorSpace(.deviceRGB))
-                let b = try #require(long.colorAt(x: x, y: y)?.usingColorSpace(.deviceRGB))
+                let a = try #require(pair.colorAt(x: x, y: y)?.usingColorSpace(.deviceRGB))
+                let b = try #require(pair.colorAt(x: x + 220, y: y)?.usingColorSpace(.deviceRGB))
                 if a.alphaComponent > 0.9, a.redComponent < 0.3 { darkPixels += 1 }
+                #expect(abs(a.alphaComponent - b.alphaComponent) < 0.01)
                 #expect(abs(a.redComponent - b.redComponent) < 0.01)
             }
         }

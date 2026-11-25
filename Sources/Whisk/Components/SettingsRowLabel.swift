@@ -15,17 +15,19 @@ struct SettingsRowLabel: View {
         self.tint = tint
     }
 
+    @Environment(\.interfaceTypography) private var typography
+
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: symbol)
-                .font(.system(size: 12, weight: .medium))
+                .font(typography.font(size: 12, weight: .medium))
                 .foregroundStyle(tint)
-                .frame(width: 24, height: 24)
+                .frame(width: typography.room(24), height: typography.room(24))
                 .background(
                     tint.opacity(0.13),
                     in: RoundedRectangle(cornerRadius: 6, style: .continuous)
                 )
-            Text(title)
+            Text(title).fixedSize(horizontal: false, vertical: true)
         }
     }
 }

@@ -4,6 +4,8 @@ import SwiftUI
 
 @available(macOS 26, *)
 struct MacOS26CardActionList: View {
+    @Environment(\.interfaceTypography) private var typography
+
     let card: CardViewState
     let keyBindings: KeyBindingsStore?
     let pinnedWorkspace: Bool
@@ -57,27 +59,28 @@ struct MacOS26CardActionList: View {
         ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 4) {
-                    if !showingTransforms, card.variantIDs.count > 1 {
+                    if !showingTransforms, card.variantCount > 1 {
                         Text(localized("Pin, delete and stack actions apply to the newest format."))
-                            .font(.caption).foregroundStyle(.secondary)
+                            .font(typography.font(.caption)).foregroundStyle(.secondary)
                             .padding(.horizontal, 8).padding(.bottom, 4)
                     }
-                    ForEach(rows.indices, id: \.self) { index in
+                    IndexedForEach(rows, indexID: \.self) { index, group in
                         if index > 0 { Divider().padding(.horizontal, 8) }
-                        ForEach(rows[index]) { row in
-                            Button(role: row.role, action: row.perform) {
-                                HStack(spacing: 8) {
-                                    Label(row.title, systemImage: row.icon).lineLimit(2)
-                                    Spacer(minLength: 4)
-                                    if let shortcut = row.shortcut {
-                                        Text(shortcut).font(.caption.monospaced()).foregroundStyle(.secondary)
-                                    }
+                        ForEach(group) { row in
+                            HStack(spacing: 8) {
+                                Label(row.title, systemImage: row.icon)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Spacer(minLength: 4)
+                                if let shortcut = row.shortcut {
+                                    Text(shortcut).font(typography.font(.caption).monospaced())
+                                        .foregroundStyle(.secondary).fixedSize()
                                 }
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 6)
-                                .frame(minHeight: 28)
-                                .contentShape(.rect)
                             }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .frame(minHeight: 28)
+                            .contentShape(.rect)
+                            .beButton(role: row.role, row.perform)
                             .buttonStyle(.plain)
                             .foregroundStyle(row.role == .destructive ? Color.red : Color.primary)
                             .background(row.id == selectedID ? Color.accentColor.opacity(0.16) : .clear, in: .capsule)
@@ -92,7 +95,10 @@ struct MacOS26CardActionList: View {
                 }
                 .padding(8)
             }
-            .frame(width: 300, height: min(480, CGFloat(visible.count) * 33 + 24))
+            .frame(
+                width: min(typography.room(300), (NSScreen.main?.visibleFrame.width ?? 720) - 32),
+                height: min(480, CGFloat(visible.count) * typography.room(33) + 24)
+            )
             .onChange(of: selectedID) { _, id in
                 if let id { proxy.scrollTo(id) }
             }
@@ -115,50 +121,5 @@ struct MacOS26CardActionList: View {
             }
         }
         .onDisappear { keyboard?.remove(registration) }
-    }
-}
-
-@available(macOS 26, *)
-struct MacOS26CardPinEditor: View {
-    @State var value: PinnedMetadata
-    let save: (PinnedMetadata) -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(localized("Pinned item details…")).font(.headline)
-            TextField(localized("Note"), text: $value.note, axis: .vertical)
-                .textFieldStyle(.roundedBorder).lineLimit(1...3)
-            Toggle(localized("Always hide content"), isOn: $value.hidesContent).toggleStyle(.switch)
-            Text(
-                localized(
-                    "The note stays visible. Copy and paste use the original; previews, editing, dragging and online link previews are blocked while hidden."
-                )
-            )
-            .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            Text(localized("Color tags")).font(.subheadline.weight(.medium))
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 90), alignment: .leading)], alignment: .leading) {
-                ForEach(PinTagColor.allCases) { tag in
-                    Toggle(
-                        isOn: Binding(
-                            get: { value.tags.contains(tag) },
-                            set: { enabled in
-                                if enabled { value.tags.insert(tag) } else { value.tags.remove(tag) }
-                            })
-                    ) {
-                        HStack(spacing: 5) {
-                            Circle().fill(tag.color).frame(width: 8, height: 8)
-                            Text(tag.label)
-                        }
-                    }
-                    .toggleStyle(.checkbox)
-                }
-            }
-            Button(localized("Save")) { save(value.normalized) }
-                .buttonStyle(.glassProminent)
-                .keyboardShortcut(.return, modifiers: [.command])
-                .frame(maxWidth: .infinity, alignment: .trailing)
-        }
-        .padding(16)
-        .frame(width: 310)
     }
 }

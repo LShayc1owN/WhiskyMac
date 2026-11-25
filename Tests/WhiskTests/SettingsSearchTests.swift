@@ -100,6 +100,19 @@ struct SettingsSearchTests {
                 == SettingsDestination(section: .aboutApp, anchor: "updateChannel"))
         #expect(hidden.first { $0.id == "normal.delay" }?.destination.anchor == "normal.hover")
         #expect(hidden.first { $0.id == "vim.undo" }?.destination.anchor == "vim")
+        #expect(
+            SettingsPage.privacy.sections(isProtected: false) == [
+                .screenSharingProtection, .sensitiveAccess, .secretRecognition, .network,
+            ])
+        #expect(
+            SettingsPage.privacy.sections(isProtected: true) == [
+                .screenSharingProtection, .secretRecognition, .network,
+            ])
+        for anchor in ["manualPrivacy", "privacySearch", "privacySources"] {
+            #expect(
+                hidden.first { $0.id == anchor }?.destination
+                    == SettingsDestination(section: .screenSharingProtection, anchor: anchor))
+        }
         context.normalHover = true
         context.vimEnabled = true
         let enabled = SettingsSearchIndex.entries(context: context)
@@ -149,14 +162,16 @@ struct SettingsSearchTests {
         _ = NSApplication.shared
         let previous = AppLocalization.language
         defer { AppLocalization.language = previous }
+        let sandbox = try IsolatedDefaults()
+        let appearance = AppearanceSettingsStore(defaults: sandbox.defaults)
         let window = NSWindow(
             contentRect: NSRect(x: -10000, y: -10000, width: 840, height: 360),
             styleMask: [.titled, .closable, .fullSizeContentView], backing: .buffered, defer: false)
         window.isReleasedWhenClosed = false
         window.contentView = NSView()
-        SettingsWindowConfiguration.apply(to: window)
+        MacOS15SettingsWindowConfiguration.apply(to: window)
         let search = SettingsSearchModel()
-        let toolbar = SettingsSearchToolbar(window: window, search: search)
+        let toolbar = MacOS15SettingsSearchToolbar(window: window, search: search, appearance: appearance)
         window.orderFront(nil)
         defer { window.close(); withExtendedLifetime(toolbar) {} }
 
@@ -170,7 +185,9 @@ struct SettingsSearchTests {
             #expect(panel.parent === window)
             #expect(!panel.canBecomeKey && !panel.canBecomeMain)
             #expect(search.results.count > 6)
-            #expect(abs(panel.frame.height - 6 * SettingsSearchResults.rowHeight) < 0.5)
+            let availableHeight = (window.screen?.visibleFrame ?? window.frame).height - 16
+            let expectedHeight = min(6 * MacOS15SettingsSearchResults.rowHeight, max(1, availableHeight))
+            #expect(abs(panel.frame.height - expectedHeight) < 0.5)
             let view = try #require(panel.contentView)
             await pump(view)
             search.move(7)
@@ -198,6 +215,61 @@ struct SettingsSearchTests {
         #expect(toolbar.resultsPanel?.isVisible == false)
     }
 
+    @Test func enlarged_toolbar_field_stays_inside_the_titlebar_and_shows_its_prompt() async throws {
+        _ = NSApplication.shared
+        let saved = AppLocalization.language
+        defer { AppLocalization.language = saved }
+        let defaults = try IsolatedDefaults()
+        let appearance = AppearanceSettingsStore(defaults: defaults.defaults)
+        let search = SettingsSearchModel()
+        let window = NSWindow(
+            contentRect: NSRect(x: -10000, y: -10000, width: 840, height: 360),
+            styleMask: [.titled, .closable], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        MacOS15SettingsWindowConfiguration.apply(to: window)
+        let toolbar = MacOS15SettingsSearchToolbar(window: window, search: search, appearance: appearance)
+        window.orderBack(nil)
+        defer { window.close() }
+        func field(in view: NSView) -> NSTextField? {
+            (view as? NSTextField) ?? view.subviews.lazy.compactMap(field(in:)).first
+        }
+        let sizes =
+            ProcessInfo.processInfo.environment["WHISK_EXHAUSTIVE_TYPOGRAPHY"] == "1"
+            ? Array(InterfaceTypography.percentRange) : [85, 100, 150, 151, 200, 250, 300]
+        for navigation in SettingsNavigation.allCases {
+            appearance.navigation = navigation
+            await pump(toolbar.fieldHost)
+            for language in AppLanguage.allCases {
+                AppLocalization.language = language.code
+                appearance.language = language
+                for percent in sizes {
+                    appearance.setInterfaceFontPercent(percent)
+                    try await Task.sleep(for: .milliseconds(20))
+                    window.displayIfNeeded()
+                    toolbar.fieldHost.layoutSubtreeIfNeeded()
+                    let native = try #require(field(in: toolbar.fieldHost))
+                    let font = try #require(native.font)
+                    let title = localized("Search settings")
+                    let comment = Comment(rawValue: "\(language)-\(percent)")
+                    let fieldFrame = native.convert(native.bounds, to: nil)
+                    #expect(native.window === window, comment)
+                    #expect(fieldFrame.minY >= window.contentLayoutRect.maxY - 1, comment)
+                    #expect(fieldFrame.maxY <= window.frame.height + 1, comment)
+                    if navigation == .top {
+                        let brand = try #require(
+                            window.toolbar?.items.first { $0.itemIdentifier == MacOS15SettingsSearchToolbar.brandID }?
+                                .view, comment)
+                        #expect(brand.window === window, comment)
+                        #expect(brand.convert(brand.bounds, to: nil).minX >= fieldFrame.maxX, comment)
+                    }
+                    let visible = native.visibleRect.intersection(native.bounds)
+                    #expect(visible.height >= appearance.interfaceTypography.lineHeight(12) - 2, comment)
+                    #expect(visible.width + 1 >= (title as NSString).size(withAttributes: [.font: font]).width, comment)
+                }
+            }
+        }
+    }
+
     @Test func titled_window_search_clears_traffic_lights_and_scrolls_to_results() async throws {
         _ = NSApplication.shared
         let previous = AppLocalization.language
@@ -212,7 +284,7 @@ struct SettingsSearchTests {
         for navigation in SettingsNavigation.allCases {
             appearance.navigation = navigation
             let hosting = NSHostingController(
-                rootView: SettingsView(
+                rootView: MacOS15SettingsView(
                     store: KeyBindingsStore(defaults: sandbox.defaults), general: general,
                     loginItem: LoginItemManager(), vimBindings: VimBindingsStore(defaults: sandbox.defaults),
                     privacy: privacy, appearance: appearance, search: search
@@ -223,12 +295,12 @@ struct SettingsSearchTests {
             let window = NSWindow(contentViewController: hosting)
             window.isReleasedWhenClosed = false
             window.styleMask.remove([.resizable, .miniaturizable])
-            SettingsWindowConfiguration.apply(to: window)
-            let toolbar = SettingsSearchToolbar(window: window, search: search, appearance: appearance)
+            MacOS15SettingsWindowConfiguration.apply(to: window)
+            let toolbar = MacOS15SettingsSearchToolbar(window: window, search: search, appearance: appearance)
             for item in window.toolbar?.items ?? [] where item.view != nil {
                 #expect(!item.isBordered, "Custom toolbar controls must not acquire a system button background")
             }
-            window.setContentSize(NSSize(width: 840, height: SettingsWindowSize.minimumHeight))
+            window.setContentSize(NSSize(width: 840, height: MacOS15SettingsWindowSize.minimumHeight))
             window.setFrameOrigin(NSPoint(x: -10000, y: -10000))
             window.orderFront(nil)
             defer { window.close(); withExtendedLifetime(toolbar) {} }
@@ -241,7 +313,7 @@ struct SettingsSearchTests {
             #expect(abs(field.midY - closeFrame.midY) < 12)
             #expect(field.width == 260)
             let navigationView = try #require(
-                window.toolbar?.items.first { $0.itemIdentifier == SettingsSearchToolbar.navigationID }?.view)
+                window.toolbar?.items.first { $0.itemIdentifier == MacOS15SettingsSearchToolbar.navigationID }?.view)
             let navigationFrame = navigationView.convert(navigationView.bounds, to: nil)
             #expect(abs(navigationFrame.midY - field.midY) < 1)
             #expect(navigationFrame.maxX < field.minX)
@@ -250,7 +322,7 @@ struct SettingsSearchTests {
             }
             if navigation == .top {
                 let brandHost = try #require(
-                    window.toolbar?.items.first { $0.itemIdentifier == SettingsSearchToolbar.brandID }?.view)
+                    window.toolbar?.items.first { $0.itemIdentifier == MacOS15SettingsSearchToolbar.brandID }?.view)
                 let brand = try #require(images(in: brandHost).first)
                 let brandFrame = brand.convert(brand.bounds, to: nil)
                 #expect(brandFrame.maxX > window.frame.width - 70)
@@ -266,7 +338,7 @@ struct SettingsSearchTests {
             appearance.navigation = navigation == .top ? .sidebar : .top
             await pump(hosting.view)
             #expect(
-                window.toolbar?.items.contains { $0.itemIdentifier == SettingsSearchToolbar.brandID }
+                window.toolbar?.items.contains { $0.itemIdentifier == MacOS15SettingsSearchToolbar.brandID }
                     == (appearance.navigation == .top))
             appearance.navigation = navigation
             await pump(hosting.view)
@@ -275,6 +347,14 @@ struct SettingsSearchTests {
             await pump(hosting.view)
             #expect(search.destination?.section == .privacyInteractions)
             #expect(search.highlightedAnchor == "diameter")
+            if let output = ProcessInfo.processInfo.environment["WHISK_UI_ARTIFACTS"] {
+                let dir = URL(fileURLWithPath: output)
+                try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+                let bitmap = try #require(hosting.view.bitmapImageRepForCachingDisplay(in: hosting.view.bounds))
+                hosting.view.cacheDisplay(in: hosting.view.bounds, to: bitmap)
+                try bitmap.representation(using: .png, properties: [:])?.write(
+                    to: dir.appendingPathComponent("diameter-\(navigation.rawValue).png"))
+            }
             #expect(try visibleText(hosting.view).contains("diameter"))
 
             search.activate("shortcut.togglePinned")
@@ -316,6 +396,12 @@ struct SettingsSearchTests {
             #expect(aboutScroll.documentVisibleRect.minY > 100, "\(navigation): must scroll through About cards")
             #expect(search.highlightedAnchor == "feedback")
 
+            search.activate("privacySources")
+            await pump(hosting.view)
+            #expect(search.destination?.section == .screenSharingProtection)
+            #expect(search.highlightedAnchor == "privacySources")
+            #expect(try visibleText(hosting.view).contains("showsourceappsinprivacymode"))
+
             search.activate("linkPreviews")
             await pump(hosting.view)
             privacy.setProtected(true)
@@ -326,6 +412,23 @@ struct SettingsSearchTests {
             search.activate("sensitiveApps")
             #expect(search.destination?.section == .network)
             privacy.setProtected(false)
+
+            search.activate("settingsAppearance")
+            await pump(hosting.view)
+            #expect(search.destination?.section == .colors)
+            let appearanceText = try visibleText(hosting.view)
+            #expect(appearanceText.contains("lightanddarkappearance"))
+            #expect(appearanceText.contains("themecoloraccentcolor"))
+
+            search.activate("interfaceFontSize")
+            await pump(hosting.view)
+            #expect(search.destination == SettingsDestination(section: .colors, anchor: "interfaceFontSize"))
+            #expect(try visibleText(hosting.view).contains("interfacefontsize"))
+
+            search.activate("interfaceFontPlainText")
+            await pump(hosting.view)
+            #expect(search.destination == SettingsDestination(section: .colors, anchor: "interfaceFontPlainText"))
+            #expect(try visibleText(hosting.view).contains("applyinterfacefontsizetoplaintext"))
 
             search.reset()
         }

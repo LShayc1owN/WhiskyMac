@@ -28,7 +28,7 @@ import Testing
 
     @Test func menu_keeps_split_available_but_respects_hidden_groups_and_pinned_scope() {
         func commands(_ card: CardViewState, pinnedWorkspace: Bool = false) -> [CardMenuCommand] {
-            CardActionMenu.sections(for: card, pinnedWorkspace: pinnedWorkspace).flatMap { $0 }
+            MacOS15CardActionMenu.sections(for: card, pinnedWorkspace: pinnedWorkspace).flatMap { $0 }
         }
         let plain = commands(card())
         #expect(plain.prefix(3) == [.copy, .paste, .preview])
@@ -49,7 +49,7 @@ import Testing
         let item = card()
         let spy = PanelActionSpy()
         let sandbox = try IsolatedDefaults()
-        let view = CardActionMenu(
+        let view = MacOS15CardActionMenu(
             card: item, actions: spy.actions, keyBindings: KeyBindingsStore(defaults: sandbox.defaults),
             perform: { _ in }, editPinnedItem: {}, dismiss: {}
         )

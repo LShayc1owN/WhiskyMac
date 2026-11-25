@@ -180,12 +180,14 @@ import Testing
                 state.setPrivacy(true)
                 state.setPanelVisible(true)
                 state.setPrivacyPermissions(allowSearch: search, showSourceApps: source)
-                let host = HistoryPanelHosting.make(store: state, actions: PanelActionSpy().actions)
+                let host = HistoryPanelHosting.make(
+                    uiFactory: MacOS15UIFactory(), store: state, actions: PanelActionSpy().actions)
                 host.frame = NSRect(x: 0, y: 0, width: 900, height: 430)
                 host.layoutSubtreeIfNeeded()
                 if !search && !source { #expect(host.accessibilityChildren()?.isEmpty == true) }
                 #expect(state.state.cards.isEmpty)
-                let renderer = ImageRenderer(content: HistoryPanelView(store: state, actions: PanelActionSpy().actions))
+                let renderer = ImageRenderer(
+                    content: MacOS15HistoryPanelView(store: state, actions: PanelActionSpy().actions))
                 renderer.proposedSize = ProposedViewSize(width: 900, height: 430)
                 #expect(renderer.nsImage != nil)
             }

@@ -21,11 +21,7 @@ struct MarqueeText: View {
                 .font(font)
                 .lineLimit(1)
                 .fixedSize(horizontal: true, vertical: true)
-                .onGeometryChange(for: CGSize.self) {
-                    $0.size
-                } action: {
-                    contentSize = $0
-                }
+                .readSize { contentSize = $0 }
                 .frame(width: geometry.size.width, alignment: layoutDirection == .rightToLeft ? .trailing : .leading)
                 .clipped()
                 .mask {

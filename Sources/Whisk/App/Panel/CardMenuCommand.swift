@@ -7,6 +7,7 @@ import Foundation
 
 enum CardMenuCommand: String, Identifiable {
     case copy, paste, preview, split, edit, pastePlain, pasteAs
+    case revealSecret
     case openLink, revealFiles, save, pin, pinDetails, stack
     case excludeSource, deleteSource, delete
 
@@ -14,22 +15,22 @@ enum CardMenuCommand: String, Identifiable {
 
     var symbol: String {
         switch self {
-        case .copy: "doc.on.doc"
-        case .paste: "doc.on.clipboard"
-        case .preview: "eye"
-        case .split: "square.split.2x1"
-        case .edit: "square.and.pencil"
-        case .pastePlain: "text.alignleft"
-        case .pasteAs: "textformat"
-        case .openLink: "arrow.up.right.square"
-        case .revealFiles: "folder"
-        case .save: "square.and.arrow.down"
-        case .pin: "pin"
-        case .pinDetails: "tag"
-        case .stack: "square.stack.3d.up"
-        case .excludeSource: "hand.raised"
-        case .deleteSource: "trash.slash"
-        case .delete: "trash"
+            case .copy: "doc.on.doc"
+            case .paste: "doc.on.clipboard"
+            case .preview, .revealSecret: "eye"
+            case .split: "square.split.2x1"
+            case .edit: "square.and.pencil"
+            case .pastePlain: "text.alignleft"
+            case .pasteAs: "textformat"
+            case .openLink: "arrow.up.right.square"
+            case .revealFiles: "folder"
+            case .save: "square.and.arrow.down"
+            case .pin: "pin"
+            case .pinDetails: "tag"
+            case .stack: "square.stack.3d.up"
+            case .excludeSource: "hand.raised"
+            case .deleteSource: "trash.slash"
+            case .delete: "trash"
         }
     }
 
@@ -48,7 +49,7 @@ enum CardMenuCommand: String, Identifiable {
         case .excludeSource: .excludeSelectionSource
         case .deleteSource: .deleteSelectionSource
         case .delete: .deleteSelection
-        case .split, .pasteAs, .pinDetails: nil
+        case .split, .pasteAs, .pinDetails, .revealSecret: nil
         }
     }
 
@@ -56,31 +57,33 @@ enum CardMenuCommand: String, Identifiable {
 
     func title(for card: CardViewState) -> String {
         switch self {
-        case .copy: localized("Copy")
-        case .paste: localized("Paste")
-        case .preview: localized("Preview")
-        case .split: localized("Split…")
-        case .edit: localized("Edit…")
-        case .pastePlain: localized("Paste as Plain Text")
-        case .pasteAs: localized("Paste as…")
-        case .openLink: localized("Open Link")
-        case .revealFiles: localized("Reveal in Finder")
-        case .save: localized("Save As…")
-        case .pin: card.isPinned ? localized("Unpin") : localized("Pin")
-        case .pinDetails: localized("Pinned item details…")
-        case .stack: card.stackPosition == nil ? localized("Add to Paste Stack") : localized("Remove from Paste Stack")
-        case .excludeSource: String(format: localized("Exclude %@"), card.sourceLabel)
-        case .deleteSource: String(format: localized("Delete All from %@"), card.sourceLabel)
-        case .delete: localized("Delete")
+            case .copy: localized("Copy")
+            case .paste: localized("Paste")
+            case .preview: localized("Preview")
+            case .revealSecret: localized("Reveal Secret")
+            case .split: localized("Split…")
+            case .edit: localized("Edit…")
+            case .pastePlain: localized("Paste as Plain Text")
+            case .pasteAs: localized("Paste as…")
+            case .openLink: localized("Open Link")
+            case .revealFiles: localized("Reveal in Finder")
+            case .save: localized("Save As…")
+            case .pin: card.isPinned ? localized("Unpin") : localized("Pin")
+            case .pinDetails: localized("Pinned item details…")
+            case .stack: card.stackPosition == nil ? localized("Add to Paste Stack") : localized("Remove from Paste Stack")
+            case .excludeSource: String(format: localized("Exclude %@"), card.sourceLabel)
+            case .deleteSource: String(format: localized("Delete All from %@"), card.sourceLabel)
+            case .delete: localized("Delete")
         }
     }
 
     static func sections(for card: CardViewState, pinnedWorkspace: Bool = false) -> [[CardMenuCommand]] {
         var use: [CardMenuCommand] = [.copy, .paste]
         if !card.contentHidden { use.append(.preview) }
+        if card.secretMasked { use.append(.revealSecret) }
 
         var content: [CardMenuCommand] = []
-        if !card.contentHidden, !card.isSplitGroup, card.transformable || card.variantIDs.count > 1 {
+        if !card.contentHidden, !card.isSplitGroup, card.transformable || card.variantCount > 1 {
             content.append(.split)
         }
         if card.transformable, !card.contentHidden, !card.isSplitGroup { content.append(.edit) }
@@ -107,6 +110,7 @@ enum CardMenuCommand: String, Identifiable {
         case .copy: perform(.copy)
         case .paste: perform(.paste)
         case .preview: perform(.preview)
+        case .revealSecret: actions.revealSecret(card.id)
         case .split: actions.split(card.id)
         case .edit: perform(.edit)
         case .pastePlain: actions.selectPlain(card.id)

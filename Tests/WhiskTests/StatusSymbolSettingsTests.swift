@@ -9,7 +9,7 @@ import Testing
         _ = NSApplication.shared
         let isolated = try IsolatedDefaults()
         let settings = AppearanceSettingsStore(defaults: isolated.defaults)
-        let host = NSHostingView(rootView: SettingsBrandView(appearance: settings))
+        let host = NSHostingView(rootView: MacOS15SettingsBrandView(appearance: settings))
         host.frame = NSRect(x: 0, y: 0, width: 300, height: 80)
 
         func imageViews(in view: NSView) -> [NSImageView] {
@@ -90,7 +90,7 @@ import Testing
     @Test func picker_renders_custom_and_system_selections() throws {
         _ = NSApplication.shared
         for name in AppSymbol.customNames + ["star.fill"] {
-            let view = StatusSymbolPicker(title: "Menu bar icons", selection: .constant(name), defaultName: name)
+            let view = MacOS15StatusSymbolPicker(title: "Menu bar icons", selection: .constant(name), defaultName: name)
             let renderer = ImageRenderer(content: view)
             #expect(renderer.nsImage != nil)
         }

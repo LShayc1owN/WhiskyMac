@@ -420,29 +420,29 @@ import Testing
                     to: directory.appendingPathComponent(name))
             }
         }
-        try snapshot(SplitContentView(session: session, close: {}), name: "split-lines.png")
+        try snapshot(MacOS15SplitContentView(session: session, close: {}), name: "split-lines.png")
         session.options.rule = .delimiters
         try await wait(session)
         session.mode = .replace
-        try snapshot(SplitContentView(session: session, close: {}), name: "split-delimiters.png")
+        try snapshot(MacOS15SplitContentView(session: session, close: {}), name: "split-delimiters.png")
         session.options.rule = .links
         try await wait(session)
         #expect(session.candidates.first?.part.link?.host == "example.invalid")
         session.mode = .group
-        try snapshot(SplitContentView(session: session, close: {}), name: "split-links.png")
+        try snapshot(MacOS15SplitContentView(session: session, close: {}), name: "split-links.png")
         let group = source.withSplitGroup(SplitGroup(parts: session.candidates.map(\.part), plainText: false))
         let chooser = SplitGroupSession(
             source: group, action: .copy, plain: false, query: "example",
             current: { _ in group }, allowed: { true }, export: { _, _, _, _, _ in })
-        try snapshot(SplitGroupView(session: chooser, close: {}), name: "split-group.png")
-        try snapshot(SplitGroupPreview(source: group), name: "split-group-preview.png")
+        try snapshot(MacOS15SplitGroupView(session: chooser, close: {}), name: "split-group.png")
+        try snapshot(MacOS15SplitGroupPreview(source: group), name: "split-group-preview.png")
         session.invalidate()
         #expect(session.options == SplitOptions())
-        try snapshot(SplitContentView(session: session, close: {}), name: "split-expired.png")
+        try snapshot(MacOS15SplitContentView(session: session, close: {}), name: "split-expired.png")
         let model = HistoryViewStateStore()
         model.setPanelVisible(true)
         model.chooseSplitVersion([source])
-        try snapshot(SplitVersionView(store: model), name: "split-versions.png")
+        try snapshot(MacOS15SplitVersionView(store: model), name: "split-versions.png")
         model.panelDidClose()
         #expect(model.splitVersions.isEmpty)
         for rule in SplitRule.allCases { #expect(!rule.label.isEmpty) }
@@ -493,5 +493,132 @@ import Testing
         state.splitSession = second
         state.panelDidClose()
         #expect(second.source == nil && state.splitSession == nil)
+    }
+}
+
+@MainActor
+@Suite(.serialized) struct AuxiliaryDialogTypographyTests {
+    @Test func auxiliary_dialogs_fit_the_window_and_keep_their_actions_outside_the_scroll_view() async throws {
+        _ = NSApplication.shared
+        let originalLanguage = AppLocalization.language
+        defer { AppLocalization.language = originalLanguage }
+        let environment = ProcessInfo.processInfo.environment
+        let samples = [85, 100, 150, 151, 200, 250, 300]
+        let percentages =
+            environment["WHISK_EXHAUSTIVE_TYPOGRAPHY"] == "1"
+            ? Array(InterfaceTypography.percentRange) : samples
+        let destination = environment["WHISK_DIALOG_TYPOGRAPHY_ARTIFACTS"].map { URL(fileURLWithPath: $0) }
+        if let destination {
+            try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
+        }
+
+        let factory = AppUISelector.make()
+        let dialogs = try await makeDialogs()
+        let size = NSSize(width: 420, height: 360)
+        let window = NSWindow(
+            contentRect: NSRect(origin: .zero, size: size), styleMask: .borderless, backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        defer { window.close() }
+
+        for language in AppLanguage.allCases {
+            AppLocalization.language = language.code
+            for (name, store) in dialogs {
+                let content = try #require(
+                    factory.makeSplitContent(
+                        context: HistoryUIContext(store: store, actions: PanelActionSpy().actions),
+                        dismiss: { store.closeSplitSessions() }))
+                let host = content.view
+                window.contentView = host
+                defer { window.contentView = nil }
+                window.setContentSize(size)
+
+                for percent in percentages {
+                    let typography = InterfaceTypography(percent: percent)
+                    store.interfaceTypography = typography
+                    host.needsLayout = true
+                    await Task.yield()
+                    host.layoutSubtreeIfNeeded()
+                    host.displayIfNeeded()
+                    let context = "\(language.rawValue)-\(percent)-\(name)"
+                    let comment = Comment(rawValue: context)
+                    #expect(abs(host.bounds.width - size.width) < 1, comment)
+                    #expect(abs(host.bounds.height - size.height) < 1, comment)
+
+                    let scroll = try #require(bodyScroll(in: host), comment)
+                    let viewport = host.convert(scroll.bounds, from: scroll)
+                    #expect(host.bounds.insetBy(dx: -1, dy: -1).contains(viewport), comment)
+                    #expect(viewport.height >= typography.lineHeight(13) * 3, comment)
+                    #expect(host.bounds.height - viewport.height >= typography.lineHeight(13) + 22, comment)
+                    #expect(scroll.documentVisibleRect.width >= scroll.contentView.documentRect.width - 1, comment)
+
+                    if let destination, samples.contains(percent) {
+                        try snapshot(host, to: destination.appendingPathComponent(context + ".png"))
+                        if name == "split", percent == 300 {
+                            let clip = scroll.contentView
+                            let start = clip.bounds.origin.y
+                            // Lazy results refine their estimated height as the last rows come into view.
+                            for _ in 0..<3 {
+                                clip.scroll(to: NSPoint(x: 0, y: clip.documentRect.maxY - clip.bounds.height))
+                                scroll.reflectScrolledClipView(clip)
+                                try await Task.sleep(for: .milliseconds(35))
+                                host.layoutSubtreeIfNeeded()
+                            }
+                            #expect(clip.bounds.origin.y > start, comment)
+                            try snapshot(host, to: destination.appendingPathComponent(context + "-scrolled.png"))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func makeDialogs() async throws -> [(String, HistoryViewStateStore)] {
+        let entries = (1...9).map { "Entry \($0) with a sample value for the content preview." }
+        let item = anItem(.text(entries.joined(separator: " • ")))
+        let session = SplitSession(
+            source: item, current: { _ in item }, allowed: { true },
+            assess: { _ in SplitSaveAssessment(history: History(items: [item]), evictedCount: 3) },
+            save: { _, _ in })
+        session.options.rule = .delimiters
+        session.options.customDelimiter = "•"
+        session.mode = .replace
+        for _ in 0..<100 where session.analyzing {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(session.candidates.count == entries.count)
+        let split = HistoryViewStateStore()
+        split.splitSession = session
+
+        let grouped = item.withSplitGroup(SplitGroup(parts: session.candidates.map(\.part), plainText: false))
+        let group = HistoryViewStateStore()
+        group.splitGroupSession = SplitGroupSession(
+            source: grouped, action: .paste, plain: false, query: "sample",
+            current: { _ in grouped }, allowed: { true }, export: { _, _, _, _, _ in })
+
+        let versions = HistoryViewStateStore()
+        versions.setPanelVisible(true)
+        versions.chooseSplitVersion([item, anItem(.text(entries[0]))])
+
+        let secret = anItem(.text("sk-SYNTHETIC_EXAMPLE_KEY_" + String(repeating: "1234567890", count: 7)))
+        let reveal = HistoryViewStateStore()
+        reveal.detailSource = { $0 == secret.id ? secret : nil }
+        reveal.update(HistoryPresenter().present(items: [secret], query: "", now: secret.copiedAt))
+        reveal.setPanelVisible(true)
+        reveal.revealSecret(secret.id)
+        #expect(reveal.revealedSecret == secret.payload.transformableText)
+
+        return [("split", split), ("group", group), ("versions", versions), ("reveal", reveal)]
+    }
+
+    private func bodyScroll(in view: NSView) -> NSScrollView? {
+        if let scroll = view as? NSScrollView { return scroll }
+        return view.subviews.lazy.compactMap(bodyScroll(in:)).first
+    }
+
+    private func snapshot(_ host: NSView, to url: URL) throws {
+        let bitmap = try #require(host.bitmapImageRepForCachingDisplay(in: host.bounds))
+        host.cacheDisplay(in: host.bounds, to: bitmap)
+        let png = try #require(bitmap.representation(using: .png, properties: [:]))
+        try png.write(to: url)
     }
 }

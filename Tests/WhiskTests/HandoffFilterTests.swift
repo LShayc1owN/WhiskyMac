@@ -139,7 +139,7 @@ import Testing
         #expect(f.ids == [f.local.id, f.remoteText.id, f.remoteImage.id])
         #expect(f.disk.stored == saved && f.disk.saveCount == 0 && f.board.written.isEmpty)
         let union = HistoryHidingRule(cutoff: f.clock.now(), categories: [.text], includesHandoff: true)
-        #expect(saved.allSatisfy(union.hides))
+        #expect(saved.allSatisfy { union.hides($0) })
     }
 
     @Test func privacy_origin_permission_is_independent_and_revokes_stale_click_and_hover_actions() throws {

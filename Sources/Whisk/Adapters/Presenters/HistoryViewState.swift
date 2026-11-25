@@ -104,9 +104,7 @@ struct AccessPromptViewState: Equatable {
     let buttonTitle: String
 }
 
-/// The chip bar, in display order: All, the pinned toggle, one
-/// independent origins, source applications and content categories — all adapted to
-/// what the current selection can still match.
+/// Filter chip groups and keyboard focus for the current selection.
 struct FilterBarViewState: Equatable {
     let all: [FilterChip]
     let pinned: [FilterChip]
@@ -134,11 +132,6 @@ struct FilterBarViewState: Equatable {
 
     var isEmpty: Bool {
         all.isEmpty && pinned.isEmpty && origins.isEmpty && apps.isEmpty && kinds.isEmpty && tags.isEmpty
-    }
-
-    var orderedChips: [FilterChip] {
-        let groups: [[FilterChip]] = [all, pinned, origins, apps, kinds, tags]
-        return groups.flatMap { $0 }
     }
 
     static let empty = FilterBarViewState(apps: [], kinds: [])
@@ -214,8 +207,16 @@ struct CardViewState: Equatable, Identifiable {
     var splitCount = 0
     var isSplitGroup: Bool { splitCount > 0 }
     var pinnedMetadata = PinnedMetadata()
-    var contentHidden: Bool { pinnedMetadata.hidesContent }
-    var variantIDs: [UUID] = []
+    let secretMasked: Bool
+    var contentHidden: Bool { pinnedMetadata.hidesContent || secretMasked }
+    private var groupedVersions: [UUID] = []
+    var variantCount: Int { max(1, groupedVersions.count) }
+    /// Singleton cards carry their ID already; allocate the one-element
+    /// argument only for an action that actually requests the versions.
+    var variantIDs: [UUID] {
+        get { groupedVersions.isEmpty ? [id] : groupedVersions }
+        set { groupedVersions = newValue.count == 1 && newValue.first == id ? [] : newValue }
+    }
 
     init(
         id: UUID,
@@ -236,7 +237,8 @@ struct CardViewState: Equatable, Identifiable {
         sourceKey: String? = nil,
         matches: [MatchSpan] = [],
         preview: CardPreview,
-        pinnedMetadata: PinnedMetadata = PinnedMetadata(), splitCount: Int = 0, richText: BinaryContent? = nil
+        pinnedMetadata: PinnedMetadata = PinnedMetadata(), splitCount: Int = 0, richText: BinaryContent? = nil,
+        secretMasked: Bool = false
     ) {
         self.id = id
         self.sourceLabel = sourceLabel
@@ -257,6 +259,7 @@ struct CardViewState: Equatable, Identifiable {
         self.matches = matches
         self.preview = preview
         self.richText = richText
+        self.secretMasked = secretMasked
         self.pinnedMetadata = pinnedMetadata
         self.splitCount = splitCount
     }

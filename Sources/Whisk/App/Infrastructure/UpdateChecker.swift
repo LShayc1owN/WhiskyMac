@@ -16,8 +16,8 @@ enum UpdateChannel: String, CaseIterable {
     }
 }
 
-private struct UpdateVersion: Comparable {
-    let components: [Int]
+struct UpdateVersion: Comparable {
+    private let components: [Int]
     let betaNumber: Int?
 
     init?(_ tag: String) {
@@ -284,10 +284,5 @@ final class UpdateChecker: ObservableObject {
             return next
         }
         return nil
-    }
-
-    static func isNewer(_ candidate: String, than current: String) -> Bool {
-        guard let lhs = UpdateVersion(candidate), let rhs = UpdateVersion(current) else { return false }
-        return lhs > rhs
     }
 }

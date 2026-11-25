@@ -17,6 +17,7 @@ final class MacOS26SettingsToolbar: NSObject, NSToolbarDelegate, NSSearchFieldDe
     private let canFocus: () -> Bool
     private let searchItem = NSSearchToolbarItem(itemIdentifier: itemID)
     private let navigationItem = NSToolbarItem(itemIdentifier: navigationID)
+    private var searchWidth: NSLayoutConstraint?
     private var observations: Set<AnyCancellable> = []
     private var events: Any?
     private var endingSearchInteraction = false
@@ -42,9 +43,17 @@ final class MacOS26SettingsToolbar: NSObject, NSToolbarDelegate, NSSearchFieldDe
         field.action = #selector(searchFieldAction)
         field.sendsWholeSearchString = true
         field.setAccessibilityIdentifier("settingsSearchField")
+        let standardFont = field.font ?? NSFont.systemFont(ofSize: NSFont.systemFontSize)
+        appearance.$interfaceTypography.removeDuplicates().receive(on: DispatchQueue.main)
+            .sink { [weak self, weak field] typography in
+                field?.font = NSFont(
+                    descriptor: standardFont.fontDescriptor, size: typography.points(standardFont.pointSize))
+                self?.updateSearchWidth()
+                self?.updateResultsPanel()
+            }.store(in: &observations)
         searchItem.searchField = field
-        searchItem.preferredWidthForSearchField = 260
-        field.widthAnchor.constraint(equalToConstant: searchItem.preferredWidthForSearchField).isActive = true
+        searchWidth = field.widthAnchor.constraint(equalToConstant: 260)
+        searchWidth?.isActive = true
         searchItem.resignsFirstResponderWithCancel = false
         searchItem.visibilityPriority = .high
         navigationItem.target = self
@@ -154,6 +163,7 @@ final class MacOS26SettingsToolbar: NSObject, NSToolbarDelegate, NSSearchFieldDe
     private func updateLabels() {
         let searchLabel = localized("Search settings")
         searchField.placeholderString = searchLabel
+        updateSearchWidth()
         searchField.setAccessibilityLabel(searchLabel)
         searchItem.label = searchLabel
         searchItem.paletteLabel = searchLabel
@@ -164,6 +174,16 @@ final class MacOS26SettingsToolbar: NSObject, NSToolbarDelegate, NSSearchFieldDe
         navigationItem.image = NSImage(systemSymbolName: symbol, accessibilityDescription: label)
         navigationItem.label = label
         navigationItem.toolTip = label
+    }
+
+    private func updateSearchWidth() {
+        guard let cell = searchField.cell as? NSSearchFieldCell, let font = searchField.font else { return }
+        let bounds = NSRect(x: 0, y: 0, width: 260, height: max(cell.cellSize.height, 28))
+        let chrome = bounds.width - cell.searchTextRect(forBounds: bounds).width
+        let prompt = (searchField.placeholderString ?? "") as NSString
+        let width = max(bounds.width, ceil(prompt.size(withAttributes: [.font: font]).width + chrome + 4))
+        searchItem.preferredWidthForSearchField = width
+        searchWidth?.constant = width
     }
 
     private func updateSearchField() {
@@ -230,6 +250,7 @@ final class MacOS26SettingsToolbar: NSObject, NSToolbarDelegate, NSSearchFieldDe
         guard let window else { return event }
         if event.type == .keyDown {
             guard event.window === window, window.attachedSheet == nil, canFocus() else { return event }
+            if SettingsTextSizeShortcut.handle(event, in: window, appearance: appearance) { return nil }
             let modifiers = event.modifierFlags.intersection([.command, .control, .option, .shift])
             switch (modifiers, event.charactersIgnoringModifiers?.lowercased()) {
             case (.command, "f"):
@@ -271,8 +292,10 @@ final class MacOS26SettingsToolbar: NSObject, NSToolbarDelegate, NSSearchFieldDe
         let panel = resultsPanel ?? makeResultsPanel()
         let field = window.convertToScreen(searchField.convert(searchField.bounds, to: nil))
         let screen = (window.screen?.visibleFrame ?? window.frame).insetBy(dx: 8, dy: 8)
-        let width = min(360, screen.width)
-        let height = min(MacOS26SettingsSearchResults.height(for: search.results.count), screen.height)
+        let width = min(appearance.interfaceTypography.room(360), screen.width, window.frame.width)
+        let height = min(
+            appearance.interfaceTypography.room(MacOS26SettingsSearchResults.height(for: search.results.count)),
+            screen.height)
         let leadingX = searchField.userInterfaceLayoutDirection == .rightToLeft ? field.maxX - width : field.minX
         let x = min(max(leadingX, screen.minX), screen.maxX - width)
         let y = min(max(field.minY - height - 6, screen.minY), screen.maxY - height)
@@ -317,6 +340,8 @@ private final class MacOS26SettingsResultsHost: NSHostingView<MacOS26SettingsSea
 
 @available(macOS 26, *)
 private struct MacOS26SettingsSearchResults: View {
+    private var typography: InterfaceTypography { appearance.interfaceTypography }
+
     static let rowHeight: CGFloat = 80
     static let padding: CGFloat = 6
     @ObservedObject var search: SettingsSearchModel
@@ -340,14 +365,14 @@ private struct MacOS26SettingsSearchResults: View {
     var body: some View {
         if search.results.isEmpty {
             Text(localized("No matching settings"))
-                .font(.callout)
+                .font(typography.font(.callout))
                 .foregroundStyle(secondaryLabelColor)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(spacing: 0) {
-                        ForEach(Array(search.results.enumerated()), id: \.element.id) { index, entry in
+                        IndexedForEach(search.results) { index, entry in
                             result(entry, selected: search.selectedIndex == index)
                                 .onHover { if $0 { search.hover(at: index) } }
                                 .id(entry.id)
@@ -365,49 +390,42 @@ private struct MacOS26SettingsSearchResults: View {
     }
 
     private func result(_ entry: SettingsSearchEntry, selected: Bool) -> some View {
-        Button {
-            search.activate(entry.id)
-        } label: {
-            HStack(spacing: 10) {
-                Image(systemName: entry.symbol)
-                    .font(.callout.weight(.medium))
+        HStack(spacing: 10) {
+            Image(systemName: entry.symbol)
+                .font(typography.font(.callout).weight(.medium))
+                .foregroundStyle(secondaryLabelColor)
+                .frame(width: typography.room(22))
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                highlighted(entry.title.localized)
+                    .font(typography.font(.callout))
+                    .foregroundStyle(labelColor)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(entry.path)
+                    .font(typography.font(.caption))
                     .foregroundStyle(secondaryLabelColor)
-                    .frame(width: 22)
-                    .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 2) {
-                    highlighted(entry.title.localized)
-                        .font(.callout)
-                        .foregroundStyle(labelColor)
-                        .lineLimit(2)
-                    Text(entry.path)
-                        .font(.caption)
-                        .foregroundStyle(secondaryLabelColor)
-                        .lineLimit(1)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(.horizontal, 12)
-            .frame(height: Self.rowHeight - 2 * Self.padding)
-            .background(
-                selected ? appearance.accent.opacity(0.18) : .clear,
-                in: MacOS26SettingsSurface.rounded(minimum: 18)
-            )
-            .contentShape(.rect)
-            .padding(.vertical, Self.padding)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .padding(.horizontal, 12)
+        .frame(minHeight: typography.room(Self.rowHeight) - 2 * Self.padding)
+        .background(
+            selected ? appearance.accent.opacity(0.18) : .clear,
+            in: MacOS26SettingsSurface.rounded(minimum: 18)
+        )
+        .contentShape(.rect)
+        .padding(.vertical, Self.padding)
+        .beButton { search.activate(entry.id) }
         .buttonStyle(.plain)
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     private func highlighted(_ value: String) -> Text {
         var text = AttributedString(value)
-        for range in SettingsSearchIndex.matchingRanges(in: value, query: search.query) {
-            if let lower = AttributedString.Index(range.lowerBound, within: text),
-                let upper = AttributedString.Index(range.upperBound, within: text)
-            {
-                text[lower..<upper].inlinePresentationIntent = .stronglyEmphasized
-            }
-        }
+        var highlight = AttributeContainer()
+        highlight.inlinePresentationIntent = .stronglyEmphasized
+        text.mergeAttributes(highlight, in: SettingsSearchIndex.matchingRanges(in: value, query: search.query))
         return Text(text)
     }
 }

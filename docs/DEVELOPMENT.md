@@ -49,10 +49,9 @@ upstream Whisk data automatically. The packaged resource bundle remains
 ## Behavior and limitations
 
 - Settings → Debug → Show first-launch guide replays onboarding from the welcome
-  page and clears its simulated practice session. It preserves the completion
-  flag, reuses an open guide window and does not request permissions until the
-  corresponding action is chosen. The entry is also available in Settings search
-  and in both top-tab and sidebar navigation.
+  page. It preserves the completion flag, reuses an open guide window and does
+  not request permissions until the corresponding action is chosen. The entry
+  is also available in Settings search and in both top-tab and sidebar navigation.
 
 - Global shortcuts, link previews and sharing detection start disabled.
   Update checks at launch start disabled; manual checks and opt-in launch checks
@@ -80,10 +79,9 @@ upstream Whisk data automatically. The packaged resource bundle remains
   seconds and is revoked when the panel closes or global protection activates.
   Excluded applications and concealed, transient or generated clipboard markers
   are never recorded. Existing history is not reclassified.
-- Manual privacy spotlight reveals a small region near the pointer. That
-  region is also visible to screen recordings. Automatic protection blocks
-  spotlight reveals. Hover previews close after leaving the card, whereas
-  explicit previews remain open until dismissed.
+- In manual Privacy Mode, hovering reveals a small region near the pointer.
+  The right-click menu can show the entire card in place. Shown content is
+  visible to screen recordings. Automatic protection masks the card again.
 - Handoff attribution is a best-effort hint from a clipboard marker. It
   cannot identify the remote device/application, and an absent marker does
   not establish local origin.

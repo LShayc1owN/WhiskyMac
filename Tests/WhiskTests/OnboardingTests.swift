@@ -11,19 +11,15 @@ import Testing
 
 @MainActor
 @Suite(.serialized) struct OnboardingTests {
-    @Test func debug_replay_restarts_the_guide_and_practice_without_resetting_completion() throws {
+    @Test func debug_replay_restarts_the_guide_without_resetting_completion() throws {
         for completed in [false, true] {
             let sandbox = try IsolatedDefaults()
             sandbox.defaults.set(completed, forKey: "didShowOnboarding")
             let state = OnboardingState(
                 defaults: sandbox.defaults, readClipboardAccess: { .denied }, readAccessibility: { false })
             state.select(.ready)
-            state.practice.addExample()
-            state.practice.perform(.paste)
-            #expect(state.isPracticeComplete)
             state.restart()
             #expect(state.page == .welcome)
-            #expect(!state.isPracticeComplete)
             #expect(sandbox.defaults.bool(forKey: "didShowOnboarding") == completed)
             #expect(state.clipboardAccess == .denied && !state.accessibilityGranted)
             #expect(KeyBindingsStore(defaults: sandbox.defaults).enabledGlobalActions.isEmpty)
@@ -57,13 +53,26 @@ import Testing
         }
         let state = open()
         #expect(state.page == .welcome)
-        #expect(OnboardingPage.steps.first == .permissions)
-        #expect(OnboardingPage.steps.map(\.rawValue) == Array(1...7))
-        state.select(.permissions)
+        #expect(Array(OnboardingPage.steps.prefix(3)) == [.basicSettings, .permissions, .practice])
+        #expect(OnboardingPage.steps.map(\.stepNumber) == Array(1...8))
+        state.move(1)
+        #expect(state.page == .basicSettings)
+        #expect(open().page == .basicSettings)
+        state.move(1)
         #expect(open().page == .permissions)
+        state.move(-1)
+        #expect(state.page == .basicSettings)
         state.move(-1)
         #expect(state.page == .welcome)
         #expect(open().page == .welcome)
+
+        let legacyPages: [OnboardingPage] = [
+            .welcome, .permissions, .practice, .tools, .privacy, .preferences, .guide, .ready,
+        ]
+        for (id, page) in legacyPages.enumerated() {
+            sandbox.defaults.set(id, forKey: "onboardingPage")
+            #expect(open().page == page)
+        }
     }
 
     @Test func permissions_refresh_without_prompting_and_navigation_does_not_require_access() throws {
@@ -88,21 +97,14 @@ import Testing
         #expect(state.page == .welcome)
     }
 
-    @Test func practice_is_repeatable_and_does_not_complete_first_run() throws {
+    @Test func visiting_practice_does_not_complete_first_run() throws {
         let sandbox = try IsolatedDefaults()
         let state = OnboardingState(
             defaults: sandbox.defaults, readClipboardAccess: { .denied }, readAccessibility: { false })
-        state.practice.addExample()
-        state.practice.perform(.paste)
-        #expect(state.isPracticeComplete)
-        state.practice.query = "Hello"
+        state.select(.practice)
         state.select(.guide)
         state.select(.practice)
-        #expect(state.isPracticeComplete)
         #expect(!sandbox.defaults.bool(forKey: "didShowOnboarding"))
-        state.practice.reset()
-        #expect(!state.practice.hasExample)
-        #expect(state.practice.query.isEmpty)
         sandbox.defaults.set(900, forKey: "onboardingPage")
         let recovered = OnboardingState(
             defaults: sandbox.defaults, readClipboardAccess: { .denied }, readAccessibility: { false })
@@ -129,11 +131,10 @@ import Testing
                 defaults: sandbox.defaults, readClipboardAccess: { .requiresConsent }, readAccessibility: { false })
             for page in OnboardingPage.allCases {
                 state.select(page)
-                if page == .practice { state.practice.reset(); state.practice.addExample() }
                 for dark in [false, true] {
                     let size = NSSize(
                         width: language == "zh-Hans" ? 980 : 780, height: language == "zh-Hans" ? 700 : 540)
-                    let view = OnboardingView(
+                    let view = MacOS15OnboardingView(
                         state: state, bindings: bindings, general: general, appearance: appearance, loginItem: loginItem
                     )
                     .environment(\.colorScheme, dark ? .dark : .light)
@@ -144,7 +145,92 @@ import Testing
             }
         }
     }
-    @Test func practice_presentations_expanded_settings_and_permission_states_render() async throws {
+
+    @Test func largest_interface_text_previews_in_compact_setup() async throws {
+        _ = NSApplication.shared
+        let directory = ProcessInfo.processInfo.environment["WHISK_ONBOARDING_ARTIFACTS"].map {
+            URL(fileURLWithPath: $0)
+        }
+        let oldLanguage = AppLocalization.language
+        defer { if directory != nil { AppLocalization.language = oldLanguage } }
+        let sandbox = try IsolatedDefaults()
+        let state = OnboardingState(defaults: sandbox.defaults, readClipboardAccess: { .denied })
+        let bindings = KeyBindingsStore(defaults: sandbox.defaults)
+        let general = GeneralSettingsStore(defaults: sandbox.defaults)
+        let appearance = AppearanceSettingsStore(defaults: sandbox.defaults)
+        let login = LoginItemManager()
+        let languages = directory == nil ? [oldLanguage ?? "en"] : AppLanguage.allCases.compactMap(\.code)
+        let sizes = directory == nil ? [300] : [85, 100, 150, 151, 200, 250, 300]
+        for language in languages {
+            if directory != nil { AppLocalization.language = language }
+            for percent in sizes {
+                appearance.setInterfaceFontPercent(percent)
+                #expect(
+                    AppearanceSettingsStore(defaults: sandbox.defaults).interfaceTypography
+                        == appearance.interfaceTypography)
+                for page in OnboardingPage.allCases {
+                    state.select(page)
+                    let view = MacOS15OnboardingView(
+                        state: state, bindings: bindings, general: general, appearance: appearance, loginItem: login
+                    )
+                    .transaction { $0.disablesAnimations = true }
+                    try await snapshot(
+                        view, size: NSSize(width: 780, height: 508), dark: false, directory: directory,
+                        name: "\(language)-\(percent)-onboarding-\(page.rawValue)")
+                }
+            }
+        }
+    }
+
+    @Test(.enabled(if: ProcessInfo.processInfo.environment["WHISK_EXHAUSTIVE_TYPOGRAPHY"] == "1"))
+    func every_setup_page_keeps_a_readable_document_at_every_font_size() async throws {
+        _ = NSApplication.shared
+        let saved = AppLocalization.language
+        defer { AppLocalization.language = saved }
+        let sandbox = try IsolatedDefaults()
+        let state = OnboardingState(
+            defaults: sandbox.defaults, readClipboardAccess: { .denied }, readAccessibility: { false })
+        let appearance = AppearanceSettingsStore(defaults: sandbox.defaults)
+        let context = OnboardingUIContext(
+            state: state, bindings: KeyBindingsStore(defaults: sandbox.defaults),
+            general: GeneralSettingsStore(defaults: sandbox.defaults), appearance: appearance,
+            loginItem: LoginItemManager(), actions: OnboardingActions())
+        let viewport = NSSize(width: 780, height: 508)
+
+        func scrolls(_ view: NSView) -> [NSScrollView] {
+            if let scroll = view as? NSScrollView { return [scroll] }
+            return view.subviews.flatMap(scrolls)
+        }
+        for language in AppLanguage.allCases {
+            AppLocalization.language = language.code
+            appearance.language = language
+            let handle = AppUISelector.make().makeOnboardingWindow(context: context)
+            defer { handle.release() }
+            handle.window.setContentSize(viewport)
+            let host = try #require(handle.window.contentView)
+            for page in OnboardingPage.allCases {
+                state.select(page)
+                try await Task.sleep(for: .milliseconds(350))
+                for percent in InterfaceTypography.percentRange {
+                    appearance.setInterfaceFontPercent(percent)
+                    await Task.yield()
+                    host.layoutSubtreeIfNeeded()
+                    let comment = Comment(rawValue: "\(language.rawValue)-\(page)-\(percent)")
+                    let document = try #require(
+                        scrolls(host).filter { $0.contentSize.width > 380 }.max {
+                            $0.contentSize.height < $1.contentSize.height
+                        }, comment)
+                    #expect(document.contentSize.height >= appearance.interfaceTypography.lineHeight(13) * 2, comment)
+                    #expect(document.contentView.documentRect.width <= document.contentSize.width + 1, comment)
+                    #expect(
+                        host.bounds.insetBy(dx: -1, dy: -1).contains(host.convert(document.bounds, from: document)),
+                        comment)
+                }
+            }
+        }
+    }
+
+    @Test func practice_shortcut_and_permission_states_render() async throws {
         _ = NSApplication.shared
         let oldLanguage = AppLocalization.language
         let directory = ProcessInfo.processInfo.environment["WHISK_ONBOARDING_ARTIFACTS"].map {
@@ -162,47 +248,31 @@ import Testing
         let appearance = AppearanceSettingsStore(defaults: sandbox.defaults)
         let login = LoginItemManager()
         for dark in [false, true] {
-            for variant in [
-                "initial", "preview", "menu", "edit", "split", "pasted", "expanded", "recording", "permissions-partial",
-                "permissions-ready",
-            ] {
-                state.select(variant.hasPrefix("permissions") ? .permissions : .practice)
-                access = variant == "permissions-ready" ? .granted : .requiresConsent
-                trusted = variant.hasPrefix("permissions")
-                state.refreshPermissions()
-                state.practice.reset()
-                state.practice.moreInteractions = variant == "expanded"
-                general.interactions.hover = .none
+            for variant in ["menu", "enabled", "recording", "permissions-partial", "permissions-ready"] {
+                let isPermissions = variant.hasPrefix("permissions")
+                access = variant == "menu" || variant == "permissions-partial" ? .requiresConsent : .granted
+                trusted = variant != "menu"
+                state.select(isPermissions ? .permissions : .practice)
                 bindings.endRecording()
-                if variant != "initial" { state.practice.addExample() }
-                switch variant {
-                case "preview": state.practice.perform(.preview)
-                case "menu": state.practice.perform(.menu)
-                case "edit": state.practice.perform(.edit)
-                case "split": state.practice.perform(.split)
-                case "pasted": state.practice.perform(.paste)
-                case "expanded": general.interactions.hover = .preview
-                case "recording": bindings.beginRecording(.copySelection)
-                default: break
-                }
-                let view = OnboardingView(
+                bindings.setGlobalEnabled(variant == "enabled", for: .togglePanel)
+                if variant == "recording" { bindings.beginRecording(.togglePanel) }
+                let view = MacOS15OnboardingView(
                     state: state, bindings: bindings, general: general, appearance: appearance, loginItem: login
                 )
                 .environment(\.colorScheme, dark ? .dark : .light)
                 try await snapshot(
                     view, size: NSSize(width: 980, height: 700), dark: dark, directory: directory,
-                    name: "practice-\(variant)-\(dark ? "dark" : "light")",
-                    bottom: variant == "expanded" || variant == "recording")
+                    name: "practice-\(variant)-\(dark ? "dark" : "light")")
             }
         }
     }
 
     private func snapshot<V: View>(
-        _ view: V, size: NSSize, dark: Bool, directory: URL?, name: String, bottom: Bool = false
+        _ view: V, size: NSSize, dark: Bool, directory: URL?, name: String
     ) async throws {
         let hosting = NSHostingController(rootView: view)
         let window = NSWindow(contentViewController: hosting)
-        OnboardingWindowConfiguration.apply(to: window)
+        MacOS15OnboardingWindowConfiguration.apply(to: window)
         window.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
         window.setContentSize(size)
         defer { window.close(); window.contentView = nil }
@@ -210,20 +280,6 @@ import Testing
         host.layoutSubtreeIfNeeded()
         try await Task.sleep(for: .milliseconds(directory == nil ? 10 : 60))
         host.layoutSubtreeIfNeeded()
-        if bottom {
-            func scrollViews(_ view: NSView) -> [NSScrollView] {
-                ((view as? NSScrollView).map { [$0] } ?? []) + view.subviews.flatMap(scrollViews)
-            }
-            if let scroll = scrollViews(host).first(where: { $0.bounds.width > 400 }),
-                let document = scroll.documentView
-            {
-                scroll.contentView.scroll(
-                    to: NSPoint(x: 0, y: max(0, document.bounds.height - scroll.contentView.bounds.height)))
-                scroll.reflectScrolledClipView(scroll.contentView)
-                host.layoutSubtreeIfNeeded()
-                try await Task.sleep(for: .milliseconds(60))
-            }
-        }
         #expect(host.bounds.size == size, "\(name)")
         #expect(window.standardWindowButton(.closeButton)?.isHidden == false)
         let frameView = try #require(host.superview)

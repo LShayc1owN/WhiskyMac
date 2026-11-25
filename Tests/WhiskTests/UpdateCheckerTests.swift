@@ -31,18 +31,27 @@ import Testing
         }
     }
 
-    @Test func installed_versions_use_numeric_beta_order_and_stable_wins_at_equal_core() {
-        #expect(UpdateChecker.isNewer("v1.2.0-beta.10", than: "1.2.0beta2"))
-        #expect(UpdateChecker.isNewer("V1.2.0-BETA-2", than: "1.2.0-beta"))
-        #expect(UpdateChecker.isNewer("1.2.0", than: "1.2.0beta10"))
-        #expect(UpdateChecker.isNewer("1.3.0-beta.1", than: "1.2.9"))
-        #expect(!UpdateChecker.isNewer("1.2.0-beta.1", than: "1.2.0"))
-        #expect(!UpdateChecker.isNewer("1.2.0", than: "v1.2"))
-        #expect(!UpdateChecker.isNewer("1.2.0beta2", than: "1.2-beta.2"))
+    @Test func versions_compare_numeric_components_and_rank_stable_above_beta() throws {
+        let orderedPairs = [
+            ("0.5.1", "0.6.0"), ("0.9.9", "1.0.0"), ("0.5.9", "0.5.10"), ("0.4.9", "0.5.0"),
+            ("1.2.0beta2", "v1.2.0-beta.10"), ("1.2.0-beta", "V1.2.0-BETA-2"), ("1.2.0beta10", "1.2.0"),
+            ("1.2.9", "1.3.0-beta.1"), ("1.2.0-beta.1", "1.2.0"),
+        ]
+        for (older, newer) in orderedPairs {
+            let olderVersion = try #require(UpdateVersion(older))
+            let newerVersion = try #require(UpdateVersion(newer))
+            #expect(olderVersion < newerVersion, "\(older) should precede \(newer)")
+        }
+
+        for (first, second) in [("0.5.0", "0.5.0"), ("1.2.0", "v1.2"), ("1.2.0beta2", "1.2-beta.2")] {
+            let firstVersion = try #require(UpdateVersion(first))
+            #expect(firstVersion == UpdateVersion(second))
+        }
+
         for invalid in [
             "", "1.x.3", "1.2..3", "1.2+build", "1.2.0-rc.1", "1.2.0-beta.", "1.2.0-beta.99999999999999999999999",
         ] {
-            #expect(!UpdateChecker.isNewer(invalid, than: "0.1.0"))
+            #expect(UpdateVersion(invalid) == nil)
         }
     }
 

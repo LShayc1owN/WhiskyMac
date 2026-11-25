@@ -4,16 +4,26 @@
 <p align="center"><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.it.md">Italiano</a></p>
 
 > [!NOTE]
-> WhiskyMac ist eine unabhängige Bearbeitung von [Whisk](https://github.com/nathan-poncet/whisk). Das Projekt befindet sich in Entwicklung: Dieses Repository ist privat; öffentliche App-Downloads sind noch nicht eingerichtet. Die folgenden Schritte gelten für einen Build aus dieser Projektkopie.
+> WhiskyMac ist ein eigenständiges Projekt auf Basis von [Whisk](https://github.com/nathan-poncet/whisk) und wird weiterentwickelt. Die Funktionen unten beziehen sich auf den aktuellen Quellcode. Was in einem Download enthalten ist und wie er signiert wurde, steht in den jeweiligen Versionshinweisen.
+
+## Download und erste Schritte
+
+**[Aktuelle Version auf GitHub](https://github.com/LShayc1owN/WhiskyMac/releases/latest)**
+
+1. Lade das ZIP-Archiv der App herunter, entpacke es und verschiebe `WhiskyMac.app` in den Ordner „Programme“.
+2. Öffne WhiskyMac und folge der Willkommensanleitung. Falls macOS nach dem Zugriff auf die Zwischenablage fragt, wähle im Menü von WhiskyMac **Zwischenablagezugriff erlauben…**.
+3. Kopiere etwas in einer anderen App. Klicke dann auf das WhiskyMac-Symbol in der Menüleiste oder wähle **Verlauf anzeigen**. In den Einstellungen kannst du ein globales Tastenkürzel aktivieren.
 
 ## Funktionen im Überblick
 
-- **Kopien finden.** Der lokale Verlauf speichert Text, Rich Text, Links, Bilder, Dateien und Farben. Suche nach Inhalt oder Quell-App; Filter nach App, Typ, Pins, Farbmarkierungen und Handoff-Zuordnung. Dateipfade als Text haben einen eigenen Filter und lassen sich mit `type:path` suchen.
-- **Inhalte wiederverwenden.** Kopieren, direkt oder als Klartext einfügen, in andere Apps ziehen, Vorschau öffnen, bearbeiten und eine Einfügereihenfolge nutzen. Rich-Text-Versionen mit gleichem Klartext werden gruppiert. Tastatursteuerung und optionale Vim-Navigation stehen bereit.
-- **Aufteilen und ordnen.** Text nach Zeilen, Absätzen oder Trennzeichen aufteilen oder HTTP(S)-Links extrahieren. Teile prüfen und anschließend als neue Karten, Ersatz oder dauerhafte Gruppe speichern. Beim Kopieren und Einfügen Original oder einzelne Gruppenteile auswählen.
-- **Wichtiges behalten.** Pins bieten durchsuchbare Notizen, sieben Farbmarkierungen und auf Wunsch dauerhaft verdeckten Inhalt. Sie erscheinen im Verlauf oder in einem eigenen Fenster. Aufbewahrungsdauer und Kapazität nicht angehefteter Einträge sind einstellbar; Löschen lässt sich rückgängig machen.
-- **Anzeige kontrollieren.** Der manuelle Datenschutzmodus verdeckt Inhalte. Die optionale Erkennung von Zoom-/Teams-Freigabe-Symbolleisten ist begrenzt. Suche, Filter und Sichtbereich am Mauszeiger lassen sich getrennt einschalten. Sensible Apps verwenden einen ablaufenden Speicherbereich; ausgeschlossene Apps werden nicht erfasst.
-- **Persönlich einstellen.** Kartengröße, matte Oberfläche, Menüleistensymbol, Interaktionen, Tastenkürzel und optionale Kopiergeräusche lassen sich anpassen. Einstellungssuche und Rückgängig nach dem Zurücksetzen von Kürzeln helfen dabei. Der Übungsbereich beim ersten Start verändert weder die echte Zwischenablage noch den Verlauf. Die Oberfläche ist auf Englisch, Französisch, Deutsch, Italienisch, vereinfachtem und traditionellem Chinesisch sowie Japanisch verfügbar.
+- **Kopierte Inhalte finden.** Text, Rich Text, Code, Links, Bilder, Dateien und Farben werden lokal gespeichert. Suche nach Inhalt oder Quell-App, wahlweise unscharf, nach Teilzeichenfolge oder ganzem Wort sowie nach Textanfang oder Textende. Filtere nach App, Typ, angehefteten Einträgen, Farbmarkierungen oder Handoff. Mit `type:path` findest du Dateipfade, die als Text kopiert wurden.
+- **Inhalte wiederverwenden.** Öffne die Vorschau, bearbeite, ziehe oder kopiere Inhalte, füge sie direkt oder als Klartext ein und stelle sie in die Einfügewarteschlange. Wähle zwischen gruppierten Rich-Text-Versionen und navigiere per Tastatur oder optional mit Vim-Tastenbelegungen.
+- **Text aufteilen.** Teile Text nach Zeilen, Absätzen oder Trennzeichen auf oder extrahiere HTTP(S)-Links. Prüfe die Teile und speichere sie als neue Karten, als Ersatz oder als Gruppe. Beim Kopieren oder Einfügen einer Gruppe kannst du das Original oder ausgewählte Teile verwenden.
+- **Den Verlauf organisieren.** Angeheftete Einträge können durchsuchbare Notizen, sieben Farbmarkierungen und auf Wunsch dauerhaft verdeckte Inhalte haben. Öffne sie im Verlauf oder in einem eigenen Fenster. Blende ältere Einträge nach Zeitpunkt, Inhaltstyp oder Handoff-Herkunft vorübergehend aus. Lege Aufbewahrungsdauer und Kapazität fest oder lösche nicht angeheftete Einträge mit der Möglichkeit, das Löschen rückgängig zu machen.
+- **Die Anzeige steuern.** Der manuelle Datenschutzmodus verdeckt Karten. Suche, Filter und der Sichtbereich am Zeiger lassen sich einzeln einstellen. Über das Kartenmenü kannst du eine einzelne Karte an Ort und Stelle sichtbar machen. Die optionale Freigabeerkennung erfasst unterstützte Symbolleisten von Zoom und Teams. Kopien aus sensiblen Apps verfallen im Arbeitsspeicher. Ausgeschlossene Apps werden übersprungen.
+- **Mögliche Geheimnisse verdecken.** Die lokale Erkennung sucht nach gängigen Formaten für API-Schlüssel, Tokens, Cookies und Hashwerte. Kartenmaskierung und Zuordnung zur Kategorie für Geheimnisse sind separat einstellbar. Die Maskierung betrifft die Anzeige auf der Karte.
+- **Die passende Optik für deinen Mac.** Ab macOS 26 nutzen Bedienelemente im Verlauf und in den Einstellungen Liquid Glass. Unter macOS 15 kommt eine Milchglasoptik zum Einsatz. Wähle für den Verlauf und die Einstellungen getrennt zwischen hellem, dunklem und systemgesteuertem Erscheinungsbild.
+- **Persönlich einstellen.** Passe Kartengröße, Menüleistensymbol, Kartenaktionen, Tastenkürzel und optionale Kopiergeräusche an. Durchsuche die Einstellungen oder setze Kürzel nach Kategorie zurück und mache das bei Bedarf rückgängig. Die Oberfläche ist auf Deutsch, Englisch, Französisch, Italienisch, vereinfachtem und traditionellem Chinesisch sowie Japanisch verfügbar.
 
 Genaues Verhalten und Grenzen stehen im [Projektumfang](docs/PROJECT.md) und [Änderungsprotokoll](CHANGELOG.md).
 
@@ -25,10 +35,7 @@ Erforderlich sind macOS 15 oder neuer, das macOS 26 SDK und eine vollständige X
 swift run Whisk
 swift test
 ./scripts/localizations.sh check
-./scripts/build-app.sh 0.0.0 native
 ```
-
-Das Skript erzeugt `dist/WhiskyMac.app` und `dist/WhiskyMac.zip`. Das interne Swift-Target und die ausführbare Datei heißen weiter `Whisk`. Ohne Signaturidentität wird ad hoc signiert; die App ist damit weder notarisiert noch bereit für eine App-Store-Einreichung.
 
 ## Datenschutz und Daten
 
@@ -48,7 +55,7 @@ Die [App-Store-/TestFlight-Ausnahme des Ursprungsprojekts](LICENSE-EXCEPTION-APP
 
 ## Veröffentlichung und Unterstützung
 
-Öffentliche Adressen für Quellcode, Support und Datenschutzerklärung fehlen in [release-config.json](release-config.json) noch; die Freigabeprüfung blockiert unvollständige Angaben. Installierbare Pakete sollen künftig zusammen mit dem zugehörigen Quellcode über GitHub Releases verteilt und nicht im Repository abgelegt werden. Rechtstexte liegen im App-Paket unter `Contents/Resources/Legal` und sind über **Lizenzen und Hinweise…** in der Menüleiste erreichbar.
+Der automatische Veröffentlichungsablauf prüft die öffentlichen Adressen für Quellcode, Support und Datenschutzerklärung in [release-config.json](release-config.json). Die Lizenzdokumente liegen in `Contents/Resources/Legal` und lassen sich im WhiskyMac-Menü über **Lizenzen und Hinweise…** öffnen.
 
 Wenn WhiskyMac Ihnen hilft, können Sie die unabhängige Entwicklung freiwillig mit einer Spende unterstützen:
 

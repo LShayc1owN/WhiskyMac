@@ -28,6 +28,8 @@
 	<string>一個好點子</string>
 	<key>A little inspiration</key>
 	<string>一點靈感</string>
+	<key>AI assistance</key>
+	<string>AI 輔助翻譯</string>
 	<key>About</key>
 	<string>關於</string>
 	<key>About the developer</key>
@@ -46,8 +48,6 @@
 	<string>加入 App…</string>
 	<key>Add cards to the paste stack and enable its shortcut to paste them in order.</key>
 	<string>把卡片加入貼上佇列，啟用佇列快速鍵即可依序貼上。</string>
-	<key>Add example</key>
-	<string>加入範例</string>
 	<key>Add sensitive app…</key>
 	<string>加入敏感 App…</string>
 	<key>Add to Paste Stack</key>
@@ -68,6 +68,8 @@
 	<string>隱私模式下允許接力篩選</string>
 	<key>Allow app filtering in Privacy Mode</key>
 	<string>隱私模式下允許 App 篩選</string>
+	<key>Allow clipboard access to see new copies in your history.</key>
+	<string>允許存取剪貼簿後，新拷貝的內容才會出現在記錄中。</string>
 	<key>Allow removal of %lld older history items</key>
 	<string>允許移除 %lld 條較早的歷史記錄</string>
 	<key>Allow search in Privacy Mode</key>
@@ -88,18 +90,18 @@
 	<string>外觀與卡片尺寸</string>
 	<key>Application observed on this Mac at capture time; source is not verified.</key>
 	<string>記錄當下在這部 Mac 前景執行的 App，實際來源未經確認。</string>
-	<key>Applies to manual and automatic protection. Search terms and enabled app names are visible on screen and in accessibility. Clipboard content stays hidden; automatic protection still blocks hover reveals.</key>
-	<string>適用於手動與自動保護。搜尋字詞與允許顯示的 App 名稱會出現在螢幕上，也能透過輔助使用功能讀取。剪貼板內容仍會隱藏，自動保護也不會因游標停留而顯示內容。</string>
-	<key>Applies to manual privacy with Hover set to Preview. The blur softens the reveal edge. Revealed content can be recorded; automatic protection stays fully masked.</key>
-	<string>適用於手動隱私模式，且停留動作須設為「預覽」。模糊半徑控制顯示區域邊緣的柔和程度。顯示的內容仍可能出現在錄影中，自動保護則會隱藏全部內容。</string>
-	<key>Automatic detection is limited. Use manual protection before important sharing.</key>
-	<string>自動偵測的覆蓋範圍有限。重要分享前，請開啟手動隱私保護。</string>
-	<key>Automatic detection is off. Use manual protection before sharing.</key>
-	<string>自動偵測已關閉。分享前請手動開啟保護。</string>
-	<key>Automatic protection (limited detection)</key>
-	<string>自動保護（有限偵測）</string>
-	<key>Automatic protection only detects supported Zoom and Teams sharing sessions.</key>
-	<string>自動保護僅偵測支援的 Zoom 和 Teams 共享工作階段。</string>
+	<key>Applies when you turn on privacy protection and set Hover to Preview. Blur softens the edge of the visible area. Screen recordings can capture that area. Protection triggered by detection keeps all content hidden.</key>
+	<string>開啟隱私保護並將游標停留動作設為「預覽」時生效。模糊會讓顯示區域的邊緣更柔和。顯示的內容可能出現在螢幕錄影中。自動偵測觸發保護時，所有內容會保持隱藏。</string>
+	<key>Apply interface font size to plain text</key>
+	<string>將介面字級套用至純文字</string>
+	<key>Automatic detection covers only supported Zoom and Teams screen sharing sessions.</key>
+	<string>自動偵測僅涵蓋部分 Zoom 和 Teams 螢幕共享情境。</string>
+	<key>Automatic detection is limited. Turn on privacy protection before sharing sensitive content.</key>
+	<string>自動偵測的涵蓋範圍有限。共享敏感內容前，請開啟隱私保護。</string>
+	<key>Automatic detection is off. Turn on privacy protection before sharing.</key>
+	<string>自動偵測已關閉。共享螢幕前請開啟隱私保護。</string>
+	<key>Automatically recognize secrets</key>
+	<string>自動辨識金鑰</string>
 	<key>Available for 5 seconds</key>
 	<string>可在 5 秒內還原</string>
 	<key>Back</key>
@@ -110,6 +112,8 @@
 	<string>Base64 解碼</string>
 	<key>Base64-encoded</key>
 	<string>Base64 編碼</string>
+	<key>Basic settings</key>
+	<string>基本設定</string>
 	<key>Beta and Release</key>
 	<string>Beta 和 Release</string>
 	<key>Beta only</key>
@@ -130,6 +134,10 @@
 	<string>卡片大小</string>
 	<key>Cards from the bottom</key>
 	<string>底部卡片列</string>
+	<key>Categorize secrets</key>
+	<string>將金鑰分類</string>
+	<key>Category tag order</key>
+	<string>分類標籤排序</string>
 	<key>Changes are saved only when you choose Save current setting.</key>
 	<string>按下「儲存目前設定」後才會套用變更。</string>
 	<key>Check for updates</key>
@@ -140,8 +148,6 @@
 	<string>重新檢查權限</string>
 	<key>Checking for updates…</key>
 	<string>正在檢查更新…</string>
-	<key>Checks Zoom and Teams sharing toolbar titles using Accessibility. Client versions and languages may not match. System sharing, remote desktop, recording and browser tabs are not covered. Enable manual protection before important sharing.</key>
-	<string>透過「輔助使用」檢查 Zoom 和 Teams 的分享工具列名稱。辨識結果可能因版本和語言而異。系統分享、遠端桌面、螢幕錄製和瀏覽器分頁均不在偵測範圍內。重要分享前請開啟手動保護。</string>
 	<key>Choose a format to continue</key>
 	<string>選擇一種格式以繼續</string>
 	<key>Choose a format to split</key>
@@ -164,8 +170,12 @@
 	<string>清除搜尋</string>
 	<key>Click a shortcut to record a new one — press Escape to cancel recording.</key>
 	<string>按一下快速鍵重新錄製，按 Esc 取消。</string>
+	<key>Click the WhiskyMac menu bar icon. If a menu opens, choose “%@”.</key>
+	<string>點一下選單列的 WhiskyMac 圖像。若出現選單，請選擇「%@」。</string>
 	<key>Click the shortcut to change it. Press Esc to cancel.</key>
 	<string>點按快速鍵即可修改，按 Esc 取消。</string>
+	<key>Click to copy or paste. When you turn on privacy protection, use the card menu to show the full card or hover to see a small area. Protection triggered by detection keeps cards hidden.</key>
+	<string>拷貝和貼上需要點按。開啟隱私保護後，可從卡片選單顯示整張卡片，游標停留可查看一小塊區域。自動偵測觸發保護時，卡片會保持隱藏。</string>
 	<key>Click to filter</key>
 	<string>按一下篩選</string>
 	<key>Click to record a shortcut. Escape cancels.</key>
@@ -176,8 +186,6 @@
 	<string>剪貼簿外觀</string>
 	<key>Clipboard cards</key>
 	<string>剪貼板卡片</string>
-	<key>Clipboard controls</key>
-	<string>剪貼簿操作</string>
 	<key>Close the panel</key>
 	<string>關閉面板</string>
 	<key>Collapse apps</key>
@@ -186,8 +194,6 @@
 	<string>已收起</string>
 	<key>Color tags</key>
 	<string>彩色標籤</string>
-	<key>Colors</key>
-	<string>顏色</string>
 	<key>Comma (, / ，)</key>
 	<string>逗號（, / ，）</string>
 	<key>Complete original</key>
@@ -214,8 +220,8 @@
 	<string>已排除 App 中的拷貝內容不會被記錄。</string>
 	<key>Copy</key>
 	<string>拷貝</string>
-	<key>Copy and paste require an explicit click. Full preview and editing stay disabled. Local reveal works only in manual privacy; automatic protection stays masked.</key>
-	<string>需手動按一下才能拷貝或貼上。完整預覽和編輯仍會停用。只有手動隱私模式可顯示局部內容，自動保護仍會隱藏全部內容。</string>
+	<key>Copy a little text in another app, such as TextEdit. Leave the cursor where you want to paste.</key>
+	<string>在其他 App（如「文字編輯」）中拷貝一小段文字，再把游標移到想貼上的位置。</string>
 	<key>Copy something new. If it doesn’t appear, check clipboard access, capture status and app exclusions.</key>
 	<string>拷貝新的內容。如果未出現，請檢查剪貼簿權限、記錄狀態和排除 App 列表。</string>
 	<key>Copy something to get started</key>
@@ -266,6 +272,8 @@
 	<string>直接貼上</string>
 	<key>Disable Developer Mode</key>
 	<string>關閉開發者模式</string>
+	<key>Display and theme colors</key>
+	<string>顯示與主題顏色</string>
 	<key>Do nothing</key>
 	<string>不執行操作</string>
 	<key>Dock icon</key>
@@ -278,12 +286,12 @@
 	<string>按兩下</string>
 	<key>Download update on GitHub</key>
 	<string>在 GitHub 下載更新</string>
+	<key>Drag to reorder</key>
+	<string>拖移調整順序</string>
 	<key>Edge blur radius</key>
 	<string>邊緣模糊半徑</string>
 	<key>Edit and split text</key>
 	<string>編輯與分割文字</string>
-	<key>Edit example</key>
-	<string>編輯範例</string>
 	<key>Edit the selection</key>
 	<string>編輯所選項目</string>
 	<key>Editing %@</key>
@@ -296,8 +304,6 @@
 	<string>啟用</string>
 	<key>Enable Developer Mode</key>
 	<string>開啟開發者模式</string>
-	<key>Enable WhiskyMac in Accessibility to paste directly. You can also copy a card and press ⌘V.</key>
-	<string>在「輔助使用」中允許 WhiskyMac 直接貼上。也可以拷貝卡片後按 ⌘V。</string>
 	<key>Enable the history shortcut</key>
 	<string>啟用歷史面板快速鍵</string>
 	<key>Enable this global shortcut</key>
@@ -310,8 +316,6 @@
 	<string>頓號（、）</string>
 	<key>Everyday tools</key>
 	<string>常用工具</string>
-	<key>Example actions</key>
-	<string>範例操作選單</string>
 	<key>Exclude %@</key>
 	<string>排除 %@</string>
 	<key>Exclude the selection's application</key>
@@ -382,14 +386,6 @@
 	<string>接力標籤根據系統的剪貼板標記判斷。沒有標記不代表項目來自這部 Mac，既有記錄也無法重新分類。</string>
 	<key>Handoff, source filter</key>
 	<string>接力，來源篩選</string>
-	<key>Hello, WhiskyMac.
-A good idea.
-Ready when you are.</key>
-	<string>Hello, WhiskyMac.
-留住一個好點子。
-隨時找回來。</string>
-	<key>Hidden — right-click to show temporarily</key>
-	<string>已隱藏，右鍵可暫時顯示</string>
 	<key>Hide</key>
 	<string>隱藏</string>
 	<key>Hide by type or source</key>
@@ -424,6 +420,8 @@ Ready when you are.</key>
 	<string>停留時篩選</string>
 	<key>How sensitive access works</key>
 	<string>敏感內容的處理方式</string>
+	<key>Human contributors</key>
+	<string>人工翻譯</string>
 	<key>Illustration: pin useful cards and arrange a paste stack.</key>
 	<string>示意圖：將常用卡片置頂，並排列待貼上清單。</string>
 	<key>Illustration: the menu bar opens a searchable row of clipboard cards.</key>
@@ -442,6 +440,8 @@ Ready when you are.</key>
 	<string>剪貼板面板內</string>
 	<key>Interactions</key>
 	<string>互動</string>
+	<key>Interface font size</key>
+	<string>介面字級</string>
 	<key>Keep history for</key>
 	<string>保留記錄的時間</string>
 	<key>Keep original and add cards</key>
@@ -456,6 +456,8 @@ Ready when you are.</key>
 	<string>Kenney UI Audio 授權條款</string>
 	<key>Kenney UI Audio source</key>
 	<string>Kenney UI Audio 來源</string>
+	<key>Keyboard shortcuts</key>
+	<string>鍵盤快速鍵</string>
 	<key>Know what protection covers</key>
 	<string>了解保護範圍</string>
 	<key>Language</key>
@@ -476,6 +478,8 @@ Ready when you are.</key>
 	<string>授權條款與聲明…</string>
 	<key>Light</key>
 	<string>淺色</string>
+	<key>Light and dark appearance</key>
+	<string>深淺色外觀</string>
 	<key>Lightweight mode</key>
 	<string>輕量模式</string>
 	<key>Lightweight mode loads thumbnails only as needed when you open the clipboard panel. Closing the panel clears the thumbnail cache to reduce memory use.</key>
@@ -498,16 +502,12 @@ Ready when you are.</key>
 	<string>給下一個靈感，留個位置。</string>
 	<key>Make the settings and clipboard cards feel at home.</key>
 	<string>自訂設定頁配置、強調顏色與卡片大小。</string>
-	<key>Manage manual and automatic protection in Settings.</key>
-	<string>可在設定中管理手動保護與自動保護。</string>
+	<key>Manage privacy protection and automatic detection in Settings.</key>
+	<string>可在設定中管理隱私保護和自動偵測。</string>
 	<key>Manage what stays visible and which clicks are allowed.</key>
 	<string>控制可見內容和允許的點按操作。</string>
 	<key>Manual Command-V available</key>
 	<string>可用 Command-V 手動貼上</string>
-	<key>Manual Privacy Mode</key>
-	<string>手動隱私模式</string>
-	<key>Manual privacy: hover to reveal a small area</key>
-	<string>手動隱私模式：將游標停在卡片上可顯示局部內容</string>
 	<key>Matching Word</key>
 	<string>完整單詞</string>
 	<key>Menu bar and Dock</key>
@@ -518,24 +518,28 @@ Ready when you are.</key>
 	<string>選單列圖示</string>
 	<key>More apps</key>
 	<string>更多 App</string>
-	<key>More interactions</key>
-	<string>更多互動</string>
 	<key>More settings and configuration</key>
 	<string>更多設定</string>
+	<key>More shortcuts</key>
+	<string>更多快速鍵</string>
 	<key>More than 1000 results. Choose a different rule.</key>
 	<string>結果超過 1000 條，請調整規則。</string>
-	<key>More ways to make it yours</key>
-	<string>更多個性化選項</string>
 	<key>Mouse press</key>
 	<string>滑鼠按下</string>
 	<key>Mouse release</key>
 	<string>滑鼠放開</string>
+	<key>Move %@ down</key>
+	<string>下移%@</string>
+	<key>Move %@ up</key>
+	<string>上移%@</string>
 	<key>NORMAL</key>
 	<string>普通</string>
 	<key>Never recorded</key>
 	<string>完全不記錄</string>
 	<key>Never show</key>
 	<string>不顯示</string>
+	<key>New copies can be saved to your history.</key>
+	<string>新拷貝的內容可以存入記錄。</string>
 	<key>New copies stay in memory briefly. Excluded apps aren’t recorded. Existing history is kept.</key>
 	<string>新拷貝的內容短暫保存在記憶體中。排除的 App 不記錄，既有記錄會保留。</string>
 	<key>Newer cards stay visible. History is not deleted.</key>
@@ -544,8 +548,6 @@ Ready when you are.</key>
 	<string>下一張卡片或篩選項</string>
 	<key>No excluded apps added.</key>
 	<string>尚未加入排除 App。</string>
-	<key>No match. Try Hello or clear the search.</key>
-	<string>找不到符合的項目。試著輸入 Hello，或清除搜尋。</string>
 	<key>No matches</key>
 	<string>找不到符合的項目</string>
 	<key>No matching settings</key>
@@ -600,6 +602,10 @@ Ready when you are.</key>
 	<string>開啟原始檔案</string>
 	<key>Open the selected link</key>
 	<string>開啟所選連結</string>
+	<key>Optional settings</key>
+	<string>選用設定</string>
+	<key>Optional. Turn on WhiskyMac in Accessibility to paste directly, or copy a card and press ⌘V.</key>
+	<string>選用。在「輔助使用」中開啟 WhiskyMac 後即可直接貼上。也可以先拷貝卡片，再按 ⌘V。</string>
 	<key>Orange tag</key>
 	<string>橙色標籤</string>
 	<key>Original Whisk on GitHub</key>
@@ -618,8 +624,6 @@ Ready when you are.</key>
 	<string>貼上為純文字</string>
 	<key>Paste as…</key>
 	<string>貼上為…</string>
-	<key>Paste example</key>
-	<string>貼上範例</string>
 	<key>Paste in order</key>
 	<string>依序貼上</string>
 	<key>Paste next from the stack</key>
@@ -672,12 +676,6 @@ Ready when you are.</key>
 	<string>記錄新拷貝時播放音效</string>
 	<key>Play a sound when copying from history</key>
 	<string>從歷史記錄拷貝時播放音效</string>
-	<key>Practice</key>
-	<string>上手練習</string>
-	<key>Practice note</key>
-	<string>練習便箋</string>
-	<key>Practice space</key>
-	<string>動手試一試</string>
 	<key>Press %@ to search</key>
 	<string>按 %@ 搜尋</string>
 	<key>Press a shortcut…</key>
@@ -694,16 +692,22 @@ Ready when you are.</key>
 	<string>上一張卡片或篩選項</string>
 	<key>Privacy</key>
 	<string>隱私</string>
-	<key>Privacy Mode is on (manual)</key>
-	<string>隱私模式已開啟（手動）</string>
+	<key>Privacy Mode is on</key>
+	<string>隱私模式已開啟</string>
 	<key>Privacy mode</key>
 	<string>隱私模式</string>
 	<key>Privacy mode icon</key>
 	<string>隱私模式圖示</string>
+	<key>Privacy protection</key>
+	<string>隱私保護</string>
+	<key>Privacy protection is on</key>
+	<string>隱私保護已開啟</string>
 	<key>Project notice</key>
 	<string>專案聲明</string>
 	<key>Protected clipboard item</key>
 	<string>已遮蔽的剪貼板記錄</string>
+	<key>Protection mode options</key>
+	<string>保護模式選項</string>
 	<key>Purple tag</key>
 	<string>紫色標籤</string>
 	<key>Quick reference</key>
@@ -716,6 +720,8 @@ Ready when you are.</key>
 	<string>閱讀方式</string>
 	<key>Ready</key>
 	<string>已就緒</string>
+	<key>Recognition runs on this Mac and looks for common key, cookie, hash, and token formats.</key>
+	<string>辨識在這部 Mac 上進行，支援常見的金鑰、Cookie、雜湊和權杖格式。</string>
 	<key>Recording settings</key>
 	<string>記錄設定</string>
 	<key>Red tag</key>
@@ -748,6 +754,8 @@ Ready when you are.</key>
 	<string>重設…</string>
 	<key>Restore Defaults</key>
 	<string>回復預設設定</string>
+	<key>Restore default order</key>
+	<string>恢復預設排序</string>
 	<key>Restore default size</key>
 	<string>回復預設大小</string>
 	<key>Restore default values</key>
@@ -766,6 +774,8 @@ Ready when you are.</key>
 	<string>繼續記錄</string>
 	<key>Return saves, Shift-Return breaks the line, Escape cancels.</key>
 	<string>按 Return 儲存，Shift-Return 換行，Esc 取消。</string>
+	<key>Reveal Secret</key>
+	<string>顯示金鑰原文</string>
 	<key>Reveal a small area</key>
 	<string>局部顯示</string>
 	<key>Reveal in Finder</key>
@@ -778,6 +788,8 @@ Ready when you are.</key>
 	<string>格式化文字</string>
 	<key>Rich text could not be preserved. Enable Plain text to continue.</key>
 	<string>無法保留文字格式。請勾選「轉為純文字」以繼續。</string>
+	<key>Rich text keeps its original font sizes.</key>
+	<string>RTF 格式文字保留原本的字級。</string>
 	<key>Right click</key>
 	<string>右鍵按一下</string>
 	<key>Right-click always opens the menu. Follow windows shows the Dock icon for Settings and welcome windows only.</key>
@@ -794,12 +806,6 @@ Ready when you are.</key>
 	<string>SFX Kit 授權條款</string>
 	<key>SFX Kit source</key>
 	<string>SFX Kit 來源</string>
-	<key>Sample copied.</key>
-	<string>已拷貝範例。</string>
-	<key>Sample pasted.</key>
-	<string>已貼上範例。</string>
-	<key>Sample updated.</key>
-	<string>已更新範例。</string>
 	<key>Save</key>
 	<string>儲存</string>
 	<key>Save As…</key>
@@ -814,10 +820,10 @@ Ready when you are.</key>
 	<string>儲存方式</string>
 	<key>Save the selection as a file</key>
 	<string>將所選項目儲存為檔案</string>
-	<key>Screen privacy</key>
-	<string>螢幕隱私保護</string>
 	<key>Screen sharing</key>
 	<string>螢幕共享</string>
+	<key>Screen sharing protection</key>
+	<string>螢幕共享保護</string>
 	<key>Search SF Symbols by name</key>
 	<string>依名稱搜尋 SF Symbols</string>
 	<key>Search and filter</key>
@@ -836,12 +842,20 @@ Ready when you are.</key>
 	<string>搜尋設定</string>
 	<key>Search your clipboard</key>
 	<string>搜尋剪貼板</string>
+	<key>Secret Recognition</key>
+	<string>金鑰辨識</string>
+	<key>Secret masking</key>
+	<string>金鑰遮蔽</string>
 	<key>Select a delimiter or enter a custom separator.</key>
 	<string>請選擇分隔符號或輸入自訂分隔字串。</string>
 	<key>Select all types</key>
 	<string>選取所有類型</string>
 	<key>Select at least one result.</key>
 	<string>請至少選擇一個結果。</string>
+	<key>Select the card you just copied. Press %@ to copy it or %@ to paste it.</key>
+	<string>選取剛拷貝的卡片，按 %@ 拷貝，或按 %@ 貼上。</string>
+	<key>Select the card you just copied. Press %@, then return to the text field and press ⌘V.</key>
+	<string>選取剛拷貝的卡片，按 %@ 拷貝，再回到文字欄位按 ⌘V 貼上。</string>
 	<key>Selected</key>
 	<string>已選取</string>
 	<key>Selected parts are combined in their original order with line breaks.</key>
@@ -890,6 +904,8 @@ Ready when you are.</key>
 	<string>顯示歷史記錄</string>
 	<key>Show by type or source</key>
 	<string>顯示隱藏的卡片</string>
+	<key>Show card</key>
+	<string>顯示卡片</string>
 	<key>Show clipboard cards</key>
 	<string>顯示剪貼板卡片</string>
 	<key>Show fewer formats</key>
@@ -912,8 +928,6 @@ Ready when you are.</key>
 	<string>側邊欄寬度</string>
 	<key>Single click</key>
 	<string>按一下</string>
-	<key>Single click: %@ · Double click: %@</key>
-	<string>按一下：%@ · 按兩下：%@</string>
 	<key>Single line</key>
 	<string>合併為單行</string>
 	<key>Small bubble</key>
@@ -938,8 +952,6 @@ Ready when you are.</key>
 	<string>指定時間</string>
 	<key>Split options</key>
 	<string>分割選項</string>
-	<key>Split results are examples only and are not saved to history.</key>
-	<string>這裡只展示範例的分割結果，不會儲存到歷史記錄。</string>
 	<key>Split rule</key>
 	<string>分割規則</string>
 	<key>Splitting is unavailable for this item.</key>
@@ -948,8 +960,6 @@ Ready when you are.</key>
 	<string>分割…</string>
 	<key>Start a search</key>
 	<string>開始搜尋</string>
-	<key>Start over</key>
-	<string>重新練習</string>
 	<key>Start setup</key>
 	<string>開始設定</string>
 	<key>Starting With</key>
@@ -1002,6 +1012,10 @@ Ready when you are.</key>
 	<string>原專案已修改或移除，請重新開啟分割。</string>
 	<key>The source exceeds the split size limit.</key>
 	<string>內容超過分割大小上限。</string>
+	<key>Theme color</key>
+	<string>主題色</string>
+	<key>These options apply whenever protection is on. Search terms and allowed app names are visible on screen and accessible to assistive technologies. Clipboard content stays hidden. Protection triggered by detection blocks hover reveals.</key>
+	<string>保護開啟時，這些選項都會生效。搜尋字詞與允許顯示的 App 名稱會出現在螢幕上，也能透過輔助使用功能讀取。剪貼簿內容會保持隱藏。自動偵測觸發保護時，游標停留也不會顯示內容。</string>
 	<key>Third-party notices</key>
 	<string>第三方聲明</string>
 	<key>This document lists third-party artwork and sounds, their licenses and sources.</key>
@@ -1010,8 +1024,6 @@ Ready when you are.</key>
 	<string>本文記錄隨附 Kenney UI 音效的來源和格式轉換資訊。</string>
 	<key>This document records the source and selected files for the bundled SFX Kit sounds.</key>
 	<string>本文記錄隨附 SFX Kit 音效的來源和所選檔案。</string>
-	<key>This example could not be split. Try a shorter text.</key>
-	<string>無法分割這個範例，請試試更短的文字。</string>
 	<key>This global shortcut could not be registered. Choose another binding.</key>
 	<string>無法註冊此全域快速鍵，請更換按鍵組合。</string>
 	<key>This notice names the original authors, WhiskyMac modifications and third-party materials.</key>
@@ -1020,8 +1032,8 @@ Ready when you are.</key>
 	<string>這個快速鍵不可用或存在重複，請換一個組合。</string>
 	<key>This shortcut is used by another action</key>
 	<string>此快速鍵已用於其他操作</string>
-	<key>Toggle manual Privacy Mode</key>
-	<string>切換手動隱私模式</string>
+	<key>Toggle privacy protection</key>
+	<string>切換隱私保護</string>
 	<key>Toggle the selection in the paste stack</key>
 	<string>將所選項目加入或移出待貼上清單</string>
 	<key>Tools for testing WhiskyMac.</key>
@@ -1034,20 +1046,18 @@ Ready when you are.</key>
 	<string>去除片段首尾空白</string>
 	<key>Trimmed</key>
 	<string>移除首尾空白</string>
-	<key>Try it anytime</key>
-	<string>隨時可練習</string>
 	<key>Try it out</key>
 	<string>上手練習</string>
-	<key>Try it safely with sample content.</key>
-	<string>用範例內容練習，剪貼簿和記錄不受影響。</string>
-	<key>Try searching for Hello</key>
-	<string>試試搜尋 Hello</string>
-	<key>Turn off manual protection</key>
-	<string>關閉手動保護</string>
+	<key>Try it with your own clipboard</key>
+	<string>用自己的剪貼簿試試看</string>
+	<key>Turn off privacy protection</key>
+	<string>關閉隱私保護</string>
 	<key>Turn on Privacy Mode before sharing. Revealed or pasted content can still appear on screen.</key>
 	<string>共享前開啟私密模式。主動顯示或貼上的內容仍可能出現在螢幕上。</string>
-	<key>Turn on manual protection</key>
-	<string>開啟手動保護</string>
+	<key>Turn on privacy protection</key>
+	<string>開啟隱私保護</string>
+	<key>Turn on protection when screen sharing is detected</key>
+	<string>偵測到螢幕共享時自動開啟保護</string>
 	<key>Two actions share the same shortcut.</key>
 	<string>兩個操作使用了相同的快速鍵。</string>
 	<key>Type shortcut…</key>
@@ -1082,12 +1092,12 @@ Ready when you are.</key>
 	<string>從 GitHub 下載更新。</string>
 	<key>Uppercase</key>
 	<string>大寫</string>
+	<key>Use Card size to resize clipboard cards.</key>
+	<string>剪貼簿卡片的大小可在「卡片大小」中調整。</string>
 	<key>Use a text card’s menu to edit or split its contents.</key>
 	<string>從文字卡片的選單編輯或分割內容。</string>
 	<key>Use sidebar navigation</key>
 	<string>使用側邊標籤列</string>
-	<key>Use the card menu or a shortcut to continue.</key>
-	<string>用卡片選單或快速鍵繼續。</string>
 	<key>Use the menu bar</key>
 	<string>從選單列開啟</string>
 	<key>Use the pinned-items shortcut or menu item. In the clipboard panel it selects Pinned; a separate window only shows pinned items.</key>
@@ -1096,6 +1106,8 @@ Ready when you are.</key>
 	<string>開啟剪貼板面板後，可用卡片上方的標籤篩選。</string>
 	<key>Use top navigation</key>
 	<string>使用頂部標籤列</string>
+	<key>Uses Accessibility to detect Zoom and Teams sharing toolbars. Detection may vary by app version and language. System screen sharing, remote desktop, screen recording and browser tabs are outside its scope. Turn on privacy protection before sharing sensitive content.</key>
+	<string>透過「輔助使用」檢查 Zoom 和 Teams 的螢幕共享工具列名稱。偵測結果可能因 App 版本和語言而異。系統螢幕共享、遠端桌面、螢幕錄影和瀏覽器分頁均不在偵測範圍內。共享敏感內容前，請開啟隱私保護。</string>
 	<key>Uses the configured card action</key>
 	<string>使用已設定的卡片操作</string>
 	<key>Version</key>
@@ -1136,16 +1148,20 @@ Ready when you are.</key>
 	<string>WhiskyMac 的 GitHub 儲存庫</string>
 	<key>WhiskyMac uses the GNU GPL version 3 or later. Read the original for the complete terms.</key>
 	<string>WhiskyMac 採用 GNU GPL 第 3 版或更新版本。許可涉及使用、散布、修改、原始碼提供和擔保等事項。完整條款請閱讀原文。</string>
+	<key>With the text field active, press %@ to open your clipboard history.</key>
+	<string>讓文字欄位保持焦點，按 %@ 打開剪貼簿記錄。</string>
 	<key>Without accents</key>
 	<string>移除重音符號</string>
 	<key>Yellow tag</key>
 	<string>黃色標籤</string>
+	<key>You can continue and grant permissions later.</key>
+	<string>可以先繼續，稍後再授權。</string>
+	<key>You can paste directly into the active app.</key>
+	<string>可以直接貼到目前的 App。</string>
 	<key>Your Beta is newer than the latest Release. Waiting for a newer Release.</key>
 	<string>目前的 Beta 比最新的 Release 更新，等下一次正式發佈後再升級。</string>
 	<key>Your everyday snippet</key>
 	<string>常用的小片段</string>
-	<key>Your example lands here.</key>
-	<string>範例內容會貼上到這裡。</string>
 	<key>You’re up to date.</key>
 	<string>目前已是最新版本。</string>
 	<key>adds soft clicks, taps, snaps, and bubbles to the copy sound options.</key>
@@ -1180,6 +1196,8 @@ Ready when you are.</key>
 	<string>為剪貼簿拷貝提供點按聲和開關聲。</string>
 	<key>pt</key>
 	<string>點</string>
+	<key>secret</key>
+	<string>金鑰</string>
 	<key>sidebar tabs navigation</key>
 	<string>側邊欄 標籤 導覽</string>
 	<key>size width preview restore default</key>

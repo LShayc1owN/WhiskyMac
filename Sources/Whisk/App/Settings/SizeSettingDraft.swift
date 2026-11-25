@@ -3,7 +3,9 @@
 // Upstream attribution: NOTICE. Additional permissions:
 // LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
 
-/// An unsaved slider value. Inline and screen previews never write preferences.
+import Foundation
+
+/// An unsaved size. Inline and screen previews never write preferences.
 struct SizeSettingDraft {
     var proposedValue: Double?
 
@@ -16,5 +18,20 @@ struct SizeSettingDraft {
         guard let proposedValue else { return }
         write(proposedValue)
         revert()
+    }
+}
+
+struct CardSizeInput {
+    var locale = AppLocalization.interfaceLocale
+
+    func format(_ value: Double) -> String {
+        value.formatted(.number.locale(locale).grouping(.never).precision(.fractionLength(0...3)))
+    }
+
+    func parse(_ input: String) -> Double? {
+        let text = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalized = text.replacingOccurrences(of: locale.decimalSeparator ?? ".", with: ".")
+        guard let value = Double(normalized), value.isFinite else { return nil }
+        return GeneralSettingsStore.boundedCardSide(value)
     }
 }

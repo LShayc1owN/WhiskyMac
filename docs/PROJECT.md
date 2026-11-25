@@ -25,7 +25,8 @@ acceptance records describe particular iterations; their old defaults and
 | `Sources/Whisk/App/Composition` and `AppDelegate` | Identity, distribution policy, dependency assembly and lifecycle wiring. |
 | `Sources/Whisk/App/Panel` | Windows, keyboard routing, observable view state, guarded `PanelActions` and split sessions. |
 | `Sources/Whisk/App/Privacy` | Manual/automatic protection, the public sharing detector and expiring sensitive sessions. |
-| `Sources/Whisk/App/Settings`, `App/Views`, `Components` | Persisted preferences, framework views and reusable UI behavior. |
+| `Sources/Whisk/App/Settings`, `App/Presentation` | Persisted preferences, shared viewport, onboarding and preview services. |
+| `Sources/Whisk/App/UI`, `Components` | Independent macOS 15 and macOS 26 renderers, factory contracts and reusable primitives. |
 | `Sources/Whisk/Resources`, `Assets`, `Packaging` | Generated translations, runtime assets, editable artwork and distribution metadata. |
 | `Tests/WhiskTests` | Behavior, persistence contracts, privacy isolation, resource bounds and offscreen framework regressions. |
 | `scripts`, `.github/workflows` | Build, resource generation, verification and guarded distribution workflows. |
@@ -43,8 +44,8 @@ acceptance records describe particular iterations; their old defaults and
 | Sharing detection | Opt-in, limited to supported Zoom/Teams toolbar titles through public Accessibility APIs. The application starts in normal mode; an observed sharing event latches automatic protection. Uncertain observations cannot release that latch; release requires two scoped-clear observations stable for five seconds. Automatic changes cannot clear manual protection. |
 | Sensitive capture | Excluded applications are never recorded. Sensitive applications go directly to a separate memory-only store, with no extra enable switch. Retention is 1–1440 minutes, default 2; at most 10 entries / 16 MiB, with a ten-second explicit reveal. Expiry, app-rule changes and lifecycle cleanup remove entries without undo or recovery. Concealed/transient/generated markers always prevent capture. |
 | Performance | Load a validated lightweight history snapshot once. Keep image/RTF originals behind immutable disk references; read them only for mounted previews or explicit content operations. Bound caches and workers, invalidate stale callbacks, and release panel hosts and content caches on close/protection. Cache budgets do not establish a total process-memory limit. |
-| Settings and resources | Support five languages, normal/privacy interaction profiles, continuous card sizes, settings search, opt-in audio and category shortcut reset with Undo. Keep one string catalog and generate all language resources from it. Paste and sensitive/protected feedback remain silent. |
-| Network and distribution | Link previews and launch-time update checks start off. Manual updates and opt-in launch checks use stable WhiskyMac releases; automatic attempts are limited to once per 24 hours. App Store builds omit external update checks. Public release locations and signing are configured separately. |
+| Settings and resources | Support seven languages, normal/privacy interaction profiles, continuous card sizes, settings search, opt-in audio and category shortcut reset with Undo. Keep one string catalog and generate all language resources from it. Paste and sensitive/protected feedback remain silent. |
+| Network and distribution | Link previews and launch-time update checks start off. Manual and opt-in launch checks use the selected Release, Beta, or combined channel. Release is the default. Automatic attempts are limited to once per channel every 24 hours. App Store builds omit external update checks. Public release locations and signing are configured separately. |
 
 ## Compatibility that remains necessary
 

@@ -365,7 +365,8 @@ extension LazyOriginals {
         state.contentCacheVisibility = { visibility.append($0) }
         let spy = PanelActionSpy()
         let controller = PanelController(
-            stateStore: state, actions: spy.actions, keyBindings: KeyBindingsStore(defaults: isolated.defaults),
+            uiFactory: MacOS15UIFactory(), stateStore: state, actions: spy.actions,
+            keyBindings: KeyBindingsStore(defaults: isolated.defaults),
             vimBindings: VimBindingsStore(defaults: isolated.defaults), vimMode: { false })
         weak var host: NSView?
         autoreleasepool {

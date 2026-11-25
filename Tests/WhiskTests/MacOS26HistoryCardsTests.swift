@@ -9,26 +9,30 @@ import Testing
 @MainActor
 @Suite(.serialized)
 struct MacOS26HistoryCardsTests {
-    @Test func production_history_host_uses_new_cards_and_keeps_the_protection_boundary() throws {
+    @Test(.enabled(if: ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 26))
+    func production_history_host_uses_new_cards_and_keeps_the_protection_boundary() throws {
         guard #available(macOS 26, *) else { return }
         _ = NSApplication.shared
         let store = HistoryViewStateStore()
         let item = anItem(.text("PRIVATE_CARD_CONTENT"), from: "Example")
         store.update(HistoryPresenter().present(items: [item], query: "", now: item.copiedAt, selectedID: item.id))
         let actions = PanelActionSpy().actions
-        let host = HistoryPanelHosting.make(store: store, actions: actions)
-        #expect(host.rootView.usesMacOS26Cards)
+        let factory = AppUISelector.make()
+        #expect(factory is MacOS26UIFactory)
+        let view = HistoryPanelHosting.make(uiFactory: factory, store: store, actions: actions)
+        let host = try #require(view as? TestHostingSurface)
         #expect(try #require(store.state.selectedCard).id == item.id)
         #expect(host.sizingOptions.isEmpty)
 
         store.setPrivacy(true)
-        let protected = HistoryPanelHosting.make(store: store, actions: actions)
+        let protected = HistoryPanelHosting.make(uiFactory: factory, store: store, actions: actions)
         #expect(store.state.cards.isEmpty)
         #expect(protected.accessibilityLabel() == localized("Content hidden by Privacy Mode"))
         #expect(!labels(in: protected).contains("PRIVATE_CARD_CONTENT"))
     }
 
-    @Test func both_selection_states_and_every_payload_fit_the_same_square_slot() {
+    @Test(.enabled(if: ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 26))
+    func both_selection_states_and_every_payload_fit_the_same_square_slot() {
         guard #available(macOS 26, *) else { return }
         let items = ViewFixtures.items()
         let actions = PanelActionSpy().actions

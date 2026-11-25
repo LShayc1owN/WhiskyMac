@@ -47,12 +47,15 @@ enum ArrowDirection {
 /// drives. A storage failure is logged and the in-memory state keeps
 /// working.
 final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistoryStore, Log: Logger> {
-    private var history: History
+    private var history: History {
+        didSet { hiddenLinksNeedRefresh = true }
+    }
     private var query = ""
     private var searchMatchMode: SearchMatchMode
     private var activeSourceKeys: Set<String> = []
     private var handoffOnly = false
     private var activeCategories: Set<ContentCategory> = []
+    private var filterCategoryOrder: FilterCategoryOrder
     private var pinnedOnly = false
     private var pinnedWorkspace = false
     /// A presentation-only cutoff, retained until toggled off or the app exits.
@@ -60,23 +63,38 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     private var typeHidingRule: HistoryHidingRule?
     private var activePinTags: Set<PinTagColor> = []
     private var retention: RetentionPolicy
+    private(set) var secretRecognition: SecretRecognition
     /// When the oldest unpinned item crosses the age limit. Any mutation
     /// re-arms it for the next tick: an unpin or a capture can change
     /// which item expires first.
     private var nextExpiry: Date = .distantPast
     private var isPaused = false
+    private var captureGeneration: UInt64 = 0
     private var asyncReadInFlight = false
     private var excludedBundleIDs: Set<String> = []
     private var sensitiveBundleIDs: Set<String> = []
     var retainSensitive: (PasteboardSnapshot) -> Void = { _ in }
     var didRecord: () -> Void = {}
-    var hiddenLinksChanged: (Set<String>) -> Void = { _ in }
-    var hiddenLinkAddresses: Set<String> {
-        Set(
-            history.items.compactMap { item in
-                guard item.pinnedMetadata.hidesContent, case .link(let url) = item.payload else { return nil }
-                return url.absoluteString
-            })
+    private var hiddenLinksNeedRefresh = true
+    private(set) var hiddenLinkAddresses: Set<String> = []
+    var hiddenLinksChanged: (Set<String>) -> Void = { _ in } {
+        didSet { hiddenLinksChanged(hiddenLinkAddresses) }
+    }
+
+    private func refreshHiddenLinksIfNeeded() {
+        guard hiddenLinksNeedRefresh else { return }
+        hiddenLinksNeedRefresh = false
+        var addresses: Set<String> = []
+        for item in history.items {
+            if case .link(let url) = item.payload,
+                item.pinnedMetadata.hidesContent || secretRecognition.recognizes(item)
+            {
+                addresses.insert(url.absoluteString)
+            }
+        }
+        guard addresses != hiddenLinkAddresses else { return }
+        hiddenLinkAddresses = addresses
+        hiddenLinksChanged(addresses)
     }
     /// The access state the panel last saw; a change re-presents on its own,
     /// since granting access in System Settings mutates nothing else.
@@ -92,6 +110,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     /// The chip row and the rail as of the last refresh. Every input they
     /// derive from changes only through methods that end in refresh, so a
     /// key press reads them instead of filtering the history again.
+    private var selectedFilterSources: [SourceApp] = []
     private var cachedChips: [ChipEntry] = []
     private var visibleCopyDates: [Date] = []
     private var visibleIDs: [UUID] = []
@@ -143,6 +162,8 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         retention: RetentionPolicy = .standard,
         initialItems: [ClipboardItem]? = nil,
         searchMatchMode: SearchMatchMode = .fuzzy,
+        secretRecognition: SecretRecognition = .init(),
+        filterCategoryOrder: FilterCategoryOrder = .standard,
         presenter: HistoryPresenter = HistoryPresenter(),
         logger: Log,
         present: @escaping (HistoryViewState) -> Void
@@ -155,6 +176,8 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         self.present = present
         self.retention = retention
         self.searchMatchMode = searchMatchMode
+        self.secretRecognition = secretRecognition
+        self.filterCategoryOrder = filterCategoryOrder
         presentedAccess = pasteboard.access
         capture = CaptureClipboardChange(pasteboard: pasteboard, clock: clock, store: store)
         selectItem = SelectItem(pasteboard: pasteboard, clock: clock, store: store)
@@ -189,7 +212,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         }
         guard !asyncReadInFlight else { return }
         asyncReadInFlight = true
-        let pausedAtStart = isPaused
+        let generation = captureGeneration
         pasteboard.readIfChangedAsync { [weak self] snapshot in
             guard let self else { return }
             self.asyncReadInFlight = false
@@ -197,7 +220,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
                 self.presentedAccess = self.pasteboard.access
                 self.refresh()
             }
-            if !pausedAtStart, !self.isPaused, let snapshot {
+            if generation == self.captureGeneration, !self.isPaused, let snapshot {
                 self.mutate {
                     try self.capture(
                         into: $0, excluding: self.excludedBundleIDs,
@@ -224,7 +247,10 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
 
     /// Suspends or resumes capture; everything else keeps working.
     func setPaused(_ paused: Bool) {
+        guard isPaused != paused else { return }
+        captureGeneration &+= 1
         isPaused = paused
+        pasteboard.setCapturePaused(paused)
     }
 
     /// The arrows follow the direction the interface reads in.
@@ -287,6 +313,20 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     func search(_ newQuery: String) {
         query = newQuery
         selectedID = nil
+        // Only the matching rows depend on the search text.
+        refreshRows(in: displayedHistory)
+    }
+
+    func setFilterCategoryOrder(_ order: FilterCategoryOrder) {
+        guard order != filterCategoryOrder else { return }
+        filterCategoryOrder = order
+        refresh()
+    }
+
+    func setSecretRecognition(_ options: SecretRecognition) {
+        guard options != secretRecognition else { return }
+        if secretRecognition.enabled != options.enabled { hiddenLinksNeedRefresh = true }
+        secretRecognition = options
         refresh()
     }
 
@@ -425,7 +465,8 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     }
 
     private func isVisibleInMainHistory(_ item: ClipboardItem) -> Bool {
-        historyHidingRule?.hides(item) != true && typeHidingRule?.hides(item) != true
+        historyHidingRule?.hides(item, recognition: secretRecognition) != true
+            && typeHidingRule?.hides(item, recognition: secretRecognition) != true
     }
 
     func items(for ids: [UUID]) -> [ClipboardItem] {
@@ -460,7 +501,8 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     }
 
     func assessSplit(_ request: SplitSaveRequest) throws -> SplitSaveAssessment {
-        try SaveSplit.prepare(request, in: history, policy: retention, now: clock.now())
+        if let item = item(for: request.source.id), secretRecognition.masks(item) { throw SplitFailure.unavailable }
+        return try SaveSplit.prepare(request, in: history, policy: retention, now: clock.now())
     }
 
     func saveSplit(_ request: SplitSaveRequest, confirmEviction: Bool) throws {
@@ -511,7 +553,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
     @discardableResult
     func select(_ id: UUID, transform: TextTransform) -> Bool {
         guard let item = history.items.first(where: { $0.id == id }), item.splitGroup == nil,
-            let text = item.payload.transformableText,
+            !secretRecognition.masks(item), let text = item.payload.transformableText,
             let rewritten = transform.apply(to: text)
         else { return false }
         return mutate { try selectItem(id, in: $0, writing: .text(rewritten), forPaste: true) }
@@ -924,20 +966,23 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
             history,
             filter: HistoryFilter(
                 sources: active, pinnedOnly: pinnedOnly || pinnedWorkspace, tags: activePinTags,
-                handoffOnly: handoffOnly))
-        let reachable = Set(underApps.lazy.map(\.category))
+                handoffOnly: handoffOnly), recognition: secretRecognition)
+        var reachable = Set(underApps.lazy.map { self.secretRecognition.category(of: $0) })
+        let parents = reachable.compactMap(\.parentCategory)
+        reachable.formUnion(parents)
         let activeCategories = self.activeCategories.intersection(reachable)
         let underCategories = filterHistory(
             history,
             filter: HistoryFilter(
-                categories: activeCategories, pinnedOnly: pinnedOnly || pinnedWorkspace, tags: activePinTags))
+                categories: activeCategories, pinnedOnly: pinnedOnly || pinnedWorkspace, tags: activePinTags),
+            recognition: secretRecognition)
         let scopedSources = distinctSources(of: underCategories)
         let strayActives = active.filter { stray in !scopedSources.contains { $0.filterKey == stray.filterKey } }
         let pinScope = HistoryFilter(sources: active, categories: activeCategories, handoffOnly: handoffOnly)
-        let hasPinned = history.items.contains { $0.isPinned && pinScope.includes($0) }
+        let hasPinned = history.items.contains { $0.isPinned && pinScope.includes($0, recognition: secretRecognition) }
         return Facets(
             sources: scopedSources + strayActives,
-            categories: ContentCategory.allCases.filter(reachable.contains),
+            categories: filterCategoryOrder.categories.filter(reachable.contains),
             activeCategories: activeCategories,
             hasPinned: hasPinned,
             hasHandoff: handoffOnly || underCategories.contains { $0.source?.origin == .handoffMarker }
@@ -993,17 +1038,19 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         return true
     }
 
-    private func refresh() {
-        hiddenLinksChanged(hiddenLinkAddresses)
+    private var displayedHistory: History {
         // Filter before facets, grouping and keyboard selection. Storage and
         // retention keep the complete history, including temporarily hidden cards.
-        let displayedHistory: History
         if (historyHidingRule != nil || typeHidingRule != nil), !pinnedWorkspace {
-            displayedHistory = History(
+            return History(
                 items: history.items.filter(isVisibleInMainHistory), capacity: history.capacity)
-        } else {
-            displayedHistory = history
         }
+        return history
+    }
+
+    private func refresh() {
+        refreshHiddenLinksIfNeeded()
+        let displayedHistory = self.displayedHistory
         // App keys survive as long as the app exists in the history at all.
         if !activeSourceKeys.isEmpty {
             var remaining: Set<String> = []
@@ -1041,14 +1088,23 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
         if focusZone == .chips, cachedChips.isEmpty {
             focusZone = .cards
         }
-        let visible = filterHistory(displayedHistory, filter: currentFilter(sources: sources))
+        selectedFilterSources = sources
+        if !pasteStack.isEmpty {
+            let eligible = Set(history.items.lazy.filter { $0.splitGroup == nil }.map(\.id))
+            pasteStack.removeAll { !eligible.contains($0) }
+        }
+        refreshRows(in: displayedHistory)
+    }
+
+    private func refreshRows(in displayedHistory: History) {
+        let visible = filterHistory(
+            displayedHistory, filter: currentFilter(sources: selectedFilterSources), recognition: secretRecognition)
         let groups = RichTextGroups.groups(visible)
-        visibleIDs = groups.map { $0[0].id }
-        visibleCopyDates = groups.map { $0[0].copiedAt }
+        visibleIDs = groups.indices.map { groups.item(at: $0).id }
+        visibleCopyDates = groups.indices.map { groups.item(at: $0).copiedAt }
         if selectedID.map(visibleIDs.contains) != true {
             selectedID = visibleIDs.first
         }
-        pasteStack.removeAll { id in !history.items.contains(where: { $0.id == id && $0.splitGroup == nil }) }
         presentHistory(items: visible, groups: groups, now: clock.now())
     }
 
@@ -1084,7 +1140,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
             activeTags: activePinTags, handoffOnly: handoffOnly)
     }
 
-    private func presentHistory(items: [ClipboardItem], groups: [[ClipboardItem]], now: Date) {
+    private func presentHistory(items: [ClipboardItem], groups: RichTextGroups.Rows, now: Date) {
         let state = presenter.present(
             items: items,
             query: query,
@@ -1101,7 +1157,7 @@ final class ClipboardController<Board: Pasteboard, Time: Clock, Store: HistorySt
             isHistoryHidden: historyHidingRule != nil && !pinnedWorkspace,
             canHideHistory: !pinnedWorkspace && !history.items.isEmpty,
             historyHidingCutoff: pinnedWorkspace ? nil : historyHidingRule?.cutoff,
-            typeHidingRule: pinnedWorkspace ? nil : typeHidingRule, groups: groups
+            typeHidingRule: pinnedWorkspace ? nil : typeHidingRule, groups: groups, recognition: secretRecognition
         )
         presentedAccess = pasteboard.access
         lastPresentation = state

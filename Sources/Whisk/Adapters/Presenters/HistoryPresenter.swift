@@ -185,7 +185,8 @@ final class HistoryPresenter {
         isHistoryHidden: Bool = false,
         canHideHistory: Bool? = nil,
         historyHidingCutoff: Date? = nil,
-        typeHidingRule: HistoryHidingRule? = nil, groups preparedGroups: [[ClipboardItem]]? = nil
+        typeHidingRule: HistoryHidingRule? = nil, groups preparedGroups: RichTextGroups.Rows? = nil,
+        recognition: SecretRecognition = .init()
     ) -> HistoryViewState {
         // Prune lazily on a miss, at most once per cache for this entire
         // presentation. Cache hits under a search need no eviction, and a
@@ -199,12 +200,14 @@ final class HistoryPresenter {
         var labels = CardLabels()
         let stackPositions = Dictionary(zip(stack, 1...), uniquingKeysWith: { first, _ in first })
         return HistoryViewState(
-            cards: groups.map { group in
-                let item = group[0]
+            cards: groups.indices.map { row in
+                let item = groups.item(at: row)
+                let ids = groups.groupedIDs(at: row)
                 var result = card(
-                    for: item, now: now, isSelected: group.contains { $0.id == selectedID },
-                    stackPosition: stackPositions[item.id], query: parsedQuery, labels: &labels)
-                result.variantIDs = group.map(\.id)
+                    for: item, now: now, isSelected: item.id == selectedID || (selectedID.map(ids.contains) ?? false),
+                    stackPosition: stackPositions[item.id], query: parsedQuery, recognition: recognition,
+                    labels: &labels)
+                result.variantIDs = ids
                 return result
             },
             countLabel: countLabel(groups.count),
@@ -261,15 +264,17 @@ final class HistoryPresenter {
 
     private func card(
         for item: ClipboardItem, now: Date, isSelected: Bool, stackPosition: Int?, query: ParsedQuery,
-        labels: inout CardLabels
+        recognition: SecretRecognition, labels: inout CardLabels
     ) -> CardViewState {
-        let kind = labels.kind(item.category)
+        let category = recognition.category(of: item)
+        let kind = labels.kind(category)
         let source = Self.sourceLabel(item.source) ?? kind.capitalized
         let time = timeLabel(id: item.id, copiedAt: item.copiedAt, now: now)
-        let hidden = item.pinnedMetadata.hidesContent
+        let hidden = recognition.hidesContent(of: item)
+        let secretMask = item.pinnedMetadata.hidesContent || !recognition.masks(item) ? nil : item.secretMatch
         if hidden { previewCache[item.id] = nil }
         let cached = hidden ? nil : preview(for: item)
-        let cardPreview = cached?.preview ?? .text(Self.hiddenSummary(item.payload))
+        let cardPreview = cached?.preview ?? .text(secretMask?.maskedText ?? Self.hiddenSummary(item.payload))
         let spoken = Self.accessibilityLabel(source: source, kind: kind, preview: cardPreview)
         let note = item.pinnedMetadata.note
         return CardViewState(
@@ -277,7 +282,7 @@ final class HistoryPresenter {
             sourceLabel: source,
             sourceBundleID: item.source?.bundleID,
             kindLabel: kind,
-            kindSymbol: item.category.symbolName,
+            kindSymbol: category.symbolName,
             timeLabel: time,
             detailLabel: labels.characterCount(cached?.characterCount),
             isPinned: item.isPinned,
@@ -297,7 +302,7 @@ final class HistoryPresenter {
             matches: hidden ? [] : Self.matchSpans(of: query, in: item),
             preview: cardPreview,
             pinnedMetadata: item.pinnedMetadata, splitCount: item.splitGroup?.parts.count ?? 0,
-            richText: !hidden && item.category != .image ? item.richText : nil
+            richText: !hidden && category != .image ? item.richText : nil, secretMasked: secretMask != nil
         )
     }
 
@@ -423,6 +428,7 @@ final class HistoryPresenter {
         case .color: localized("color")
         case .link: localized("link")
         case .path: localized("path")
+        case .secret: localized("secret")
         case .image: localized("image")
         case .files: localized("files")
         }
@@ -434,7 +440,7 @@ final class HistoryPresenter {
         case .code: .symbol("chevron.left.forwardslash.chevron.right")
         case .color: .symbol("paintpalette")
         case .link: .symbol("link")
-        case .path: .symbol(ContentCategory.path.symbolName)
+        case .path, .secret: .symbol(category.symbolName)
         case .image: .symbol("photo")
         case .files: .symbol("folder")
         }

@@ -7,6 +7,8 @@ import SwiftUI
 
 @available(macOS 26, *)
 struct MacOS26SettingsView: View {
+    var typography: InterfaceTypography { appearance.interfaceTypography }
+
     @ObservedObject var store: KeyBindingsStore
     @ObservedObject var general: GeneralSettingsStore
     @ObservedObject var loginItem: LoginItemManager
@@ -40,10 +42,10 @@ struct MacOS26SettingsView: View {
     @State private var selectedSection: SettingsSectionID?
     @FocusState private var focusedNavigation: NavigationDestination?
     @Namespace private var tabSelection
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) var reduceMotion
     @Environment(\.colorScheme) private var scheme
 
-    var accent: Color { .readableAccent(in: scheme, color: appearance.nsAccent) }
+    var accent: Color { .macOS26ReadableAccent(in: scheme, color: appearance.nsAccent) }
     private var navigationPrimary: Color { Color(white: scheme == .dark ? 0.92 : 0.10) }
     private var navigationSecondary: Color { Color(white: scheme == .dark ? 0.71 : 0.34) }
 
@@ -77,11 +79,13 @@ struct MacOS26SettingsView: View {
             privacyHover: general.privacyInteractions.hover == .preview,
             automaticProtection: privacy.automaticEnabled, vimEnabled: general.vimNavigation,
             showsDeveloperTools: developerMode.showsTools,
-            showsPinnedWindowLayout: general.pinnedPresentation == .separate)
+            showsPinnedWindowLayout: general.pinnedPresentation == .separate,
+            recognizesSecrets: general.secretRecognition.enabled)
     }
 
     var body: some View {
         navigationLayout
+            .interfaceType(typography)
             .modifier(MacOS26SettingsTitlebarClearance())
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .tint(accent)
@@ -136,9 +140,9 @@ struct MacOS26SettingsView: View {
     }
 
     private var sidebarMinimumWidth: CGFloat {
-        let font = NSFont.systemFont(ofSize: NSFont.systemFontSize, weight: .semibold)
+        let font = NSFont.systemFont(ofSize: typography.points(NSFont.systemFontSize), weight: .semibold)
         let longestLabel = visiblePages.map { ($0.label as NSString).size(withAttributes: [.font: font]).width }.max()
-        let width = (longestLabel ?? 0) + 82
+        let width = (longestLabel ?? 0) + 64 + typography.room(18)
         let range = AppearanceSettingsStore.sidebarWidthRange
         return min(range.upperBound, max(range.lowerBound, width.rounded(.up)))
     }
@@ -176,6 +180,10 @@ struct MacOS26SettingsView: View {
                                 .id(page)
                         }
                     }
+                    if typography.usesLargeLayout {
+                        sidebarBrand
+                            .listRowBackground(Color.clear)
+                    }
                 }
                 .listStyle(.sidebar)
                 .scrollContentBackground(.hidden)
@@ -185,31 +193,35 @@ struct MacOS26SettingsView: View {
             }
             .frame(maxHeight: .infinity)
 
-            MacOS26SettingsBrand(appearance: appearance, buildInfo: buildInfo, placement: .sidebar)
-                .padding(.horizontal, 8)
-                .padding(.bottom, 8)
+            if !typography.usesLargeLayout {
+                sidebarBrand
+            }
         }
+    }
+
+    private var sidebarBrand: some View {
+        MacOS26SettingsBrand(appearance: appearance, buildInfo: buildInfo, placement: .sidebar)
+            .padding(.horizontal, 8)
+            .padding(.bottom, 8)
     }
 
     private func sidebarPage(_ page: SettingsPage) -> some View {
         let selected = displayedPage == page
-        return Button {
-            select(page)
-        } label: {
-            Label {
-                Text(page.label)
-                    .font(.system(size: 14, weight: selected ? .semibold : .regular))
-                    .foregroundStyle(selected ? navigationPrimary : navigationSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            } icon: {
-                Image(systemName: page.symbol)
-                    .foregroundStyle(selected ? accent : navigationSecondary)
-                    .frame(width: 18)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, 10)
-            .contentShape(.rect)
+        return Label {
+            Text(page.label)
+                .font(typography.font(size: 14, weight: selected ? .semibold : .regular))
+                .foregroundStyle(selected ? navigationPrimary : navigationSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        } icon: {
+            Image(systemName: page.symbol)
+                .font(typography.font(size: 14))
+                .foregroundStyle(selected ? accent : navigationSecondary)
+                .frame(width: typography.room(18))
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 10)
+        .contentShape(.rect)
+        .beButton { select(page) }
         .buttonStyle(.plain)
         .focused($focusedNavigation, equals: .page(page))
         .onMoveCommand { movePage($0, from: page) }
@@ -256,25 +268,24 @@ struct MacOS26SettingsView: View {
 
     private func sidebarSection(_ section: SettingsSectionID) -> some View {
         let selected = selectedSectionID == section
-        return Button {
-            selectedSection = section
-        } label: {
-            Text(section.title.localized)
-                .font(.system(size: 12, weight: selected ? .semibold : .regular))
-                .foregroundStyle(selected ? accent : navigationSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.leading, 10)
-                .padding(.vertical, 6)
-                .frame(minHeight: 29)
-                .contentShape(.rect)
-        }
-        .buttonStyle(.plain)
-        .focused($focusedNavigation, equals: .section(section))
-        .onMoveCommand { moveSection($0, from: section) }
-        .accessibilityAddTraits(selected ? .isSelected : [])
-        .accessibilityIdentifier("settingsSection.\(section.rawValue)")
+        return Text(section.title.localized)
+            .font(typography.font(size: 12, weight: selected ? .semibold : .regular))
+            .foregroundStyle(selected ? accent : navigationSecondary)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.leading, 10)
+            .padding(.vertical, 6)
+            .frame(minHeight: 29)
+            .contentShape(.rect)
+            .beButton { selectedSection = section }
+            .buttonStyle(.plain)
+            .focused($focusedNavigation, equals: .section(section))
+            .onMoveCommand { moveSection($0, from: section) }
+            .accessibilityAddTraits(selected ? .isSelected : [])
+            .accessibilityIdentifier("settingsSection.\(section.rawValue)")
     }
+
+    private var navigationRowHeight: CGFloat { max(30, typography.lineHeight(12) + 14) }
 
     private var topNavigation: some View {
         VStack(spacing: 0) {
@@ -282,7 +293,7 @@ struct MacOS26SettingsView: View {
                 pageButtons.fixedSize(horizontal: true, vertical: false)
                 ScrollViewReader { proxy in
                     ScrollView(.horizontal) { pageButtons }
-                        .frame(height: 30)
+                        .frame(height: navigationRowHeight)
                         .scrollIndicators(.hidden)
                         .onChange(of: displayedPage, initial: true) { _, page in
                             proxy.scrollTo(page)
@@ -309,29 +320,26 @@ struct MacOS26SettingsView: View {
         HStack(spacing: 2) {
             ForEach(visiblePages) { page in
                 let selected = displayedPage == page
-                Button {
-                    select(page)
-                } label: {
-                    Text(page.label)
-                        .font(.system(size: 12, weight: selected ? .semibold : .medium))
-                        .foregroundStyle(selected ? navigationPrimary : navigationSecondary)
-                        .fixedSize(horizontal: true, vertical: false)
-                        .padding(.horizontal, 12)
-                        .frame(height: 30)
-                        .background {
-                            if selected {
-                                Capsule().fill(accent.opacity(0.18))
-                                    .matchedGeometryEffect(id: "pageSelection", in: tabSelection)
-                            }
+                Text(page.label)
+                    .font(typography.font(size: 12, weight: selected ? .semibold : .medium))
+                    .foregroundStyle(selected ? navigationPrimary : navigationSecondary)
+                    .fixedSize(horizontal: true, vertical: false)
+                    .padding(.horizontal, 12)
+                    .frame(height: navigationRowHeight)
+                    .background {
+                        if selected {
+                            Capsule().fill(accent.opacity(0.18))
+                                .matchedGeometryEffect(id: "pageSelection", in: tabSelection)
                         }
-                        .contentShape(.capsule)
-                }
-                .buttonStyle(.plain)
-                .focused($focusedNavigation, equals: .page(page))
-                .onMoveCommand { movePage($0, from: page) }
-                .accessibilityAddTraits(selected ? .isSelected : [])
-                .accessibilityIdentifier("settingsPage.\(page.rawValue)")
-                .id(page)
+                    }
+                    .contentShape(.capsule)
+                    .beButton { select(page) }
+                    .buttonStyle(.plain)
+                    .focused($focusedNavigation, equals: .page(page))
+                    .onMoveCommand { movePage($0, from: page) }
+                    .accessibilityAddTraits(selected ? .isSelected : [])
+                    .accessibilityIdentifier("settingsPage.\(page.rawValue)")
+                    .id(page)
             }
         }
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: displayedPage)
@@ -351,7 +359,7 @@ struct MacOS26SettingsView: View {
                 }
             }
         }
-        .frame(height: 30)
+        .frame(height: navigationRowHeight)
         .padding(.vertical, 6)
     }
 
@@ -359,61 +367,49 @@ struct MacOS26SettingsView: View {
         HStack(spacing: 6) {
             ForEach(sectionIDs) { section in
                 let selected = selectedSectionID == section
-                Button {
-                    selectedSection = section
-                } label: {
-                    Text(section.title.localized)
-                        .font(.system(size: 12, weight: selected ? .semibold : .medium))
-                        .foregroundStyle(selected ? accent : navigationSecondary)
-                        .fixedSize()
-                        .padding(.horizontal, 11)
-                        .frame(height: 30)
-                        .overlay(alignment: .bottom) {
-                            if selected {
-                                Capsule().fill(accent).frame(height: 2)
-                                    .padding(.horizontal, 8)
-                                    .accessibilityHidden(true)
-                            }
+                Text(section.title.localized)
+                    .font(typography.font(size: 12, weight: selected ? .semibold : .medium))
+                    .foregroundStyle(selected ? accent : navigationSecondary)
+                    .fixedSize()
+                    .padding(.horizontal, 11)
+                    .frame(height: navigationRowHeight)
+                    .overlay(alignment: .bottom) {
+                        if selected {
+                            Capsule().fill(accent).frame(height: 2)
+                                .padding(.horizontal, 8)
+                                .accessibilityHidden(true)
                         }
-                        .contentShape(.rect)
-                }
-                .buttonStyle(.plain)
-                .focused($focusedNavigation, equals: .section(section))
-                .onMoveCommand { moveSection($0, from: section) }
-                .accessibilityAddTraits(selected ? .isSelected : [])
-                .accessibilityIdentifier("settingsSection.\(section.rawValue)")
-                .id(section)
+                    }
+                    .contentShape(.rect)
+                    .beButton { selectedSection = section }
+                    .buttonStyle(.plain)
+                    .focused($focusedNavigation, equals: .section(section))
+                    .onMoveCommand { moveSection($0, from: section) }
+                    .accessibilityAddTraits(selected ? .isSelected : [])
+                    .accessibilityIdentifier("settingsSection.\(section.rawValue)")
+                    .id(section)
             }
         }
         .fixedSize(horizontal: true, vertical: false)
     }
 
     private var detail: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text(displayedPage == .about ? selectedSectionID.title.localized : displayedPage.title)
-                    .font(.system(size: 24, weight: .semibold))
-                    .accessibilityAddTraits(.isHeader)
-                if selectedSectionID != .aboutApp {
-                    Text(
-                        selectedSectionID == .licenses
-                            ? localized("Read the licenses and notices included with WhiskyMac.")
-                            : displayedPage.summary
-                    )
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 24)
-            .padding(.top, 22)
-            .padding(.bottom, 14)
-
+        Group {
             if selectedSectionID == .licenses {
-                MacOS26LegalSettings(search: search)
+                GeometryReader { viewport in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 0) {
+                            detailHeading
+                            MacOS26LegalSettings(search: search)
+                        }
+                        .frame(maxWidth: .infinity, minHeight: viewport.size.height, alignment: .topLeading)
+                    }
+                    .scrollBounceBehavior(.basedOnSize)
+                }
             } else {
                 MacOS26SettingsForm(search: search, section: selectedSectionID) {
+                    detailHeading
+                } content: {
                     sectionContent(selectedSectionID)
                 }
                 .id(selectedSectionID)
@@ -425,19 +421,39 @@ struct MacOS26SettingsView: View {
         }
     }
 
+    private var detailHeading: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(displayedPage == .about ? selectedSectionID.title.localized : displayedPage.title)
+                .font(typography.font(size: 24, weight: .semibold))
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+            if selectedSectionID != .aboutApp {
+                Text(
+                    selectedSectionID == .licenses
+                        ? localized("Read the licenses and notices included with WhiskyMac.")
+                        : displayedPage.summary
+                )
+                .font(typography.font(.callout))
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 24)
+        .padding(.top, 22)
+        .padding(.bottom, 14)
+    }
+
     private var undoAccessory: some View {
         HStack(spacing: 12) {
             Text(localized("Shortcuts reset"))
-            Button {
-                resetUndo.undo(keys: store, vim: vimBindings)
-            } label: {
-                Label(localized("Undo reset"), systemImage: "arrow.uturn.backward")
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(.tint)
-            .accessibilityHint(localized("Available for 5 seconds"))
+            Label(localized("Undo reset"), systemImage: "arrow.uturn.backward")
+                .beButton { resetUndo.undo(keys: store, vim: vimBindings) }
+                .buttonStyle(.plain)
+                .foregroundStyle(.tint)
+                .accessibilityHint(localized("Available for 5 seconds"))
         }
-        .font(.callout.weight(.medium))
+        .font(typography.font(.callout).weight(.medium))
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
         .glassEffect(.regular.interactive())

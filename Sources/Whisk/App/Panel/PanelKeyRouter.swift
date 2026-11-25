@@ -48,7 +48,7 @@ final class PanelKeyRouter {
         if stateStore.historyHidingOptionsOpen { return false }
         // A metadata popover owns its text input; card shortcuts must not
         // paste/delete a record while someone types a note.
-        if stateStore.splitSession != nil || stateStore.splitGroupSession != nil || !stateStore.splitVersions.isEmpty {
+        if stateStore.hasAuxiliaryContent {
             return false
         }
         if stateStore.pinMetadataEditing || stateStore.cardMenuOpen { return false }

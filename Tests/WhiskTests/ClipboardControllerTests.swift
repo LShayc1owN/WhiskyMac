@@ -15,6 +15,7 @@ import Testing
         func readIfChangedAsync(_ completion: @escaping (PasteboardSnapshot?) -> Void) {
             completions.append(completion)
         }
+        func setCapturePaused(_ paused: Bool) {}
         func requestAccess() {}
         func write(_ payload: Payload, rtf: Data?) {}
     }
@@ -76,6 +77,19 @@ import Testing
         #expect(spy.last.cards.first?.preview == .text("remote"))
         controller.pollTick()
         #expect(board.completions.count == 1)
+    }
+
+    @Test func an_active_read_delivered_after_pause_and_resume_is_ignored() {
+        let board = DelayedPasteboard()
+        let disk = InMemoryHistoryStore()
+        let controller = ClipboardController(pasteboard: board, store: disk, clock: FakeClock(), present: { _ in })
+        controller.pollTick()
+        controller.setPaused(true)
+        controller.setPaused(false)
+        board.completions.removeFirst()(.init(payload: .text("stale"), source: nil))
+        controller.pollTick()
+        board.completions.removeFirst()(.init(payload: .text("current"), source: nil))
+        #expect(disk.stored.map(\.payload) == [.text("current")])
     }
 
     @Test func a_poll_tick_with_a_change_presents_the_new_card_first() {
@@ -160,8 +174,6 @@ import Testing
         let board = ScriptedPasteboard()
         let spy = StateSpy()
         let controller = ClipboardController(pasteboard: board, store: disk, clock: clock, present: spy.record)
-        var fullRefreshes = 0
-        controller.hiddenLinksChanged = { _ in fullRefreshes += 1 }
         controller.search("alpha")
         let baseline = spy.last
         controller.navigate(.right)
@@ -178,13 +190,13 @@ import Testing
         controller.moveSelection(.previous)
         #expect(spy.last.cards.first?.timeLabel != baseline.cards.first?.timeLabel)
         #expect(spy.last.cards.first?.accessibilityValue.contains(spy.last.cards[0].timeLabel) == true)
-        #expect(fullRefreshes == 1)
+        #expect(spy.states.count == count + 1)
         board.access = .denied
         controller.moveSelection(.next)
         #expect(spy.last.accessPrompt != nil)
         #expect(spy.last.cards.map(\.id) == baseline.cards.map(\.id))
         #expect(spy.last.query == "alpha")
-        #expect(fullRefreshes == 2)
+        #expect(spy.states.count == count + 2)
     }
 
     @Test func searching_presents_only_matching_cards() {
@@ -587,17 +599,23 @@ import Testing
         // Selecting the app narrows the kinds right back — and neither
         // active chip is ever hidden or dropped by ricochet.
         controller.toggleSourceFilter("dev.ghostty")
-        #expect(spy.last.filters.kinds.map(\.id) == ["code"])
+        #expect(spy.last.filters.kinds.map(\.id) == ["text", "code"])
         #expect(spy.last.filters.apps.map(\.isActive) == [true])
-        #expect(spy.last.filters.kinds.map(\.isActive) == [true])
+        #expect(spy.last.filters.kinds.map(\.isActive) == [false, true])
         #expect(spy.last.cards.map(\.sourceLabel) == ["Ghostty"])
 
         // Deselecting the category leaves the app filter intact; kinds
         // stay scoped by the still-active app.
         controller.toggleCategoryFilter("code")
-        #expect(spy.last.filters.kinds.map(\.id) == ["code"])
+        #expect(spy.last.filters.kinds.map(\.id) == ["text", "code"])
         #expect(spy.last.filters.apps.map(\.label) == ["Ghostty", "Spotify"])
         #expect(spy.last.cards.count == 1)
+
+        // Text stays available for an app with only code and keeps the same card.
+        controller.toggleCategoryFilter("text")
+        #expect(spy.last.filters.kinds.map(\.isActive) == [true, false])
+        #expect(spy.last.filters.apps.map(\.label) == ["Ghostty", "Spotify"])
+        #expect(spy.last.cards.map(\.sourceLabel) == ["Ghostty"])
     }
 
     @Test func pausing_consumes_changes_without_recording_them() {

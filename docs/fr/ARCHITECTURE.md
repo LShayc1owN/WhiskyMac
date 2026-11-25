@@ -25,17 +25,21 @@ Sources/Whisk/
 │                           AppKitPasteboard · ConsoleLogger        (Foundation + AppKit + SQLite3 + CryptoKit)
 ├── Components/             vues et modificateurs SwiftUI réutilisables dans l'application
 └── App/                    frameworks & drivers + racine de composition (tout est permis)
-    ├── Composition/        AppIdentity · Distribution · PanelWiring
-    ├── Panel/              PanelController · PanelLayout · PanelKeyRouter · PanelActions ·
+    ├── Composition/        AppIdentity · Distribution · AppUISelector · PanelWiring
+    ├── Panel/              PanelController · PanelKeyRouter · PanelActions ·
     │                       HistoryViewStateStore · HotKey · SplitSession
     ├── Settings/           AppearanceSettings · GeneralSettings · SettingsPage ·
     │                       KeyBindings · VimBindings · LegalDocuments
     ├── Privacy/            PrivacyController · SensitiveSessionStore · SharingMonitor
-    ├── StatusMenu/         StatusBarSymbol · StatusMenuMessage · SymbolCatalog
+    ├── StatusMenu/         StatusBarSymbol · SymbolCatalog
     ├── Infrastructure/     HistoryStorage · SystemClock · CopySound · UpdateChecker · Debouncer
-    ├── Views/              rendus SwiftUI du HistoryViewState, groupés par
-    │                       Panel · Preview · Settings · Onboarding · Shared
-    └── …                   AppDelegate · main
+    ├── Presentation/       Fenêtre visible, guide et services d’aperçu communs
+    ├── UI/
+    │   ├── Contracts/      AppUIFactory · AppWindowHandle · PanelLayout
+    │   ├── Shared/         Ressources de symboles et données d’accessibilité
+    │   ├── MacOS15/        Settings · Clipboard · Preview · Onboarding · Styling
+    │   └── MacOS26/        Settings · Clipboard · Preview · Onboarding · Styling
+    └── …                   AppDelegate · WhiskyMacMain
 ```
 
 ## Les rings
@@ -96,6 +100,21 @@ Sources/Whisk/
    frameworks vivent dans les gateways et le ring externe. Le controller
    coordonne les callbacks via son port Foundation ; les mutations du noyau
    restent synchrones.
+
+## Générations de l’interface
+
+`WhiskyMacMain` appelle `AppUISelector.make()` une fois sur l’acteur principal
+et injecte la fabrique dans `AppDelegate`. Le delegate transmet la même
+instance à `PanelController`. Chaque fabrique possède ses vues SwiftUI, ses
+styles et ses règles de disposition. Les poignées de fenêtre conservent
+les barres d’outils et appliquent la taille avant l’affichage.
+
+Le clavier, le cycle de vie, les données, les actions, la protection et
+les services d’aperçu restent communs. Un seul target SwiftPM `Whisk` contient
+les deux arborescences. Le contrôle de dépendances de la CI appelle
+`scripts/check-ui-boundaries.py` pour vérifier l’isolation des sources et
+la sélection au démarrage. L’option `--self-test` vérifie les cas valides
+et invalides du script.
 
 ## Invariants
 

@@ -15,7 +15,7 @@ import Testing
         struct Animation {
             let alpha: CGFloat
             let duration: TimeInterval
-            let complete: () -> Void
+            let complete: @MainActor @Sendable () -> Void
         }
 
         var creations = 0
@@ -31,8 +31,9 @@ import Testing
         init() {
             _ = NSApplication.shared
             controller = BackgroundVeilController(
+                uiFactory: MacOS15UIFactory(),
                 makeWindow: { [weak self] in
-                    let window = BackgroundVeilController.makeWindow()
+                    let window = BackgroundVeilController.makeWindow(uiFactory: MacOS15UIFactory())
                     self?.creations += 1
                     self?.lastWindow = window
                     self?.lastContent = window.contentView

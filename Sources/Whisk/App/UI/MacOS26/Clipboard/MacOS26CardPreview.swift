@@ -15,8 +15,10 @@ struct MacOS26CardPreview: View {
             if card.contentHidden {
                 VStack(alignment: .leading, spacing: 6) {
                     if case .text(let placeholder) = card.preview { Text(placeholder).lineLimit(1) }
-                    Label(localized("Content always hidden"), systemImage: "eye.slash")
-                        .lineLimit(2)
+                    if !card.secretMasked {
+                        Label(localized("Content always hidden"), systemImage: "eye.slash")
+                            .lineLimit(2)
+                    }
                 }
                 .font(.callout)
                 .foregroundStyle(.secondary)
@@ -38,10 +40,10 @@ struct MacOS26CardPreview: View {
             if card.matches.isEmpty {
                 Text(value).font(.callout)
             } else {
-                Text(CardTextFormatting.highlighted(value, matches: card.matches)).font(.callout)
+                Text(MacOS26CardTextFormatting.highlighted(value, matches: card.matches)).font(.callout)
             }
         case .code(let value, let tokens):
-            Text(CardTextFormatting.attributed(value, tokens: tokens, matches: card.matches))
+            Text(MacOS26CardTextFormatting.attributed(value, tokens: tokens, matches: card.matches))
                 .font(.system(.callout, design: .monospaced))
                 .lineSpacing(2)
         case .color(let code, let rgb):
@@ -220,8 +222,8 @@ private struct MacOS26FileCardExcerpt: View {
         let count = min(limit, names.count)
         let hidden = overflow + names.count - count
         return VStack(alignment: .leading, spacing: 5) {
-            ForEach(names.indices.prefix(count), id: \.self) { index in
-                Label(names[index], systemImage: "doc").font(.caption).lineLimit(1)
+            IndexedForEach(names.prefix(count), indexID: \.self) { _, name in
+                Label(name, systemImage: "doc").font(.caption).lineLimit(1)
             }
             if hidden > 0 { Text(localized("+ \(hidden) more")).font(.caption2).foregroundStyle(.secondary) }
         }
@@ -254,7 +256,7 @@ private struct MacOS26RichCardExcerpt: View {
             if let loaded, active, loaded.request == request {
                 Drawing(text: loaded.text, matches: fallback.hasPrefix(loaded.text.string) ? matches : [])
             } else {
-                Text(CardTextFormatting.highlighted(fallback, matches: matches)).font(.callout)
+                Text(MacOS26CardTextFormatting.highlighted(fallback, matches: matches)).font(.callout)
             }
         }
         .task(id: request) {
@@ -264,7 +266,11 @@ private struct MacOS26RichCardExcerpt: View {
                     content, maximumBytes: RichTextCardContent.maximumBytes),
                 !Task.isCancelled
             else { return }
-            loaded = (request, RichTextCardContent.decode(data, fallback: fallback))
+            loaded = (
+                request,
+                RichTextCardContent.decode(
+                    data, fallback: fallback, defaultFont: .systemFont(ofSize: 12), defaultColor: .labelColor)
+            )
         }
         .onDisappear { loaded = nil }
     }

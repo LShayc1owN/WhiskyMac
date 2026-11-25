@@ -4,16 +4,26 @@
 <p align="center"><a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.it.md">Italiano</a></p>
 
 > [!NOTE]
-> WhiskyMac è una modifica indipendente di [Whisk](https://github.com/nathan-poncet/whisk). Il progetto è in fase di sviluppo: questo repository è privato e i download pubblici dell'app non sono ancora configurati. Le istruzioni seguenti servono a compilare questa copia del progetto.
+> WhiskyMac è un progetto indipendente basato su [Whisk](https://github.com/nathan-poncet/whisk) e ancora in sviluppo. Le funzioni descritte qui si riferiscono al codice sorgente attuale. Le note di ciascuna versione indicano le funzioni incluse e lo stato della firma.
+
+## Download e primi passi
+
+**[Ultima versione su GitHub](https://github.com/LShayc1owN/WhiskyMac/releases/latest)**
+
+1. Scarica il file ZIP dell’app, estrailo e sposta `WhiskyMac.app` nella cartella Applicazioni.
+2. Apri WhiskyMac e segui la guida di benvenuto. Se macOS richiede l’accesso agli appunti, scegli **Consenti accesso agli appunti…** dal menu di WhiskyMac.
+3. Copia qualcosa in un’altra app, poi fai clic sull’icona di WhiskyMac nella barra dei menu o scegli **Mostra la cronologia**. Nelle impostazioni puoi attivare una scorciatoia globale.
 
 ## Funzioni principali
 
-- **Ritrovare le copie.** La cronologia locale conserva testo, testo formattato, link, immagini, file e colori. Cerca nel contenuto o per app di origine; filtra per app, tipo, elementi fissati, etichette colorate e attribuzione Handoff. I percorsi di file come testo hanno un filtro dedicato e la ricerca `type:path`.
-- **Riutilizzare i contenuti.** Copia, incolla direttamente o come testo semplice, trascina in altre app, visualizza anteprime, modifica e usa la coda di incolla. Le versioni rich text con lo stesso testo semplice sono raggruppate. Sono disponibili comandi da tastiera e navigazione Vim facoltativa.
-- **Dividere e organizzare.** Dividi il testo per righe, paragrafi o separatori, oppure estrai i link HTTP(S). Controlla le parti e salvale come nuove schede, sostituzione dell'originale o gruppo persistente. Durante copia e incolla scegli l'originale o singole parti del gruppo.
-- **Conservare l'importante.** Gli elementi fissati possono avere note ricercabili, sette etichette colorate e contenuto sempre oscurato. Mostrali nella cronologia o in una finestra separata. Imposta durata e capienza degli elementi non fissati; la cancellazione si può annullare.
-- **Controllare la visualizzazione.** La modalità privacy manuale oscura i contenuti. Il rilevamento facoltativo delle barre di condivisione Zoom/Teams ha copertura limitata. Ricerca, filtri e area visibile presso il puntatore si attivano separatamente. Le app sensibili usano una sessione temporanea in memoria; le app escluse non vengono registrate.
-- **Personalizzare.** Regola dimensione delle schede, aspetto satinato, icona nella barra dei menu, interazioni, scorciatoie e suoni di copia facoltativi. Puoi cercare nelle impostazioni e annullare il ripristino delle scorciatoie. L'esercizio della guida iniziale non tocca gli appunti o la cronologia reali. L'interfaccia supporta inglese, francese, tedesco, italiano, cinese semplificato, cinese tradizionale e giapponese.
+- **Ritrovare le copie.** Testo, testo formattato, codice, link, immagini, file e colori sono salvati in locale. Cerca per contenuto o app di origine, con corrispondenza approssimativa, parziale, per parola intera, all’inizio o alla fine del testo. Filtra per app, tipo, elementi fissati, etichette colorate o Handoff. Usa `type:path` per trovare i percorsi di file copiati come testo.
+- **Riutilizzare i contenuti.** Visualizza anteprime, modifica, trascina, copia, incolla direttamente o come testo semplice e accoda gli elementi da incollare. Scegli tra le versioni di testo formattato raggruppate e naviga da tastiera o con i comandi Vim facoltativi.
+- **Dividere il testo.** Dividi il testo per righe, paragrafi o separatori oppure estrai i link HTTP(S). Dopo l’anteprima, aggiungi schede, sostituisci l’originale o salva un gruppo. Quando copi o incolli un gruppo, scegli l’originale o le parti desiderate.
+- **Organizzare la cronologia.** Fissa gli elementi con note ricercabili, sette etichette colorate e un’opzione per oscurare sempre il contenuto. Aprili nella cronologia o in una finestra separata. Nascondi temporaneamente le voci meno recenti per data e ora, tipo di contenuto o origine Handoff. Imposta durata e capienza degli elementi non fissati, oppure cancellali con la possibilità di annullare l’operazione.
+- **Scegliere cosa mostrare.** La modalità privacy manuale oscura le schede. Ricerca, filtri e area visibile vicino al puntatore si regolano separatamente. Dal menu di una scheda puoi anche mostrarla direttamente nella cronologia. Il rilevamento facoltativo della condivisione dello schermo riconosce le barre degli strumenti supportate di Zoom e Teams. Le copie delle app sensibili scadono in memoria. Le app escluse vengono ignorate.
+- **Oscurare i possibili segreti.** Il rilevamento locale cerca formati comuni di chiavi API, token, cookie e hash. L’oscuramento delle schede e la classificazione nella categoria dei segreti si configurano separatamente. L’oscuramento agisce sulla visualizzazione della scheda.
+- **Adattare l’aspetto al Mac.** Da macOS 26, i controlli della cronologia e delle impostazioni usano Liquid Glass. Su macOS 15, l’interfaccia usa un effetto vetro satinato. Puoi scegliere separatamente per cronologia e impostazioni l’aspetto chiaro, scuro o di sistema.
+- **Personalizzare i comandi.** Regola la dimensione delle schede, l’icona nella barra dei menu, le azioni, le scorciatoie e i suoni di copia facoltativi. Cerca nelle impostazioni o ripristina le scorciatoie per categoria con la possibilità di annullare. L’interfaccia è disponibile in italiano, inglese, francese, tedesco, cinese semplificato, cinese tradizionale e giapponese.
 
 Per comportamenti e limiti dettagliati, consulta l'[ambito del progetto](docs/PROJECT.md) e il [registro modifiche](CHANGELOG.md).
 
@@ -25,10 +35,7 @@ Occorrono macOS 15 o successivo, l'SDK macOS 26 e un'installazione completa di X
 swift run Whisk
 swift test
 ./scripts/localizations.sh check
-./scripts/build-app.sh 0.0.0 native
 ```
-
-Lo script genera `dist/WhiskyMac.app` e `dist/WhiskyMac.zip`. Il target Swift e l'eseguibile interni conservano il nome `Whisk`. Senza un'identità di firma si usa una firma ad hoc: l'app non risulta notarizzata né pronta per l'invio all'App Store.
 
 ## Privacy e dati
 
@@ -48,7 +55,7 @@ L'[eccezione originale per App Store/TestFlight](LICENSE-EXCEPTION-APP-STORE.md)
 
 ## Versioni e sostegno
 
-Gli indirizzi pubblici per sorgenti, assistenza e informativa sulla privacy in [release-config.json](release-config.json) sono ancora vuoti; la verifica blocca la pubblicazione finché non vengono configurati. I pacchetti installabili dovranno essere distribuiti tramite GitHub Releases insieme ai sorgenti corrispondenti, senza aggiungerli al repository. I documenti legali nell'app si trovano in `Contents/Resources/Legal`, accessibili da **Licenze e avvisi…** nella barra dei menu.
+La pubblicazione automatica verifica gli URL pubblici per sorgenti, assistenza e informativa sulla privacy in [release-config.json](release-config.json). Le licenze sono incluse in `Contents/Resources/Legal`. Puoi aprirle da **Licenze e note legali…** nel menu di WhiskyMac.
 
 Se WhiskyMac ti è utile, puoi sostenere lo sviluppo indipendente con una donazione volontaria:
 

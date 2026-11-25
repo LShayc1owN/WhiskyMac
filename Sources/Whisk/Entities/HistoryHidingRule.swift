@@ -12,10 +12,11 @@ struct HistoryHidingRule: Equatable {
     var categories: Set<ContentCategory>?
     var includesHandoff = false
 
-    func hides(_ item: ClipboardItem) -> Bool {
+    func hides(_ item: ClipboardItem, recognition: SecretRecognition = .init()) -> Bool {
         item.copiedAt <= cutoff
             && (categories.map {
-                $0.contains(item.category) || (includesHandoff && item.source?.origin == .handoffMarker)
+                recognition.category(of: item).isIncluded(in: $0)
+                    || (includesHandoff && item.source?.origin == .handoffMarker)
             }
                 ?? true)
     }

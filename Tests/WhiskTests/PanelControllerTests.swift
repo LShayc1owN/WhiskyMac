@@ -9,13 +9,12 @@ import Testing
 
 @testable import Whisk
 
-/// The panel's windows, created but never ordered in: nothing here puts
-/// anything on screen.
+/// The panel's windows, tested without covering anything on screen.
 @MainActor
 @Suite struct PanelWindowing {
     @Test func action_popover_stays_above_preview_when_attached_or_reused_without_taking_focus() {
         _ = NSApplication.shared
-        let layer = CardActionPopoverLayer.LayerView()
+        let layer = MacOS15CardActionPopoverLayer.LayerView()
         let first = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 200, height: 300),
             styleMask: .borderless, backing: .buffered, defer: false)
@@ -46,6 +45,7 @@ import Testing
     @Test func the_floating_panel_hands_keys_to_its_handler_and_closes_on_the_second_cancel() throws {
         _ = NSApplication.shared
         let panel = FloatingPanel()
+        MacOS15UIFactory().configure(window: panel, for: .history)
         var handled: [UInt16] = []
         var cancels = 0
         var closes = 0
@@ -88,7 +88,8 @@ import Testing
         let store = HistoryViewStateStore()
         let spy = PanelActionSpy()
         let controller = PanelController(
-            stateStore: store, actions: spy.actions, keyBindings: KeyBindingsStore(defaults: sandbox.defaults),
+            uiFactory: MacOS15UIFactory(), stateStore: store, actions: spy.actions,
+            keyBindings: KeyBindingsStore(defaults: sandbox.defaults),
             vimBindings: VimBindingsStore(defaults: sandbox.defaults), vimMode: { false })
 
         controller.hide()
@@ -105,7 +106,8 @@ import Testing
         let store = HistoryViewStateStore()
         let spy = PanelActionSpy()
         let controller = PanelController(
-            stateStore: store, actions: spy.actions, keyBindings: KeyBindingsStore(defaults: sandbox.defaults),
+            uiFactory: MacOS15UIFactory(), stateStore: store, actions: spy.actions,
+            keyBindings: KeyBindingsStore(defaults: sandbox.defaults),
             vimBindings: VimBindingsStore(defaults: sandbox.defaults), vimMode: { false })
 
         NotificationCenter.default.post(name: NSApplication.didChangeScreenParametersNotification, object: NSApp)
@@ -114,5 +116,89 @@ import Testing
         #expect(store.closeRevision == 0)
         #expect(store.focusRevision == 0)
         withExtendedLifetime(controller) {}
+    }
+
+    @Test func sensitive_row_resizes_only_the_visible_history_workspace() async throws {
+        _ = NSApplication.shared
+        let screen = try #require(NSScreen.main)
+        let sandbox = try IsolatedDefaults()
+        let store = HistoryViewStateStore()
+        let controller = PanelController(
+            uiFactory: AppUISelector.make(), stateStore: store, actions: PanelActionSpy().actions,
+            keyBindings: KeyBindingsStore(defaults: sandbox.defaults),
+            vimBindings: VimBindingsStore(defaults: sandbox.defaults), vimMode: { false })
+        func show(pins: Bool) {
+            controller.preparePresentation(pins: pins, style: nil, on: screen)
+            controller.activeWindow.alphaValue = 0
+            controller.activeWindow.orderFront(nil)
+        }
+        let session = store.sensitiveSession
+        func capture() { session.receive(PasteboardSnapshot(payload: .text("Synthetic sample"), source: nil)) }
+
+        show(pins: false)
+        defer { controller.hide() }
+        let compact = controller.activeWindow.frame
+        capture()
+        try await Task.sleep(for: .milliseconds(50))
+        let expanded = controller.activeWindow.frame
+        #expect(expanded.height > compact.height)
+        capture()
+        try await Task.sleep(for: .milliseconds(50))
+        #expect(controller.activeWindow.frame == expanded)
+        store.setPrivacy(true)
+        try await Task.sleep(for: .milliseconds(50))
+        #expect(controller.activeWindow.frame == compact)
+        store.setPrivacy(false)
+        try await Task.sleep(for: .milliseconds(50))
+        #expect(controller.activeWindow.frame == expanded)
+        session.remove(try #require(session.ids.first))
+        #expect(controller.activeWindow.frame == expanded)
+        session.clear()
+        try await Task.sleep(for: .milliseconds(50))
+        #expect(controller.activeWindow.frame == compact)
+
+        show(pins: true)
+        let pinned = controller.activeWindow.frame
+        capture()
+        try await Task.sleep(for: .milliseconds(50))
+        #expect(controller.activeWindow.frame == pinned)
+    }
+
+    @Test func privacy_fade_replaces_content_immediately_and_keeps_the_window_reusable() async throws {
+        _ = NSApplication.shared
+        let sandbox = try IsolatedDefaults()
+        let store = HistoryViewStateStore()
+        let spy = PanelActionSpy()
+        let controller = PanelController(
+            uiFactory: MacOS15UIFactory(), stateStore: store, actions: spy.actions,
+            keyBindings: KeyBindingsStore(defaults: sandbox.defaults),
+            vimBindings: VimBindingsStore(defaults: sandbox.defaults), vimMode: { false })
+        controller.preparePresentation(pins: false, style: nil)
+        let item = anItem(.text("Synthetic clipboard content"))
+        store.update(HistoryPresenter().present(items: [item], query: "", now: Date()))
+        let panel = controller.activeWindow
+        panel.setFrame(NSRect(x: -10000, y: 0, width: 900, height: 430), display: false)
+        store.setPanelVisible(true)
+        panel.orderFront(nil)
+        defer { controller.hide() }
+        let original = try #require(panel.contentView)
+
+        store.setPrivacy(true)
+        controller.privacyDidChange(animated: true)
+        let protected = try #require(panel.contentView)
+        #expect(original.window == nil && protected !== original)
+        #expect(store.state.cards.isEmpty && panel.isVisible)
+
+        store.setPrivacy(false)
+        controller.privacyDidChange(animated: true)
+        #expect(protected.window == nil && panel.isVisible)
+        #expect(store.state.cards.map(\.id) == [item.id])
+        try await Task.sleep(for: .milliseconds(300))
+        #expect(panel.alphaValue == 1)
+
+        controller.hide()
+        store.setPrivacy(true)
+        controller.privacyDidChange(animated: true)
+        #expect(panel.contentView == nil && !panel.isVisible)
     }
 }

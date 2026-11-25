@@ -18,7 +18,7 @@ import Testing
         state.configureCards(side: 217.5)
         state.configureFilterTags(scale: 1.15)
         let controller = PanelController(
-            stateStore: state, actions: PanelActionSpy().actions,
+            uiFactory: MacOS15UIFactory(), stateStore: state, actions: PanelActionSpy().actions,
             keyBindings: KeyBindingsStore(defaults: sandbox.defaults),
             vimBindings: VimBindingsStore(defaults: sandbox.defaults), vimMode: { false })
         let screen = try #require(NSScreen.main)
@@ -27,7 +27,7 @@ import Testing
         #expect(state.cardSide == 500 && state.filterTagScale == 2)
         #expect(
             controller.activeWindow.frame
-                == PanelLayout(screen: PanelLayout.Screen(screen), cardSide: 500, tagScale: 2).panel)
+                == MacOS15PanelLayout(screen: MacOS15PanelLayout.Screen(screen), cardSide: 500, tagScale: 2).panel)
         controller.prepareSizingPreview(.init(cardSide: 300, tagScale: 1.5), on: screen)
         #expect(state.cardSide == 300 && state.filterTagScale == 1.5)
         controller.cancelSizePreview()
@@ -44,10 +44,11 @@ import Testing
         func descendants(_ view: NSView) -> [NSView] { [view] + view.subviews.flatMap(descendants) }
         var chipHeights: [CGFloat] = []
         for scale in [1.0, 2.0] {
-            let host = NSHostingView(rootView: FilterTagSizePreview(scale: scale))
+            let host = NSHostingView(rootView: MacOS15FilterTagSizePreview(scale: scale))
             host.sizingOptions = []
             let window = NSWindow(
-                contentRect: NSRect(x: -10000, y: 0, width: 520, height: FilterTagMetrics(scale: scale).rowHeight + 8),
+                contentRect: NSRect(
+                    x: -10000, y: 0, width: 520, height: MacOS15FilterTagMetrics(scale: scale).rowHeight + 8),
                 styleMask: .borderless, backing: .buffered, defer: false)
             window.isReleasedWhenClosed = false
             window.contentView = host
@@ -55,9 +56,9 @@ import Testing
             host.layoutSubtreeIfNeeded()
             try await Task.sleep(for: .milliseconds(350))
             host.layoutSubtreeIfNeeded()
-            let surfaces = descendants(host).compactMap { $0 as? BackdropView }
+            let surfaces = descendants(host).compactMap { $0 as? MacOS15BackdropView }
             chipHeights.append(try #require(surfaces.map { $0.bounds.height }.max()))
-            #expect(host.bounds.height >= FilterTagMetrics(scale: scale).rowHeight)
+            #expect(host.bounds.height >= MacOS15FilterTagMetrics(scale: scale).rowHeight)
             if let output = ProcessInfo.processInfo.environment["WHISK_UI_ARTIFACTS"] {
                 let directory = URL(fileURLWithPath: output)
                 try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -84,15 +85,15 @@ import Testing
         for navigation in SettingsNavigation.allCases {
             appearance.navigation = navigation
             let hosting = NSHostingController(
-                rootView: SettingsView(
+                rootView: MacOS15SettingsView(
                     store: KeyBindingsStore(defaults: sandbox.defaults), general: general,
                     loginItem: LoginItemManager(), vimBindings: VimBindingsStore(defaults: sandbox.defaults),
                     appearance: appearance, search: search
                 ).environment(\.settingsAccessibilityOverride, SettingsAccessibilityValues(reduceMotion: true)))
             let window = NSWindow(contentViewController: hosting)
             window.isReleasedWhenClosed = false
-            SettingsWindowConfiguration.apply(to: window)
-            let toolbar = SettingsSearchToolbar(window: window, search: search, appearance: appearance)
+            MacOS15SettingsWindowConfiguration.apply(to: window)
+            let toolbar = MacOS15SettingsSearchToolbar(window: window, search: search, appearance: appearance)
             window.setContentSize(NSSize(width: 840, height: 720))
             window.setFrameOrigin(NSPoint(x: -10000, y: -10000))
             window.orderFront(nil)
@@ -106,6 +107,13 @@ import Testing
                 hosting.view.layoutSubtreeIfNeeded()
                 #expect(window.attachedSheet == nil)
                 if section == .cards {
+                    func containsSizeInput(_ view: NSView) -> Bool {
+                        if let field = view as? NSTextField, field.isEditable, field.stringValue == "500" {
+                            return true
+                        }
+                        return view.subviews.contains(where: containsSizeInput)
+                    }
+                    #expect(containsSizeInput(hosting.view))
                     func scrollViews(_ view: NSView) -> [NSScrollView] {
                         (view as? NSScrollView).map { [$0] } ?? view.subviews.flatMap(scrollViews)
                     }

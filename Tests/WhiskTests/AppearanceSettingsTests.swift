@@ -148,9 +148,10 @@ import Testing
             for navigation in SettingsNavigation.allCases {
                 appearance.navigation = navigation
                 for page in SettingsPage.allCases {
-                    let view = SettingsView(
+                    let view = MacOS15SettingsView(
                         store: bindings, general: general, loginItem: LoginItemManager(),
-                        vimBindings: vim, privacy: privacy, appearance: appearance, selectedPage: page
+                        vimBindings: vim, privacy: privacy, buildInfo: AppBuildInfo(version: "0.1.14", isDebug: false),
+                        appearance: appearance, selectedPage: page
                     )
                     .environment(\.colorScheme, scheme)
                     let host = NSHostingView(rootView: view)
@@ -181,7 +182,7 @@ import Testing
         appearance.accentMode = .system
         privacy.setProtected(true)
         let image = ImageRenderer(
-            content: SettingsView(
+            content: MacOS15SettingsView(
                 store: bindings, general: general, loginItem: LoginItemManager(),
                 vimBindings: vim, privacy: privacy, appearance: appearance, selectedPage: .privacy))
         #expect(image.nsImage != nil)
@@ -204,9 +205,9 @@ import Testing
             appearance.navigation = navigation
             for sidebarWidth in (navigation == .sidebar ? [CGFloat(220), 300] : [CGFloat(220)]) {
                 appearance.sidebarWidth = sidebarWidth
-                for height in [SettingsWindowSize.minimumHeight, SettingsWindowSize.height] {
+                for height in [MacOS15SettingsWindowSize.minimumHeight, MacOS15SettingsWindowSize.height] {
                     let hosting = NSHostingController(
-                        rootView: SettingsView(
+                        rootView: MacOS15SettingsView(
                             store: KeyBindingsStore(defaults: sandbox.defaults),
                             general: GeneralSettingsStore(defaults: sandbox.defaults), loginItem: LoginItemManager(),
                             vimBindings: VimBindingsStore(defaults: sandbox.defaults),
@@ -218,8 +219,8 @@ import Testing
                     defer { window.close() }
                     window.setContentSize(hosting.view.fittingSize)
                     window.styleMask.remove([.resizable, .miniaturizable])
-                    SettingsWindowConfiguration.apply(to: window)
-                    window.setContentSize(NSSize(width: SettingsWindowSize.width, height: height))
+                    MacOS15SettingsWindowConfiguration.apply(to: window)
+                    window.setContentSize(NSSize(width: MacOS15SettingsWindowSize.width, height: height))
                     hosting.view.layoutSubtreeIfNeeded()
                     let scroll = try #require(
                         scrollViews(in: hosting.view).filter { $0.bounds.height > 100 }
@@ -228,7 +229,7 @@ import Testing
                     let expectedSidebarWidth: CGFloat = navigation == .sidebar ? sidebarWidth + 1 : 0
                     // A horizontal divider in the sidebar HStack used to steal half the content width.
                     #expect(abs(frame.minX - expectedSidebarWidth) <= 2, "\(navigation), height \(height): \(frame)")
-                    #expect(frame.width >= SettingsWindowSize.width - expectedSidebarWidth - 2)
+                    #expect(frame.width >= MacOS15SettingsWindowSize.width - expectedSidebarWidth - 2)
                     #expect(frame.maxX <= hosting.view.bounds.maxX + 1)
                     #expect(frame.height > 100)
                 }
@@ -245,7 +246,7 @@ import Testing
 
         func sidebarSize(version: String) async throws -> CGSize {
             let hosting = NSHostingController(
-                rootView: SettingsView(
+                rootView: MacOS15SettingsView(
                     store: KeyBindingsStore(defaults: sandbox.defaults),
                     general: GeneralSettingsStore(defaults: sandbox.defaults), loginItem: LoginItemManager(),
                     vimBindings: VimBindingsStore(defaults: sandbox.defaults),
@@ -253,8 +254,9 @@ import Testing
             let window = NSWindow(contentViewController: hosting)
             window.isReleasedWhenClosed = false
             defer { window.close() }
-            SettingsWindowConfiguration.apply(to: window)
-            window.setContentSize(CGSize(width: SettingsWindowSize.width, height: SettingsWindowSize.minimumHeight))
+            MacOS15SettingsWindowConfiguration.apply(to: window)
+            window.setContentSize(
+                CGSize(width: MacOS15SettingsWindowSize.width, height: MacOS15SettingsWindowSize.minimumHeight))
             window.setFrameOrigin(CGPoint(x: -10000, y: -10000))
             window.orderFront(nil)
             hosting.view.layoutSubtreeIfNeeded()
@@ -310,7 +312,7 @@ import Testing
         for scheme in [ColorScheme.light, .dark] {
             for navigation in SettingsNavigation.allCases {
                 appearance.navigation = navigation
-                let view = SettingsView(
+                let view = MacOS15SettingsView(
                     store: bindings, general: general, loginItem: LoginItemManager(),
                     vimBindings: vim, privacy: privacy, appearance: appearance, selectedPage: .shortcuts
                 )

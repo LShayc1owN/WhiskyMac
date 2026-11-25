@@ -41,7 +41,7 @@ enum KeyAction: String, CaseIterable, Identifiable {
 
     var searchTitle: SettingsSearchText {
         switch self {
-        case .togglePrivacy: settingsSearchText("Toggle manual Privacy Mode")
+        case .togglePrivacy: settingsSearchText("Toggle privacy protection")
         case .togglePinned: settingsSearchText("Show / hide pinned items")
         case .togglePanel: settingsSearchText("Show / hide the panel")
         case .pasteSelection: settingsSearchText("Paste the selection")

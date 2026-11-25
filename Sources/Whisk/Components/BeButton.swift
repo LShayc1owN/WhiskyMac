@@ -10,7 +10,7 @@ extension View {
     }
 
     /// Preserves a button role for labels with custom content.
-    func beButton(role: ButtonRole, _ action: @escaping () -> Void) -> Button<Self> {
+    func beButton(role: ButtonRole?, _ action: @escaping () -> Void) -> Button<Self> {
         Button(role: role, action: action) { self }
     }
 }

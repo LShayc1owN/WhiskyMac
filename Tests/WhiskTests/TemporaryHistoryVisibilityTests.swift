@@ -277,7 +277,7 @@ import Testing
         fixture.state.configureFilterTags(scale: 1.5)
         fixture.state.setPrivacyPermissions(allowSearch: true, showSourceApps: true, allowFiltering: true)
         fixture.state.setPrivacy(inPrivacy)
-        let host = NSHostingView(rootView: HistoryPanelView(store: fixture.state, actions: fixture.actions))
+        let host = NSHostingView(rootView: MacOS15HistoryPanelView(store: fixture.state, actions: fixture.actions))
         host.sizingOptions = []
         let window = NSWindow(
             contentRect: NSRect(x: -10000, y: 0, width: 900, height: 510),
@@ -289,20 +289,17 @@ import Testing
 
         func descendants(_ view: NSView) -> [NSView] { [view] + view.subviews.flatMap(descendants) }
 
-        func frames(searchableCount: Int) async throws -> (rail: NSRect, search: NSRect) {
+        func frames() async throws -> (rail: NSRect, search: NSRect) {
             try await Task.sleep(for: .milliseconds(300))
             host.layoutSubtreeIfNeeded()
             let views = descendants(host)
             let rail = try #require(
                 views.compactMap { $0 as? NSScrollView }.max { $0.frame.height < $1.frame.height })
             let search = try #require(views.compactMap { $0 as? NSTextField }.first)
-            #expect(
-                (search.placeholderAttributedString?.string ?? search.placeholderString)
-                    == localized("Search in \(searchableCount) items"))
             return (rail.convert(rail.bounds, to: host), search.convert(search.bounds, to: host))
         }
 
-        let visible = try await frames(searchableCount: 2)
+        let visible = try await frames()
         #expect(visible.rail.height >= fixture.state.cardSide)
         for hideByType in [false, true] {
             if hideByType {
@@ -311,13 +308,13 @@ import Testing
             } else {
                 fixture.state.toggleHistoryVisibility(actions: fixture.actions)
             }
-            let hidden = try await frames(searchableCount: 0)
+            let hidden = try await frames()
             #expect((inPrivacy ? fixture.state.protectedCardCount : fixture.state.state.cards.count) == 0)
             #expect(hidden.rail == visible.rail)
             #expect(abs(hidden.search.midY - visible.search.midY) < 1)
             if !inPrivacy {
                 let slab = try #require(
-                    descendants(host).compactMap { $0 as? BackdropView }.first {
+                    descendants(host).compactMap { $0 as? MacOS15BackdropView }.first {
                         $0.bounds.width > 500 && $0.bounds.height > 100
                     })
                 #expect(abs(slab.bounds.height - fixture.state.zoomedCardSide) < 1)
@@ -328,7 +325,7 @@ import Testing
             } else {
                 fixture.state.toggleHistoryVisibility(actions: fixture.actions)
             }
-            let restored = try await frames(searchableCount: 2)
+            let restored = try await frames()
             #expect((inPrivacy ? fixture.state.protectedCardCount : fixture.state.state.cards.count) == 2)
             #expect(restored.rail == visible.rail)
             #expect(abs(restored.search.midY - visible.search.midY) < 1)
@@ -341,9 +338,22 @@ import Testing
         let previousLanguage = AppLocalization.language
         AppLocalization.language = language
         defer { AppLocalization.language = previousLanguage }
+        for count in [0, 1, 12_345] {
+            let prompt = ClipboardSearchPrompt(count: count).highlighted(accent: .red)
+            #expect(String(prompt.characters) == localized("Search in \(count) items"))
+            let highlights = prompt.runs.filter { $0.foregroundColor == .red }
+            #expect(highlights.count == 1)
+            let highlighted = try #require(highlights.first)
+            #expect(
+                highlighted.font
+                    == Font(NSFont.monospacedSystemFont(ofSize: ClipboardSearchPrompt.fontSize, weight: .regular)))
+            #expect(prompt.runs.filter { $0.font != nil }.count == 1)
+            let number = count.formatted(.number.locale(Locale(identifier: language)))
+            #expect(String(prompt[highlighted.range].characters) == number)
+        }
         let fixture = Fixture()
         let host = NSHostingView(
-            rootView: HistoryPanelView(store: fixture.state, actions: fixture.actions).transaction {
+            rootView: MacOS15HistoryPanelView(store: fixture.state, actions: fixture.actions).transaction {
                 $0.disablesAnimations = true
             })
         host.sizingOptions = []
@@ -361,9 +371,11 @@ import Testing
             host.layoutSubtreeIfNeeded()
             try await Task.sleep(for: .milliseconds(350))
             host.layoutSubtreeIfNeeded()
-            let surfaces = descendants(host).compactMap { $0 as? BackdropView }.map { $0.convert($0.bounds, to: host) }
+            let surfaces = descendants(host).compactMap { $0 as? MacOS15BackdropView }.map {
+                $0.convert($0.bounds, to: host)
+            }
             let buttons = surfaces.filter { abs($0.height - 36) < 0.5 }.sorted { $0.minX < $1.minX }
-            #expect(buttons.count == (protected ? 2 : 3), "privacy=\(protected), surfaces=\(surfaces)")
+            #expect(buttons.count == 3, "privacy=\(protected), surfaces=\(surfaces)")
             let lastButtons = Array(buttons.suffix(2))
             let hide = try #require(lastButtons.first)
             let byType = try #require(lastButtons.last)
@@ -372,13 +384,14 @@ import Testing
             #expect(fixture.state.canToggleHistoryVisibility)
             let field = try #require(descendants(host).compactMap { $0 as? NSTextField }.first)
             let search = field.convert(field.bounds, to: host)
-            let prompt = localized("Search in \(2) items")
-            let promptWidth = prompt.size(withAttributes: [.font: NSFont.systemFont(ofSize: 14)]).width
+            let latest = try #require(buttons.first { abs($0.width - 36) < 0.5 })
+            #expect(latest.maxX < search.minX)
+            let promptWidth = ClipboardSearchPrompt(count: 2).width
             #expect(search.width > promptWidth, "\(language), privacy=\(protected), search=\(search.width)")
             if language == "fr", !protected {
                 #expect(abs(search.midY - hide.midY) > 36)
             }
-            #expect(byType.maxX <= host.bounds.maxX - PanelLayout.contentMargin)
+            #expect(byType.maxX <= host.bounds.maxX - MacOS15PanelLayout.contentMargin)
             #expect(!surfaces.contains { $0.intersects(search) })
             if protected {
                 let rail = try #require(
@@ -397,5 +410,14 @@ import Testing
                 try bitmap.representation(using: .png, properties: [:])?.write(to: file)
             }
         }
+        fixture.state.setPrivacyPermissions(allowSearch: false, showSourceApps: false)
+        try await Task.sleep(for: .milliseconds(250))
+        host.layoutSubtreeIfNeeded()
+        let views = descendants(host)
+        #expect(!views.contains { $0 is NSTextField })
+        #expect(
+            views.compactMap { $0 as? MacOS15BackdropView }.contains {
+                abs($0.bounds.width - 36) < 0.5 && abs($0.bounds.height - 36) < 0.5
+            })
     }
 }

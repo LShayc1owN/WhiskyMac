@@ -1,0 +1,365 @@
+// WhiskyMac: modified or added 2026-11-03 by LinShay (琳曦).
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Upstream attribution: NOTICE. Additional permissions:
+// LICENSE-EXCEPTION-APP-STORE.md and LICENSE-EXCEPTION-WHISKYMAC.md.
+
+import SwiftUI
+
+/// Equatable on the view state alone: the action closures never compare
+/// equal, and without this every card would rebuild (and visibly flash) on
+/// each selection move.
+struct MacOS15ItemCardView: View, Equatable {
+    static let sourceFontSize: CGFloat = 14.3
+
+    let card: CardViewState
+    /// Every menu entry, shortcut and gesture of the card lands here.
+    let actions: PanelActions
+    var keyBindings: KeyBindingsStore? = nil
+    /// One cursor at a time: while vim's search mode holds it, the ring
+    /// stays off even though the selection survives underneath.
+    var showsSelection = true
+    /// The card's side before the selection zoom.
+    var side: CGFloat = 200
+    var interactions = InteractionBindings()
+    var isPanelVisible = true
+    var hoverEnabled = true
+    var canExport: () -> Bool = { true }
+    var onInteraction: ((CardAction) -> Void)? = nil
+    var onHoverPreview: (() -> Void)? = nil
+    var onHoverChanged: ((Bool) -> Void)? = nil
+    @State private var showingMenu = false
+    @State private var editingPin = false
+    @State private var hoverTask: Task<Void, Never>?
+    @State private var isHovering = false
+
+    private func perform(_ action: CardAction) {
+        guard canExport() else { return }
+        if action == .menu {
+            showingMenu = true
+        } else if let onInteraction {
+            showingMenu = false; onInteraction(action)
+        } else if action == .paste {
+            actions.select(card.id)
+        } else if action == .copy {
+            actions.copy(card.id)
+        } else if action == .split, !card.contentHidden, !card.isSplitGroup, card.transformable {
+            actions.split(card.id)
+        }
+    }
+
+    static func == (lhs: MacOS15ItemCardView, rhs: MacOS15ItemCardView) -> Bool {
+        lhs.card == rhs.card && lhs.showsSelection == rhs.showsSelection && lhs.side == rhs.side
+            && lhs.interactions == rhs.interactions
+            && lhs.isPanelVisible == rhs.isPanelVisible
+            && lhs.hoverEnabled == rhs.hoverEnabled
+    }
+
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private static let shape = RoundedRectangle(cornerRadius: 18, style: .continuous)
+
+    private var zoomedSide: CGFloat {
+        side * HistoryViewStateStore.selectionZoom
+    }
+
+    private var selectedSide: CGFloat {
+        card.isSelected ? zoomedSide : side
+    }
+
+    private var cardAccessibilityValue: String {
+        guard card.isSplitGroup else { return card.accessibilityValue }
+        return [card.accessibilityValue, localized("Card group"), localized("\(card.splitCount) items")]
+            .joined(separator: ", ")
+    }
+
+    private var backdrop: some View {
+        Color.clear
+            .frame(width: selectedSide, height: selectedSide)
+            .background {
+                MacOS15ClipboardMaterialSurface(
+                    shape: Self.shape, cornerRadius: 18,
+                    tint: MacOS15SourceAppPalette.cardTint(
+                        SourceAppStyle.resolve(bundleID: card.sourceBundleID), dark: scheme == .dark))
+            }
+            .background {
+                if card.isSplitGroup { MacOS15CardGroupBackdrop() }
+            }
+            .macOS15ClipboardShadow(in: Self.shape)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: card.isSelected)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            header
+            if !card.pinnedMetadata.note.isEmpty {
+                Text(card.pinnedMetadata.note).font(.headline).lineLimit(2).padding(.horizontal, 14)
+            }
+            MacOS15PinTagDots(tags: card.pinnedMetadata.tags).padding(.horizontal, 14)
+            preview
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            footer
+        }
+        .interfaceType(.standard)
+        // The selection zoom needs both mechanisms at once: scaleEffect
+        // grows the SwiftUI-drawn content (text, icons, ring), while the
+        // frosted backdrop — an AppKit view that ignores transforms —
+        // grows geometrically to the same size. Same factor, same curve:
+        // they track. The outer slot stays constant so neighbors never
+        // shift.
+        .frame(width: side, height: side)
+        .overlay(selectionRing)
+        .scaleEffect(card.isSelected ? HistoryViewStateStore.selectionZoom : 1)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: card.isSelected)
+        .frame(width: zoomedSide, height: zoomedSide)
+        .background { backdrop }
+        .contentShape(Rectangle())
+        .macOS15GrabPointer()
+        .onDrag {
+            guard !card.contentHidden, !card.isSplitGroup, canExport(), card.variantCount <= 1 else {
+                return NSItemProvider()
+            }
+            actions.dragBegan()
+            return Self.dragProvider(for: card.dragPayload)
+        }
+        .gesture(
+            TapGesture(count: 2).exclusively(before: TapGesture(count: 1)).onEnded { value in
+                switch value {
+                case .first: perform(interactions.doubleClick)
+                case .second: perform(interactions.singleClick)
+                }
+            }
+        )
+        .background(MacOS15CardRightClick { perform(interactions.rightClick) })
+        .onHover { inside in
+            isHovering = inside
+            onHoverChanged?(inside)
+            scheduleHoverPreview()
+        }
+        .onChange(of: showingMenu) { _, shown in
+            hoverTask?.cancel()
+            if !shown { setEditingPin(false) }
+        }
+        .onChange(of: hoverEnabled) { _, _ in scheduleHoverPreview() }
+        .onChange(of: interactions) { _, _ in hoverTask?.cancel() }
+        .onDisappear {
+            setEditingPin(false)
+            hoverTask?.cancel()
+            onHoverChanged?(false)
+        }
+        .macOS15CardActionPopover(isPresented: $showingMenu) {
+            VStack(alignment: .leading, spacing: 10) {
+                if !canExport() {
+                    MacOS15PrivacyPlaceholder().padding(12)
+                } else if editingPin {
+                    MacOS15PinnedItemEditor(value: card.pinnedMetadata) { value in
+                        actions.updatePinnedMetadata(card.id, value)
+                        showingMenu = false
+                    }.padding(12)
+                } else {
+                    MacOS15CardActionMenu(
+                        card: card, actions: actions, keyBindings: keyBindings,
+                        perform: perform, editPinnedItem: { setEditingPin(true) },
+                        dismiss: { showingMenu = false }
+                    )
+                }
+            }
+        }
+        // Continuous, not enter/exit: after a keyboard scroll parks a card
+        // under the pointer, the very first real movement inside it must
+        // reclaim the selection — without crossing a card edge first.
+        .onContinuousHover { phase in
+            if case .active = phase, hoverEnabled, MouseActivity.movedRecently {
+                actions.highlight(card.id)
+            }
+        }
+
+        // One VoiceOver element per card: the presenter's label and value
+        // say it all, the icons and texts inside are decorative.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(card.accessibilityLabel)
+        .accessibilityValue(cardAccessibilityValue)
+        .accessibilityHint(localized("Uses the configured card action"))
+        .accessibilityAddTraits(card.isSelected && showsSelection ? [.isButton, .isSelected] : [.isButton])
+        .accessibilityAction(.default) { perform(interactions.singleClick) }
+        .accessibilityAction(named: Text(localized("Actions"))) { perform(.menu) }
+        .accessibilityAction(named: Text(localized("Copy"))) { perform(.copy) }
+        .accessibilityAction(named: Text(card.isPinned ? localized("Unpin") : localized("Pin"))) {
+            actions.togglePin(card.id)
+        }
+        .accessibilityAction(named: Text(localized("Delete"))) { actions.delete(card.id) }
+    }
+
+    private func setEditingPin(_ editing: Bool) {
+        guard editingPin != editing else { return }
+        editingPin = editing
+        actions.metadataEditorChanged(editing)
+    }
+
+    private func scheduleHoverPreview() {
+        hoverTask?.cancel()
+        guard isHovering, hoverEnabled, !showingMenu, isPanelVisible, interactions.hover == .preview else { return }
+        hoverTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(interactions.hoverDelay))
+            guard !Task.isCancelled else { return }
+            if let onHoverPreview { onHoverPreview() } else { perform(.preview) }
+        }
+    }
+
+    @ViewBuilder private var selectionRing: some View {
+        if card.isSelected && showsSelection {
+            Self.shape
+                .strokeBorder(Color.macOS15ReadableAccent(in: scheme), lineWidth: 2)
+        }
+    }
+
+    private var header: some View {
+        HStack(spacing: 7) {
+            if let icon = SourceAppStyle.resolve(bundleID: card.sourceBundleID).icon {
+                Image(nsImage: icon)
+                    .resizable()
+                    .frame(width: 22, height: 22)
+            } else {
+                Image(systemName: "doc.on.clipboard")
+                    .font(.system(size: Self.sourceFontSize))
+                    .foregroundStyle(.secondary)
+            }
+            MarqueeText(card.sourceLabel, font: .system(size: Self.sourceFontSize, weight: .semibold))
+                .frame(maxWidth: .infinity)
+                .help(
+                    card.sourceKey == "origin:handoff-marker"
+                        ? localized("A Handoff marker was observed. The device and source app are unknown.")
+                        : localized("Application observed on this Mac at capture time; source is not verified."))
+            if card.isSplitGroup { MacOS15CardGroupIndicator(count: card.splitCount) }
+            if card.variantCount > 1 {
+                Text("\(card.variantCount)").font(.caption.monospacedDigit())
+            }
+            Image(systemName: "ellipsis.circle")
+                .beButton { showingMenu = true }
+                .buttonStyle(.plain)
+                .fixedSize()
+                .help(localized("Actions"))
+            if let position = card.stackPosition {
+                HStack(spacing: 3) {
+                    Image(systemName: "square.stack.3d.up.fill")
+                        .font(.system(size: 8))
+                    Text("\(position)")
+                        .font(.caption2.weight(.bold).monospacedDigit())
+                }
+                .foregroundStyle(Color.macOS15ReadableAccent(in: scheme))
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Capsule().fill(Color.macOS15Matcha.opacity(0.18)))
+            }
+            if card.isPinned {
+                Image(systemName: "pin.fill")
+                    .font(.system(size: 9))
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.top, 12)
+        .padding(.bottom, 8)
+    }
+
+    @ViewBuilder private var preview: some View {
+        if card.contentHidden {
+            MacOS15HiddenPinnedContent(card: card).padding(.horizontal, 14)
+        } else if let richText = card.richText, case .text(let fallback) = card.dragPayload {
+            MacOS15DeferredRichTextCardView(
+                content: richText, fallback: fallback, matches: card.matches, isActive: isPanelVisible
+            )
+            .padding(.horizontal, 14)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .mask(bottomFade)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+        } else {
+            switch card.preview {
+            case .text(let value):
+                // A plain Text unless there is something to underline: the
+                // attributed path costs more and runs only under a live query.
+                Group {
+                    if card.matches.isEmpty {
+                        Text(value)
+                    } else {
+                        Text(MacOS15CodeTextView.highlighted(value, matches: card.matches))
+                    }
+                }
+                .font(.system(size: 12))
+                .padding(.horizontal, 14)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .mask(bottomFade)
+            case .color(let code, let rgb):
+                VStack(alignment: .leading, spacing: 8) {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(Color(red: rgb.red, green: rgb.green, blue: rgb.blue).opacity(rgb.alpha))
+                        .frame(height: 86)
+                    Text(code)
+                        .font(.callout.monospaced())
+                        .lineLimit(1)
+                }
+                .padding(.horizontal, 14)
+            case .code(let text, let tokens):
+                MacOS15CodeTextView(text: text, tokens: tokens, lineLimit: nil, matches: card.matches)
+                    .padding(.horizontal, 14)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .mask(bottomFade)
+            case .link(let address):
+                MacOS15LinkPreviewView(address: address, size: .card, isActive: isPanelVisible)
+                    .padding(.horizontal, 14)
+            case .storedImage(let reference):
+                MacOS15ImageThumbnailView(
+                    id: card.id, content: .stored(reference), fills: true, isActive: isPanelVisible
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .padding(.horizontal, 14)
+            case .image(let data):
+                MacOS15ImageThumbnailView(id: card.id, data: data, fills: true, isActive: isPanelVisible)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .padding(.horizontal, 14)
+            case .files(let names, let overflow, let thumbnailPath):
+                MacOS15FilePreviewView(
+                    names: names, overflow: overflow, thumbnailPath: thumbnailPath, size: .card,
+                    isActive: isPanelVisible
+                )
+                .padding(.horizontal, 14)
+            }
+        }
+    }
+
+    /// Overflowing text melts into the card's bottom edge instead of being
+    /// chopped: full opacity everywhere but the last stretch, which fades
+    /// to nothing. Short content never reaches the fade zone.
+    private var bottomFade: some View {
+        VStack(spacing: 0) {
+            Rectangle()
+            LinearGradient(colors: [.black, .clear], startPoint: .top, endPoint: .bottom)
+                .frame(height: 26)
+        }
+    }
+
+    private var footer: some View {
+        HStack(spacing: 6) {
+            Text(card.timeLabel)
+            Spacer()
+            if let detail = card.detailLabel {
+                Text(detail)
+                Text("·")
+            }
+            Image(systemName: card.kindSymbol)
+                .accessibilityLabel(card.kindLabel)
+                .help(card.kindLabel)
+        }
+        .font(.caption2)
+        .foregroundStyle(.secondary)
+        .lineLimit(1)
+        .minimumScaleFactor(0.75)
+        .padding(.horizontal, 14)
+        .padding(.top, 8)
+        .padding(.bottom, 12)
+    }
+
+    static func dragProvider(for payload: DragPayload) -> NSItemProvider {
+        CardDragProvider.make(for: payload)
+    }
+}

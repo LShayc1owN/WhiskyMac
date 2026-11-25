@@ -138,6 +138,13 @@ final class AppearanceSettingsStore: ObservableObject {
     @Published var accentMode: AccentMode {
         didSet { defaults.set(accentMode.rawValue, forKey: "accentMode"); changed?() }
     }
+    @Published private(set) var interfaceTypography: InterfaceTypography {
+        didSet {
+            defaults.set(interfaceTypography.percent, forKey: "interfaceFontPercent")
+            defaults.set(interfaceTypography.appliesToPlainText, forKey: "interfaceFontPlainText")
+            changed?()
+        }
+    }
     @Published var settingsAppearance: AppearanceMode {
         didSet { defaults.set(settingsAppearance.rawValue, forKey: "settingsAppearance"); changed?() }
     }
@@ -174,11 +181,24 @@ final class AppearanceSettingsStore: ObservableObject {
             defaults.string(forKey: "privacyStatusSymbol"), fallback: AppSymbol.defaultPrivacyName)
         dockIcon = DockIconMode(rawValue: defaults.string(forKey: "dockIcon") ?? "") ?? .followWindows
         accentMode = AccentMode(rawValue: defaults.string(forKey: "accentMode") ?? "") ?? .system
+        interfaceTypography = InterfaceTypography(
+            percent: defaults.object(forKey: "interfaceFontPercent") as? Int ?? InterfaceTypography.standard.percent,
+            appliesToPlainText: defaults.object(forKey: "interfaceFontPlainText") as? Bool ?? true)
         settingsAppearance = AppearanceMode(rawValue: defaults.string(forKey: "settingsAppearance") ?? "") ?? .system
         clipboardAppearance = AppearanceMode(rawValue: defaults.string(forKey: "clipboardAppearance") ?? "") ?? .system
         customAccent =
             defaults.data(forKey: "customAccent").flatMap { try? JSONDecoder().decode(AccentRGB.self, from: $0) }
             ?? .initial
+    }
+
+    func setInterfaceFontPercent(_ percent: Int) {
+        let next = InterfaceTypography(percent: percent, appliesToPlainText: interfaceTypography.appliesToPlainText)
+        if next != interfaceTypography { interfaceTypography = next }
+    }
+
+    func setPlainTextFollowsInterface(_ enabled: Bool) {
+        guard enabled != interfaceTypography.appliesToPlainText else { return }
+        interfaceTypography.appliesToPlainText = enabled
     }
 
     func statusSymbolName(protected: Bool, paused: Bool) -> String {
