@@ -29,7 +29,7 @@ For detailed behavior and limits, see the [project scope](docs/PROJECT.md) and [
 
 ## Privacy and data
 
-- History stays in `~/Library/Application Support/WhiskMay-Dev` under bundle ID `dev.whisky.maclx`. The rename does not move or delete existing development history, and upstream Whisk history is not imported automatically. Use `WHISK_MAY_DATA_DIR` for isolated tests.
+- WhiskyMac stores history in `~/Library/Application Support/WhiskyMac` under bundle ID `dev.whisky.maclx`. Upstream Whisk history is not imported automatically. Use `WHISKYMAC_DATA_DIR` for isolated tests.
 - Global shortcuts, link previews, sharing detection and launch-time update checks start off. Enabled link previews request metadata from the copied website. Manual and opt-in automatic update checks use WhiskyMac's stable GitHub releases; App Store builds omit external update checks.
 - Direct paste and optional sharing detection can need macOS permissions. Handoff attribution is a best-effort hint, not a verified device or app identity. Privacy Mode cannot recall content already exported to another app.
 

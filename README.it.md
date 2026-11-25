@@ -29,7 +29,7 @@ Per comportamenti e limiti dettagliati, consulta l'[ambito del progetto](docs/PR
 
 ## Privacy e dati
 
-- La cronologia rimane in `~/Library/Application Support/WhiskMay-Dev` con ID bundle `dev.whisky.maclx`. Il nuovo nome non sposta né cancella i dati di sviluppo esistenti; la cronologia di Whisk originale non viene importata automaticamente. `WHISK_MAY_DATA_DIR` serve per i test isolati.
+- WhiskyMac salva la cronologia in `~/Library/Application Support/WhiskyMac` e usa l’ID bundle `dev.whisky.maclx`. La cronologia di Whisk originale non viene importata automaticamente. `WHISKYMAC_DATA_DIR` serve per i test isolati.
 - Scorciatoie globali, anteprime dei link, rilevamento della condivisione e controllo degli aggiornamenti all'avvio sono disattivati inizialmente. Le anteprime attivate chiedono metadati al sito copiato. I controlli manuali o automatici attivati dall'utente usano le versioni stabili di WhiskyMac su GitHub; le build App Store non effettuano controlli esterni.
 - L'incolla diretto e il rilevamento facoltativo della condivisione possono richiedere permessi macOS. L'attribuzione Handoff è un indizio approssimativo, non un'identificazione verificata del dispositivo o dell'app. La modalità privacy non può ritirare contenuti già inviati ad altre app.
 

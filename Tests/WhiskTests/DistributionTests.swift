@@ -8,13 +8,13 @@ import Testing
 @testable import Whisk
 
 @Suite struct DistributionRules {
-    @Test func only_the_developer_id_build_checks_for_updates() {
+    @Test func only_builds_outside_the_app_store_check_for_updates() {
         #expect(Distribution.developerID.checksForUpdates)
         #expect(!Distribution.appStore.checksForUpdates)
-        #expect(Distribution.mayDevelopment.checksForUpdates)
+        #expect(Distribution.development.checksForUpdates)
     }
 
-    @Test func the_test_build_is_the_may_development_one() {
-        #expect(Distribution.current == .mayDevelopment)
+    @Test func the_test_build_uses_the_development_distribution() {
+        #expect(Distribution.current == .development)
     }
 }

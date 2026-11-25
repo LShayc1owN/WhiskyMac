@@ -10,13 +10,13 @@ import Testing
 
 @testable import Whisk
 
-@Suite struct MayIsolation {
-    @Test func original_environment_and_files_are_untouched_by_may_launch() throws {
+@Suite struct WhiskyMacIsolation {
+    @Test func upstream_environment_and_files_are_untouched_by_whiskymac_launch() throws {
         let root = FileManager.default.temporaryDirectory
-            .appendingPathComponent("may-isolation-\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent("whiskymac-isolation-\(UUID().uuidString)", isDirectory: true)
         defer { try? FileManager.default.removeItem(at: root) }
         let original = root.appendingPathComponent("Whisk", isDirectory: true)
-        let may = root.appendingPathComponent("WhiskMay-Dev", isDirectory: true)
+        let whiskyMac = root.appendingPathComponent("WhiskyMac", isDirectory: true)
         try FileManager.default.createDirectory(at: original, withIntermediateDirectories: true)
 
         let originalItem = anItem(.text("original"))
@@ -30,35 +30,35 @@ import Testing
 
         let selected = try HistoryStorage.defaultDirectory(environment: [
             "WHISK_DATA_DIR": original.path,
-            "WHISK_MAY_DATA_DIR": may.path,
+            "WHISKYMAC_DATA_DIR": whiskyMac.path,
         ])
-        #expect(selected == may)
-        let mayItem = anItem(.text("may"))
-        try HistoryStorage.open(in: selected, log: { _ in }).save([mayItem])
-        #expect(try HistoryStorage.open(in: selected, log: { _ in }).load() == [mayItem])
+        #expect(selected == whiskyMac)
+        let whiskyMacItem = anItem(.text("WhiskyMac"))
+        try HistoryStorage.open(in: selected, log: { _ in }).save([whiskyMacItem])
+        #expect(try HistoryStorage.open(in: selected, log: { _ in }).load() == [whiskyMacItem])
         #expect(try [originalDatabase, originalJSON, originalWAL].map { try Data(contentsOf: $0) } == before)
-        #expect(!FileManager.default.fileExists(atPath: may.appendingPathComponent("history.json").path))
+        #expect(!FileManager.default.fileExists(atPath: whiskyMac.appendingPathComponent("history.json").path))
     }
 
-    @Test func original_settings_domain_does_not_seed_may_settings() throws {
+    @Test func upstream_settings_domain_does_not_seed_whiskymac_settings() throws {
         let original = try IsolatedDefaults()
-        let may = try IsolatedDefaults()
+        let whiskyMac = try IsolatedDefaults()
         original.defaults.set(true, forKey: "checkForUpdates")
         original.defaults.set(true, forKey: "linkPreviews")
         original.defaults.set(true, forKey: "didShowOnboarding")
         original.defaults.set([KeyAction.togglePanel.rawValue], forKey: "enabledGlobalShortcuts")
 
-        let settings = GeneralSettingsStore(defaults: may.defaults)
-        let keys = KeyBindingsStore(defaults: may.defaults)
+        let settings = GeneralSettingsStore(defaults: whiskyMac.defaults)
+        let keys = KeyBindingsStore(defaults: whiskyMac.defaults)
         #expect(!settings.checkForUpdates)
         #expect(!settings.linkPreviews)
-        #expect(!may.defaults.bool(forKey: "didShowOnboarding"))
+        #expect(!whiskyMac.defaults.bool(forKey: "didShowOnboarding"))
         #expect(keys.enabledGlobalActions.isEmpty)
 
         settings.capacity = 250
         keys.setGlobalEnabled(true, for: .togglePanel)
-        #expect(GeneralSettingsStore(defaults: may.defaults).capacity == 250)
-        #expect(KeyBindingsStore(defaults: may.defaults).isGlobalEnabled(.togglePanel))
+        #expect(GeneralSettingsStore(defaults: whiskyMac.defaults).capacity == 250)
+        #expect(KeyBindingsStore(defaults: whiskyMac.defaults).isGlobalEnabled(.togglePanel))
         #expect(original.defaults.integer(forKey: "historyCapacity") == 0)
         #expect(original.defaults.stringArray(forKey: "enabledGlobalShortcuts") == ["togglePanel"])
     }

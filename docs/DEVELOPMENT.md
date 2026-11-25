@@ -31,7 +31,7 @@ When a package is needed, run `./scripts/build-app.sh <version> native` (or
 replacing other outputs. The default build writes to `dist/`, replacing that
 output directory. A build without a signing identity is signed ad hoc.
 
-`bash scripts/smoke-may-dev.sh <archive.zip>` verifies an extracted archive and
+`bash scripts/smoke-whiskymac-dev.sh <archive.zip>` verifies an extracted archive and
 runs isolated startup checks without clipboard polling. It uses temporary
 history and preferences. It does not read or migrate the user's history.
 
@@ -39,12 +39,12 @@ history and preferences. It does not read or migrate the user's history.
 
 - Display name: WhiskyMac.
 - Bundle identifier and preferences: `dev.whisky.maclx`.
-- Development history: `~/Library/Application Support/WhiskMay-Dev`.
-- Isolated test override: `WHISK_MAY_DATA_DIR`; upstream `WHISK_DATA_DIR` is ignored.
+- History directory is `~/Library/Application Support/WhiskyMac`.
+- Isolated tests use `WHISKYMAC_DATA_DIR`. The app ignores upstream `WHISK_DATA_DIR`.
 
-The renamed app retains the development data location. It does not import the
-upstream Whisk data automatically. The packaged resource bundle remains
-`Contents/Resources/Whisk_Whisk.bundle` and must ship inside the app.
+WhiskyMac imports history from its selected data directory. The packaged
+resource bundle is `Contents/Resources/Whisk_Whisk.bundle` and must ship inside
+the app.
 
 ## Behavior and limitations
 

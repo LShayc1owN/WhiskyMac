@@ -10,8 +10,8 @@ import Foundation
 enum AppIdentity {
     static let bundleIdentifier = "dev.whisky.maclx"
     static let displayName = "WhiskyMac"
-    static let dataDirectoryName = "WhiskMay-Dev"
-    static let dataDirectoryOverride = "WHISK_MAY_DATA_DIR"
+    static let dataDirectoryName = "WhiskyMac"
+    static let dataDirectoryOverride = "WHISKYMAC_DATA_DIR"
 
     static let smokeDefaultsDomain = bundleIdentifier + ".smoke." + UUID().uuidString
 

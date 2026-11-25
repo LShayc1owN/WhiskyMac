@@ -54,7 +54,7 @@ enum HistoryStorage {
     static let legacyIndexName = "history.json"
     static let retiredSuffix = ".migrated"
 
-    /// The May development directory, unless a dedicated test path is set.
+    /// The WhiskyMac data directory, unless a dedicated test path is set.
     static func defaultDirectory(
         fileManager: FileManager = .default,
         environment: [String: String] = ProcessInfo.processInfo.environment

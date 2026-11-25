@@ -29,7 +29,7 @@
 
 ## 隱私與資料
 
-- Bundle ID 為 `dev.whisky.maclx`，歷史紀錄儲存在 `~/Library/Application Support/WhiskMay-Dev`。重新命名應用程式不會搬移或刪除既有開發資料，也不會自動匯入原始 Whisk 的歷史紀錄。隔離測試可使用 `WHISK_MAY_DATA_DIR`。
+- Bundle ID 為 `dev.whisky.maclx`，歷史紀錄儲存在 `~/Library/Application Support/WhiskyMac`。上游 Whisk 的歷史紀錄不會自動匯入。隔離測試可使用 `WHISKYMAC_DATA_DIR`。
 - 全域快速鍵、連結預覽、分享偵測及啟動時檢查更新預設關閉。啟用連結預覽後，應用程式會向複製連結所指向的網站要求中繼資料。可手動檢查更新，或自行開啟從 GitHub 穩定版本取得更新資訊的功能；App Store 版本不進行外部更新檢查。
 - 直接貼上及選用的分享偵測可能需要 macOS 權限。Handoff 來源僅為盡力提供的提示，無法確認具體裝置或應用程式。隱私模式無法收回已傳送至其他應用程式的內容。
 

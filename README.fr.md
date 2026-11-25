@@ -29,7 +29,7 @@ Pour les comportements précis et les limites, consultez le [périmètre du proj
 
 ## Confidentialité et données
 
-- L'historique reste dans `~/Library/Application Support/WhiskMay-Dev` avec l'identifiant `dev.whisky.maclx`. Le changement de nom ne déplace ni n'efface les données de développement existantes ; l'historique de Whisk d'origine n'est pas importé automatiquement. `WHISK_MAY_DATA_DIR` permet d'isoler les tests.
+- WhiskyMac enregistre l’historique dans `~/Library/Application Support/WhiskyMac` et utilise l’identifiant `dev.whisky.maclx`. L’historique de Whisk d’origine n’est pas importé automatiquement. `WHISKYMAC_DATA_DIR` permet d’isoler les tests.
 - Raccourcis globaux, aperçus de liens, détection du partage et recherche de mises à jour au démarrage sont désactivés par défaut. Les aperçus activés demandent les métadonnées au site copié. Les vérifications manuelles ou activées par l'utilisateur utilisent les versions stables de WhiskyMac sur GitHub ; les versions App Store omettent cette vérification externe.
 - Le collage direct et la détection facultative du partage peuvent nécessiter des autorisations macOS. L'attribution Handoff est une indication approximative, sans identification vérifiée de l'appareil ou de l'application. Le mode de confidentialité ne peut pas retirer un contenu déjà transmis à une autre application.
 

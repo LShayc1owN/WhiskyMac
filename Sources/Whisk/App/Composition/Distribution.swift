@@ -9,13 +9,13 @@
 /// forbid an updater of its own.
 enum Distribution: Equatable {
     case developerID
-    case mayDevelopment
+    case development
     case appStore
 
     /// Whether the app may look for a newer version and point to it.
     var checksForUpdates: Bool {
         switch self {
-        case .developerID, .mayDevelopment: true
+        case .developerID, .development: true
         case .appStore: false
         }
     }
@@ -23,8 +23,8 @@ enum Distribution: Equatable {
     static var current: Distribution {
         #if APP_STORE
             .appStore
-        #elseif WHISK_MAY_DEV
-            .mayDevelopment
+        #elseif WHISKYMAC_DEV
+            .development
         #else
             .developerID
         #endif

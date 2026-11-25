@@ -10,7 +10,7 @@ let package = Package(
             name: "Whisk",
             exclude: ["Resources/Localizable.xcstrings", "Components/README.md"],
             resources: [.process("Resources"), .copy("WhiskyMacSymbols.bundle")],
-            swiftSettings: [.swiftLanguageMode(.v5), .define("WHISK_MAY_DEV")]
+            swiftSettings: [.swiftLanguageMode(.v5), .define("WHISKYMAC_DEV")]
         ),
         .testTarget(
             name: "WhiskTests",

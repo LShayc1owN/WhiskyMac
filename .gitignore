@@ -12,7 +12,6 @@ private_keys/
 
 # Local agent context, acceptance evidence and editing workspaces.
 /CLAUDE.md
-/WHISK_MAY_DEV.md
 /AGENTS.md
 /.agents/
 /.claude/

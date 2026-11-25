@@ -29,7 +29,7 @@ Genaues Verhalten und Grenzen stehen im [Projektumfang](docs/PROJECT.md) und [Ä
 
 ## Datenschutz und Daten
 
-- Der Verlauf bleibt unter `~/Library/Application Support/WhiskMay-Dev` mit Bundle-ID `dev.whisky.maclx`. Die Umbenennung verschiebt oder löscht bestehende Entwicklungsdaten nicht; der ursprüngliche Whisk-Verlauf wird nicht automatisch importiert. `WHISK_MAY_DATA_DIR` dient isolierten Tests.
+- WhiskyMac speichert den Verlauf unter `~/Library/Application Support/WhiskyMac` und verwendet die Bundle-ID `dev.whisky.maclx`. Der Verlauf der ursprünglichen Whisk-App wird nicht automatisch importiert. `WHISKYMAC_DATA_DIR` dient isolierten Tests.
 - Globale Kürzel, Linkvorschauen, Freigabeerkennung und Updateprüfungen beim Start sind anfangs aus. Aktivierte Linkvorschauen fragen Metadaten bei der kopierten Website ab. Manuelle und freiwillig aktivierte automatische Updateprüfungen verwenden stabile WhiskyMac-Versionen auf GitHub; App-Store-Builds verzichten auf externe Prüfungen.
 - Direktes Einfügen und die optionale Freigabeerkennung können macOS-Berechtigungen benötigen. Die Handoff-Zuordnung ist ein Hinweis nach bestem Bemühen, keine verifizierte Geräte- oder App-Identität. Der Datenschutzmodus kann bereits an andere Apps übertragene Inhalte nicht zurückholen.
 

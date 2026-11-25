@@ -2,8 +2,8 @@
 
 This development version is based on Whisk v1.0.3, commit
 `1ebcee1e0735e957777c599017ee411d8046c7e7`, by Nathan Poncet and
-contributors. The upstream Git history and license files are retained. May
-changes in this checkout add a separate application identity, storage and
+contributors. The upstream Git history and license files are retained. This
+checkout adds a separate application identity, storage and
 preferences isolation, opt-in global shortcuts, and development packaging.
 The upstream `Whisk` Swift target name is intentionally retained.
 
@@ -13,27 +13,23 @@ The upstream `Whisk` Swift target name is intentionally retained.
 | --- | --- |
 | Bundle identifier and preferences suite | `dev.whisky.maclx` |
 | App name | `WhiskyMac` |
-| History directory | `~/Library/Application Support/WhiskMay-Dev` |
-| Test-only directory override | `WHISK_MAY_DATA_DIR` |
+| History directory | `~/Library/Application Support/WhiskyMac` |
+| Test-only directory override | `WHISKYMAC_DATA_DIR` |
 | Minimum macOS version | 15.0 |
 
-The original `WHISK_DATA_DIR` override is ignored. May does not import data
-from the original Whisk directory. Its own directory still supports the
-upstream JSON-to-SQLite import for May-owned historical files. Paths for
-future imported icons and preview caches are defined under the May directory,
-but those features do not write files yet.
+WhiskyMac reads `WHISKYMAC_DATA_DIR` for isolated tests. It supports
+JSON-to-SQLite import for historical files in the selected WhiskyMac directory.
 
 Both global shortcuts start off. Each can be enabled in Settings or enabled
-by recording its binding. Link previews start off. The upstream update check
-is disabled for this development distribution, including if an old preference
-claims it was enabled. Login items are registered only when chosen in Settings.
+by recording its binding. Link previews and launch-time update checks start
+off. Login items are registered only when chosen in Settings.
 
 Build locally with `scripts/build-app.sh 0.0.5 native`. It produces
 `dist/WhiskyMac.zip` containing an ad-hoc signed app. Extract the ZIP
 before launching. The development package uses the WhiskyMac icon from
 Assets/icon.icns and the custom symbol resources in Assets/Symbols.
 
-Run `bash scripts/smoke-may-dev.sh` to verify the ZIP's signature and launch
+Run `bash scripts/smoke-whiskymac-dev.sh` to verify the ZIP's signature and launch
 the app with a temporary history directory. Smoke mode does not start
 clipboard polling.
 
