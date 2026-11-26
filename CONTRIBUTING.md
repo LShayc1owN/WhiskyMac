@@ -25,14 +25,14 @@ swift run Whisk --show-settings   # open the Settings window immediately
 
 ## Before you push
 
-CI runs exactly these, in this order — run them locally first:
+Run these checks locally before pushing:
 
 ```sh
 ./scripts/check-dependency-rule.sh
 swift format lint --strict --recursive Sources Tests Package.swift
 swift build
 ./scripts/localizations.sh check
-COVERAGE_MIN=90 ./scripts/coverage.sh  # needs Xcode; includes swift test
+python3 scripts/paired-coverage.py  # full suite with coverage on this Mac
 ```
 
 `swift format format --in-place --recursive Sources Tests` fixes most lint
@@ -78,11 +78,22 @@ TDD is the house style: write the failing test first. Conventions:
   them in a window that is never ordered in (see `ViewRenderingTests`),
   one case per state the view can show. A test must never put a window
   on screen, register a hot key or touch the general pasteboard.
-- `./scripts/coverage.sh` runs the suite with coverage and prints the
-  per-file report CI archives. CI fails under 90 % line coverage of the
-  testable code (everything but `AppDelegate`, `HotKey`, `PasteSimulator`
-  and `main`); run it as `COVERAGE_MIN=90 ./scripts/coverage.sh` before
-  pushing.
+- The acceptance gate is **95% combined line coverage** over passing full
+  suites on macOS 15 and 26. Both use the same revision and Xcode build
+  (CI uses Xcode 26.3). The existing exclusions for AppDelegate, HotKey,
+  PasteSimulator and WhiskyMacMain apply on both systems.
+- From a logged-in desktop, run `python3 scripts/paired-coverage.py` on the
+  first Mac. Copy its `coverage-macos-15.zip` (or 26) to the other Mac.
+  With the same sources, run `python3 scripts/paired-coverage.py /path/to/first.zip`.
+  Return the new ZIP even when tests fail or coverage is below the minimum.
+  It includes the full test log, system/toolchain and revision metadata,
+  and a profile after successful tests. The two-system result includes
+  per-file covered/total lines in `combined.json`. The gate uses exact
+  counts from merged LLVM execution counters. A one-system run collects
+  evidence for later pairing.
+- For an offline checkout, unpack a Git source archive and place the full
+  source commit ID in `COVERAGE_REVISION` at its root. The collector also
+  compares a digest of the package, sources, resources and tests.
 
 ## User-facing strings
 
