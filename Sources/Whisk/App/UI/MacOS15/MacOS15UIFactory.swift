@@ -13,7 +13,8 @@ final class MacOS15UIFactory: AppUIFactory {
                 exportDiagnostics: context.exportDiagnostics, previewClipboard: context.previewClipboard,
                 cancelClipboardPreview: context.cancelClipboardPreview, appearance: context.appearance,
                 updateChecker: context.updateChecker, search: context.search,
-                developerMode: context.developerMode, selectedPage: initialPage))
+                developerMode: context.developerMode, selectedSection: context.search.lastViewedSection,
+                selectedPage: initialPage))
         let window = NSWindow(contentViewController: hosting)
         window.setContentSize(hosting.view.fittingSize)
         window.styleMask.remove([.resizable, .miniaturizable])

@@ -39,7 +39,7 @@ struct MacOS15SettingsView: View {
     @State private var cardSizeDraft = SizeSettingDraft()
     @State private var tagSizeDraft = SizeSettingDraft()
     @State private var systemColorScheme = AppearanceMode.systemColorScheme
-    @State private var selectedSection: SettingsSectionID?
+    @State var selectedSection: SettingsSectionID?
     @State private var minimumSidebarWidth = AppearanceSettingsStore.sidebarWidthRange.lowerBound
     @State private var sidebarDragStart: CGFloat?
     @State private var detectionCoverageExpanded = false
@@ -180,6 +180,7 @@ struct MacOS15SettingsView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .settingsWindowClosed)) { _ in
+            search.lastViewedSection = selectedSectionID
             resetUndo.dismiss()
             cardSizeDraft.revert()
             tagSizeDraft.revert()

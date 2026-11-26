@@ -73,7 +73,14 @@ import Testing
         board.pendingSnapshots = [PasteboardSnapshot(payload: .fileReferences(["/new.pdf"]), source: nil)]
         controller.pollTick()
         #expect(controller.openingThumbnailItems(slotLimit: 1).map(\.payload) == [.fileReferences(["/new.pdf"])])
-        #expect(PanelThumbnailPreparation.slotLimit(width: 1512, stride: 224) == 11)
+    }
+
+    @Test func hidden_preparation_keeps_the_first_screen_and_one_scroll_ahead() {
+        #expect(PanelThumbnailPreparation.slotLimit(width: 0, stride: 224) == 0)
+        #expect(PanelThumbnailPreparation.slotLimit(width: 1512, stride: 0) == 0)
+        #expect(PanelThumbnailPreparation.slotLimit(width: 1512, stride: 224) == 8)
+        #expect(PanelThumbnailPreparation.slotLimit(width: 1120, stride: 224) == 6)
+        #expect(PanelThumbnailPreparation.slotLimit(width: 1121, stride: 224) == 7)
         #expect(PanelThumbnailPreparation.slotLimit(width: 20000, stride: 100) == 24)
     }
 

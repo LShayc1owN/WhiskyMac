@@ -281,6 +281,8 @@ struct SettingsSearchIndex {
 }
 
 final class SettingsSearchModel: ObservableObject {
+    /// Last settings location in this session, independent of the search query.
+    var lastViewedSection: SettingsSectionID?
     @Published var query = "" { didSet { if query != oldValue { updateResults() } } }
     @Published private(set) var results: [SettingsSearchEntry] = []
     @Published private(set) var selectedIndex = 0

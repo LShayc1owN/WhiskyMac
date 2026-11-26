@@ -21,8 +21,15 @@ final class AppWindowHandle {
 
     func release() {
         guard prepare != nil else { return }
-        prepare = nil
         window.close()
+        detachContent()
+    }
+
+    /// Also used from willClose, when AppKit is already closing the window.
+    func detachContent() {
+        guard prepare != nil else { return }
+        prepare = nil
+        window.makeFirstResponder(nil)
         window.toolbar?.delegate = nil
         window.toolbar = nil
         window.contentViewController = nil

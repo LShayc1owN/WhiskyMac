@@ -14,7 +14,8 @@ final class MacOS26UIFactory: AppUIFactory {
                 exportDiagnostics: context.exportDiagnostics, previewClipboard: context.previewClipboard,
                 cancelClipboardPreview: context.cancelClipboardPreview, appearance: context.appearance,
                 updateChecker: context.updateChecker, search: context.search,
-                developerMode: context.developerMode, selectedPage: initialPage))
+                developerMode: context.developerMode, selectedPage: initialPage,
+                selectedSection: context.search.lastViewedSection))
         window.appearance = context.appearance.settingsAppearance.nsAppearance
         window.title = localized("WhiskyMac Settings")
         window.isReleasedWhenClosed = false

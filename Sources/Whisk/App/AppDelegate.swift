@@ -88,7 +88,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             else { return }
             if window === self.settingsWindow {
                 self.panelController?.cancelSizePreview()
+                self.keyBindings.endRecording()
                 NotificationCenter.default.post(name: .settingsWindowClosed, object: nil)
+                self.settingsUI?.detachContent()
+                self.settingsUI = nil
             } else {
                 self.keyBindings.endRecording()
                 self.onboardingUI = nil
@@ -374,6 +377,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return clipboard.openingThumbnailItems(
                 slotLimit: PanelThumbnailPreparation.slotLimit(width: width, stride: stateStore.cardStride))
         }
+        sessionObservers.append(
+            MainRunLoop.observe(NSApplication.didChangeScreenParametersNotification) { [weak self] _ in
+                self?.thumbnailPreparation?.schedule()
+            })
         clipboard.setLayoutDirection(
             NSApp.userInterfaceLayoutDirection == .rightToLeft ? .rightToLeft : .leftToRight)
         // willSet semantics again: hop to the next cycle so the policy is
@@ -496,8 +503,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         openSettings()
         precondition(settingsWindow?.isVisible == true && NSApp.activationPolicy() == .regular)
         precondition(settingsWindow?.title == localized("WhiskyMac Settings"))
-        settingsWindow?.close()
+        let previousWindow = settingsWindow
+        previousWindow?.close()
+        precondition(settingsWindow == nil && previousWindow?.contentView == nil && previousWindow?.toolbar == nil)
         precondition(NSApp.activationPolicy() == .accessory)
+        openSettings()
+        precondition(settingsWindow !== previousWindow && settingsWindow?.isVisible == true)
+        settingsWindow?.close()
         appearance.statusClick = .menu
         precondition(appearance.statusClick.opensMenu(rightClick: false))
         appearance.statusClick = .history
@@ -802,6 +814,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         stateStore.configureCards(side: side)
         stateStore.configureFilterTags(scale: scale)
         panelController?.cardSizeDidChange()
+        thumbnailPreparation?.schedule()
     }
 
     @MainActor private func exportDiagnostics() async throws {
@@ -848,14 +861,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 ? $0 : nil
         }
         if settingsWindow == nil {
-            settingsUI = makeSettingsWindow(initialPage: destination?.page ?? .general)
+            let lastPage = settingsSearch.lastViewedSection?.page
+            settingsUI = makeSettingsWindow(initialPage: destination?.page ?? lastPage ?? .general)
         }
         settingsUI?.prepareForPresentation()
         settingsWindow?.center()
         if appearance.dockIcon != .never { NSApp.setActivationPolicy(.regular) }
         NSApp.activate(ignoringOtherApps: true)
         settingsWindow?.makeKeyAndOrderFront(nil)
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [weak window = settingsWindow] in
+            guard window?.isVisible == true else { return }
             if let destination {
                 NotificationCenter.default.post(
                     name: .settingsPageRequested,
