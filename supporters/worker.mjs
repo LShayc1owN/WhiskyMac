@@ -55,9 +55,10 @@ async function save(feishu, updates) {
 
 const afdianOrderId = /^[A-Za-z0-9_-]{1,64}$/;
 const claimCode = /^[A-Za-z0-9]{8}$/;
-const afdianMatch = '已付款，留言核对码一致';
+const afdianRemark = /^(.+?)\s*[/／]\s*([A-Za-z0-9]{8})$/u;
+const afdianMatch = '已付款，留言项目名和核对码一致';
 
-function afdianResult(order, code) {
+function afdianResult(order, code, project) {
   if (!order) return '待人工核对，未查到订单';
   const amount = order.total_amount;
   if (order.status !== 2 || typeof amount !== 'string'
@@ -66,11 +67,15 @@ function afdianResult(order, code) {
   }
   const remark = typeof order.remark === 'string' ? order.remark.trim() : '';
   if (!remark) return '已付款，缺少订单留言，请核对私信';
-  if (remark !== code) return '已付款，留言核对码不一致，请核对私信';
+  if (claimCode.test(remark)) return '已付款，留言缺少项目名，请核对私信';
+  const match = remark.match(afdianRemark);
+  if (!match) return '已付款，留言格式无法识别，请核对私信';
+  if (orderKey(match[1].trim()) !== project) return '已付款，留言项目名不符，请核对私信';
+  if (match[2] !== code) return '已付款，留言核对码不一致，请核对私信';
   return afdianMatch;
 }
 
-async function verifyAfdianClaims(feishu, openAfdian) {
+async function verifyAfdianClaims(feishu, openAfdian, project) {
   const claims = [];
   const updates = new Map();
   const ids = new Set();
@@ -93,7 +98,7 @@ async function verifyAfdianClaims(feishu, openAfdian) {
   const orders = ids.size ? await openAfdian().orders([...ids]) : new Map();
   const matched = new Map();
   for (const { row, id, code } of claims) {
-    const result = afdianResult(orders.get(id), code);
+    const result = afdianResult(orders.get(id), code, project);
     if (result !== afdianMatch) {
       change(updates, row, { [afdianReview.result]: result });
       continue;
@@ -242,8 +247,12 @@ export default {
     if (checkAfdian && env.FEISHU_AFDIAN_ORDER_CHECK_ENABLED !== 'true') return;
     try {
       const feishu = await connectFeishu(env);
-      if (checkAfdian) await verifyAfdianClaims(feishu, () => connectAfdian(env));
-      else await synchronize(feishu, () => connectGitHub(env));
+      if (checkAfdian) {
+        const project = orderKey(env.AFDIAN_PROJECT_NAME?.trim() || 'WhiskyMac');
+        await verifyAfdianClaims(feishu, () => connectAfdian(env), project);
+      } else {
+        await synchronize(feishu, () => connectGitHub(env));
+      }
     } catch (error) {
       if (error instanceof Error && /^[\p{Script=Han}A-Za-z]/u.test(error.message)) {
         console.error(error.message);

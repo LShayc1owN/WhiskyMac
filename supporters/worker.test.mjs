@@ -192,6 +192,9 @@ test('checks Afdian payments and private order remarks without approving or publ
     claim('matched', 'paid', { [field.approval]: '' }),
     claim('legacy', 'no-note', { [field.approval]: '待补充' }),
     claim('mismatch', 'other-note'),
+    claim('other-project', 'other-project'),
+    claim('old-code', 'old-code'),
+    claim('bad-format', 'bad-format'),
     claim('not-paid', 'not-paid'),
     claim('no-charge', 'no-charge'),
     claim('missing', 'missing'),
@@ -205,10 +208,11 @@ test('checks Afdian payments and private order remarks without approving or publ
     FEISHU_APP_ID: 'test-app', FEISHU_APP_SECRET: 'test-secret',
     FEISHU_BASE_TOKEN: 'test-base', FEISHU_TABLE_ID: 'test-table',
     FEISHU_AFDIAN_ORDER_CHECK_ENABLED: 'true',
+    AFDIAN_PROJECT_NAME: 'WhiskyMac',
     AFDIAN_API_TOKEN: 'test-api-token', AFDIAN_USER_ID: 'test-creator',
   };
   const order = (id, fields = {}) => ({
-    out_trade_no: id, status: 2, total_amount: '5.00', remark: 'aB123456', ...fields,
+    out_trade_no: id, status: 2, total_amount: '5.00', remark: 'WhiskyMac / aB123456', ...fields,
   });
   const schedule = { cron: '5,20,35,50 * * * *' };
   const saved = [];
@@ -235,7 +239,7 @@ test('checks Afdian payments and private order remarks without approving or publ
     assert.equal(url.href, 'https://afdian.com/api/open/query-order');
     assert.equal(body.user_id, env.AFDIAN_USER_ID);
     assert.deepEqual(JSON.parse(body.params), {
-      out_trade_no: 'paid,no-note,other-note,not-paid,no-charge,missing,duplicate',
+      out_trade_no: 'paid,no-note,other-note,other-project,old-code,bad-format,not-paid,no-charge,missing,duplicate',
     });
     const signature = createHash('md5')
       .update(`test-api-tokenparams${body.params}ts${body.ts}user_idtest-creator`).digest('hex');
@@ -243,9 +247,12 @@ test('checks Afdian payments and private order remarks without approving or publ
     assert.equal(body.sign, signature);
     if (providerFailed) return Response.json({ ec: 400005, debug: 'test-api-token' });
     return Response.json({ ec: 200, data: { list: [
-      order('paid', { plan_id: '', total_amount: '8.50' }),
+      order('paid', { plan_id: '', total_amount: '8.50', remark: ' whiskymac ／ aB123456 ' }),
       order('no-note', { remark: '' }),
-      order('other-note', { remark: 'another-code' }),
+      order('other-note', { remark: 'WhiskyMac / Ab654321' }),
+      order('other-project', { remark: 'Another Project / aB123456' }),
+      order('old-code', { remark: 'aB123456' }),
+      order('bad-format', { remark: 'Thanks! aB123456' }),
       order('not-paid', { status: 1 }),
       order('no-charge', { total_amount: '0.00' }),
       order('duplicate'),
@@ -259,9 +266,12 @@ test('checks Afdian payments and private order remarks without approving or publ
     assert.deepEqual(Object.keys(fields), [afdianReview.result]);
     return [record_id, fields[afdianReview.result]];
   })), {
-    matched: '已付款，留言核对码一致',
+    matched: '已付款，留言项目名和核对码一致',
     legacy: '已付款，缺少订单留言，请核对私信',
     mismatch: '已付款，留言核对码不一致，请核对私信',
+    'other-project': '已付款，留言项目名不符，请核对私信',
+    'old-code': '已付款，留言缺少项目名，请核对私信',
+    'bad-format': '已付款，留言格式无法识别，请核对私信',
     'not-paid': '待人工核对，订单未确认实付',
     'no-charge': '待人工核对，订单未确认实付',
     missing: '待人工核对，未查到订单',
