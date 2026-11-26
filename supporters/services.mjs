@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 export const field = {
   order: 'Patreon 订单号',
   afdianOrder: '爱发电订单号',
@@ -13,6 +15,8 @@ export const field = {
 
 export const approval = { approved: '已通过', revoked: '已撤销' };
 export const githubUsername = /^(?=.{1,39}$)[a-z\d]+(?:-[a-z\d]+)*$/i;
+export const afdianReview = { code: '核对码', result: '爱发电核对结果' };
+export const pendingAfdianStatuses = ['', '待审核', '待补充'];
 
 function setting(env, key) {
   const value = env[key]?.trim();
@@ -76,43 +80,53 @@ export async function connectFeishu(env) {
   const includeAfdian = env.FEISHU_AFDIAN_ENABLED === 'true';
   const fieldNames = Object.values(field).filter((name) => includeAfdian || name !== field.afdianOrder);
 
-  return {
-    async list() {
-      const records = [];
-      const seenPages = new Set();
-      let pageToken;
-      do {
-        const params = new URLSearchParams({ page_size: '500' });
-        if (pageToken) params.set('page_token', pageToken);
-        const { data } = await feishuRequest('读取飞书审批', `${endpoints}/search?${params}`, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({
-            field_names: fieldNames,
-            filter: {
-              conjunction: 'or',
-              conditions: Object.values(approval).map((value) => ({
-                field_name: field.approval, operator: 'is', value: [value],
-              })),
-            },
-          }),
-        });
-        const items = data?.items ?? (data?.total === 0 ? [] : null);
-        if (typeof data?.has_more !== 'boolean' || !Array.isArray(items)
-          || items.some((row) => !row?.record_id || !row.fields)) {
-          throw new Error('飞书审批记录格式无效');
-        }
-        records.push(...items);
-        pageToken = data.has_more ? data.page_token : undefined;
-        if (data.has_more && (!pageToken || seenPages.has(pageToken))) {
-          throw new Error('飞书审批记录分页失败');
-        }
-        if (pageToken) seenPages.add(pageToken);
-      } while (pageToken);
-      if (new Set(records.map((row) => row.record_id)).size !== records.length) {
-        throw new Error('读取飞书时记录发生变动，请重试');
+  async function search(label, names, statuses) {
+    const filter = {
+      conjunction: 'or',
+      conditions: statuses.map((status) => ({
+        field_name: field.approval,
+        operator: status ? 'is' : 'isEmpty',
+        value: status ? [status] : [],
+      })),
+    };
+    const records = [];
+    const seenPages = new Set();
+    let pageToken;
+    do {
+      const params = new URLSearchParams({ page_size: '500' });
+      if (pageToken) params.set('page_token', pageToken);
+      const { data } = await feishuRequest(label, `${endpoints}/search?${params}`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ field_names: names, filter }),
+      });
+      const items = data?.items ?? (data?.total === 0 ? [] : null);
+      if (typeof data?.has_more !== 'boolean' || !Array.isArray(items)
+        || items.some((row) => !row?.record_id || !row.fields)) {
+        throw new Error('飞书审批记录格式无效');
       }
-      return records;
+      records.push(...items);
+      pageToken = data.has_more ? data.page_token : undefined;
+      if (data.has_more && (!pageToken || seenPages.has(pageToken))) {
+        throw new Error('飞书审批记录分页失败');
+      }
+      if (pageToken) seenPages.add(pageToken);
+    } while (pageToken);
+    if (new Set(records.map((row) => row.record_id)).size !== records.length) {
+      throw new Error('读取飞书时记录发生变动，请重试');
+    }
+    return records;
+  }
+
+  return {
+    list() {
+      return search('读取飞书审批', fieldNames, Object.values(approval));
+    },
+
+    listPendingAfdian() {
+      return search('读取飞书待核对申请', [
+        field.order, field.afdianOrder, field.approval, afdianReview.code, afdianReview.result,
+      ], pendingAfdianStatuses);
     },
 
     async update(records) {
@@ -124,6 +138,46 @@ export async function connectFeishu(env) {
           body: JSON.stringify({ records: batch }),
         });
       }
+    },
+  };
+}
+
+export function connectAfdian(env) {
+  const userId = setting(env, 'AFDIAN_USER_ID');
+  const token = setting(env, 'AFDIAN_API_TOKEN');
+  const label = '查询爱发电订单';
+
+  return {
+    async orders(ids) {
+      const orders = new Map();
+      // The order API returns up to 50 orders per page.
+      for (let index = 0; index < ids.length; index += 25) {
+        const batch = ids.slice(index, index + 25);
+        const expected = new Set(batch);
+        const params = JSON.stringify({ out_trade_no: batch.join(',') });
+        const ts = Math.floor(Date.now() / 1000);
+        // Afdian requires this signature format for its legacy API.
+        const sign = createHash('md5').update(`${token}params${params}ts${ts}user_id${userId}`).digest('hex');
+        const response = await request(label, 'https://afdian.com/api/open/query-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: userId, params, ts, sign }),
+        });
+        const body = await json(label, response);
+        if (body?.ec !== 200) {
+          const code = Number.isInteger(body?.ec) ? body.ec : '未知';
+          throw new Error(`${label}失败（爱发电错误码 ${code}）`);
+        }
+        if (!Array.isArray(body.data?.list) || Number(body.data.total_page) > 1) {
+          throw new Error('爱发电订单返回格式无效');
+        }
+        for (const order of body.data.list) {
+          const id = order?.out_trade_no;
+          if (!expected.has(id) || orders.has(id)) throw new Error('爱发电订单结果与查询不一致');
+          orders.set(id, order);
+        }
+      }
+      return orders;
     },
   };
 }

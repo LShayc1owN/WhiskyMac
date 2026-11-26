@@ -1,4 +1,9 @@
-import { approval, connectFeishu, connectGitHub, field, githubUsername } from './services.mjs';
+import {
+  afdianReview, approval, connectAfdian, connectFeishu, connectGitHub, field, githubUsername,
+  pendingAfdianStatuses,
+} from './services.mjs';
+
+const afdianCheckCron = '5,20,35,50 * * * *';
 
 const listHeader = [
   '# WhiskyMac Supporters · 赞助者',
@@ -46,6 +51,62 @@ async function save(feishu, updates) {
   if (updates.size) {
     await feishu.update(Array.from(updates, ([record_id, fields]) => ({ record_id, fields })));
   }
+}
+
+const afdianOrderId = /^[A-Za-z0-9_-]{1,64}$/;
+const claimCode = /^[A-Za-z0-9]{8}$/;
+const afdianMatch = '已付款，留言核对码一致';
+
+function afdianResult(order, code) {
+  if (!order) return '待人工核对，未查到订单';
+  const amount = order.total_amount;
+  if (order.status !== 2 || typeof amount !== 'string'
+    || !/^\d+(?:\.\d+)?$/.test(amount) || !(Number(amount) > 0)) {
+    return '待人工核对，订单未确认实付';
+  }
+  const remark = typeof order.remark === 'string' ? order.remark.trim() : '';
+  if (!remark) return '已付款，缺少订单留言，请核对私信';
+  if (remark !== code) return '已付款，留言核对码不一致，请核对私信';
+  return afdianMatch;
+}
+
+async function verifyAfdianClaims(feishu, openAfdian) {
+  const claims = [];
+  const updates = new Map();
+  const ids = new Set();
+  for (const row of await feishu.listPendingAfdian()) {
+    if (!pendingAfdianStatuses.includes(value(row, field.approval))) continue;
+    const id = value(row, field.afdianOrder);
+    if (!id) {
+      change(updates, row, { [afdianReview.result]: null });
+      continue;
+    }
+    const code = value(row, afdianReview.code);
+    if (value(row, field.order) || !afdianOrderId.test(id) || !claimCode.test(code)) {
+      change(updates, row, { [afdianReview.result]: '待人工核对，请检查订单号和核对码' });
+      continue;
+    }
+    claims.push({ row, id, code });
+    ids.add(id);
+  }
+
+  const orders = ids.size ? await openAfdian().orders([...ids]) : new Map();
+  const matched = new Map();
+  for (const { row, id, code } of claims) {
+    const result = afdianResult(orders.get(id), code);
+    if (result !== afdianMatch) {
+      change(updates, row, { [afdianReview.result]: result });
+      continue;
+    }
+    const group = matched.get(id) ?? [];
+    group.push(row);
+    matched.set(id, group);
+  }
+  for (const group of matched.values()) {
+    const result = group.length === 1 ? afdianMatch : '待人工核对，同一订单有多条匹配申请';
+    for (const row of group) change(updates, row, { [afdianReview.result]: result });
+  }
+  await save(feishu, updates);
 }
 
 function selectOrders(rows, statuses) {
@@ -176,16 +237,19 @@ export async function synchronize(feishu, openGitHub) {
 }
 
 export default {
-  async scheduled(_event, env) {
+  async scheduled(event, env) {
+    const checkAfdian = event.cron === afdianCheckCron;
+    if (checkAfdian && env.FEISHU_AFDIAN_ORDER_CHECK_ENABLED !== 'true') return;
     try {
       const feishu = await connectFeishu(env);
-      await synchronize(feishu, () => connectGitHub(env));
+      if (checkAfdian) await verifyAfdianClaims(feishu, () => connectAfdian(env));
+      else await synchronize(feishu, () => connectGitHub(env));
     } catch (error) {
       if (error instanceof Error && /^[\p{Script=Han}A-Za-z]/u.test(error.message)) {
         console.error(error.message);
       }
       // Mark the scheduled invocation as failed without including provider payloads in logs.
-      throw new Error('WhiskyMac supporter sync failed');
+      throw new Error(checkAfdian ? 'WhiskyMac Afdian order check failed' : 'WhiskyMac supporter sync failed');
     }
   },
 };

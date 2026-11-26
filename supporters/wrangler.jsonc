@@ -6,7 +6,7 @@
   "preview_urls": false,
   "send_metrics": false,
   "observability": { "enabled": true },
-  "triggers": { "crons": ["*/15 * * * *"] },
+  "triggers": { "crons": ["*/15 * * * *", "5,20,35,50 * * * *"] },
   "vars": {
     "GITHUB_OWNER": "LShayc1owN",
     "GITHUB_REPO": "WhiskyMac-supporters",
