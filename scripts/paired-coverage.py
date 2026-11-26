@@ -48,13 +48,22 @@ def line_counts(binary, profile, exclusions):
 def check_pair(peer_path, manifest, profile, binary, exclusions, work):
     with zipfile.ZipFile(peer_path) as archive:
         peer = json.loads(archive.read("manifest.json"))
-        if not peer.get("tests_passed") or {peer["os"].split(".")[0], manifest["os"].split(".")[0]} != {"15", "26"}:
+        if "lines" not in peer or not peer.get("tests_passed") or {peer["os"].split(".")[0], manifest["os"].split(".")[0]} != {"15", "26"}:
             raise ValueError("The gate requires passing full runs on both macOS 15 and 26")
         for field in ("revision", "inputs", "xcode", "swift"):
             if peer[field] != manifest[field]:
                 raise ValueError("Coverage inputs differ: " + field)
         other_profile = work / "peer.profdata"
         other_profile.write_bytes(archive.read("default.profdata"))
+    # Swift prefixes some private counter names with the absolute checkout path,
+    # even with -coverage-prefix-map. Translate that prefix before merging.
+    peer_text = work / "peer.txt"
+    subprocess.run(["xcrun", "llvm-profdata", "merge", "--text", other_profile, "-o", peer_text], check=True)
+    old = os.fsencode(peer["root"]) + b"/Sources/Whisk/"
+    new = os.fsencode(manifest["root"]) + b"/Sources/Whisk/"
+    peer_text.write_bytes(b"".join(new + line[len(old):] if line.startswith(old) else line
+                                  for line in peer_text.read_bytes().splitlines(keepends=True)))
+    subprocess.run(["xcrun", "llvm-profdata", "merge", peer_text, "-o", other_profile], check=True)
     # Check that this binary interprets the other machine's counters exactly
     # as its own binary did, even when the checkout paths differ.
     if line_counts(binary, other_profile, exclusions) != peer["lines"]:
@@ -87,7 +96,7 @@ def main():
         parser.error("Collect acceptance results on macOS 15 or 26")
     stamp = Path("COVERAGE_REVISION")
     revision = stamp.read_text().strip() if stamp.is_file() else output("git", "rev-parse", "HEAD")
-    manifest = dict(revision=revision, os=version, arch=platform.machine(), xcode=output("xcodebuild", "-version"),
+    manifest = dict(revision=revision, root=str(ROOT), os=version, arch=platform.machine(), xcode=output("xcodebuild", "-version"),
                     swift=output("xcrun", "swiftc", "-version").splitlines()[0], inputs=inputs_digest())
     destination = ROOT / f"coverage-macos-{major}.zip"
     with tempfile.TemporaryDirectory() as tmp:
