@@ -35,6 +35,7 @@ test('scheduled sync paginates, signs a scoped installation request, and keeps b
   const updates = [];
   let published;
   t.mock.method(globalThis, 'fetch', async (address, options) => {
+    assert.equal(options.redirect, 'manual');
     const url = new URL(address);
     const body = options.body && JSON.parse(options.body);
     if (url.pathname.endsWith('/tenant_access_token/internal')) {

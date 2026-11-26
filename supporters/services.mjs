@@ -23,7 +23,8 @@ async function request(label, url, options = {}) {
   try {
     return await fetch(url, {
       ...options,
-      redirect: 'error',
+      // Workers supports manual redirects. Keep credentials on the configured origin.
+      redirect: 'manual',
       signal: AbortSignal.timeout(12_000),
     });
   } catch {
