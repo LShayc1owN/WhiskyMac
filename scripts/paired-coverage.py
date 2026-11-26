@@ -50,20 +50,28 @@ def check_pair(peer_path, manifest, profile, binary, exclusions, work):
         peer = json.loads(archive.read("manifest.json"))
         if "lines" not in peer or not peer.get("tests_passed") or {peer["os"].split(".")[0], manifest["os"].split(".")[0]} != {"15", "26"}:
             raise ValueError("The gate requires passing full runs on both macOS 15 and 26")
-        for field in ("revision", "inputs", "xcode", "swift"):
+        for field in ("inputs", "xcode", "swift"):
             if peer[field] != manifest[field]:
                 raise ValueError("Coverage inputs differ: " + field)
         other_profile = work / "peer.profdata"
         other_profile.write_bytes(archive.read("default.profdata"))
     # Swift prefixes some private counter names with the absolute checkout path,
     # even with -coverage-prefix-map. Translate that prefix before merging.
+    if peer["revision"] != manifest["revision"]:
+        print(f"Matching package and test inputs at {peer['revision']} and {manifest['revision']}.")
     peer_text = work / "peer.txt"
-    subprocess.run(["xcrun", "llvm-profdata", "merge", "--text", other_profile, "-o", peer_text], check=True)
-    old = os.fsencode(peer["root"]) + b"/Sources/Whisk/"
-    new = os.fsencode(manifest["root"]) + b"/Sources/Whisk/"
-    peer_text.write_bytes(b"".join(new + line[len(old):] if line.startswith(old) else line
-                                  for line in peer_text.read_bytes().splitlines(keepends=True)))
-    subprocess.run(["xcrun", "llvm-profdata", "merge", peer_text, "-o", other_profile], check=True)
+    if peer["root"] != manifest["root"]:
+        # Preserve non-path counters in binary form. Swift Testing may generate
+        # names containing newlines which LLVM cannot round-trip through text.
+        subprocess.run(["xcrun", "llvm-profdata", "merge", "--text", "--function=Sources/Whisk/",
+                        other_profile, "-o", peer_text], check=True)
+        old = os.fsencode(peer["root"]) + b"/Sources/Whisk/"
+        new = os.fsencode(manifest["root"]) + b"/Sources/Whisk/"
+        peer_text.write_bytes(b"".join(new + line[len(old):] if line.startswith(old) else line
+                                      for line in peer_text.read_bytes().splitlines(keepends=True)))
+        translated = work / "translated.profdata"
+        subprocess.run(["xcrun", "llvm-profdata", "merge", other_profile, peer_text, "-o", translated], check=True)
+        other_profile = translated
     # Check that this binary interprets the other machine's counters exactly
     # as its own binary did, even when the checkout paths differ.
     if line_counts(binary, other_profile, exclusions) != peer["lines"]:
@@ -81,7 +89,7 @@ def check_pair(peer_path, manifest, profile, binary, exclusions, work):
     total = sum(pair[1] for pair in combined.values())
     print(f"Combined coverage: {covered}/{total} ({100 * covered / total:.2f}%), minimum {MINIMUM}%")
     return dict(covered=covered, total=total, minimum=MINIMUM, passed=covered * 100 >= total * MINIMUM,
-                per_file=combined)
+                revisions={peer["os"]: peer["revision"], manifest["os"]: manifest["revision"]}, per_file=combined)
 
 
 def main():

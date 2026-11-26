@@ -79,7 +79,7 @@ TDD is the house style: write the failing test first. Conventions:
   one case per state the view can show. A test must never put a window
   on screen, register a hot key or touch the general pasteboard.
 - The acceptance gate is **95% combined line coverage** over passing full
-  suites on macOS 15 and 26. Both use the same revision and Xcode build
+  suites on macOS 15 and 26. Both use identical package inputs and the same Xcode build
   (CI uses Xcode 26.3). The existing exclusions for AppDelegate, HotKey,
   PasteSimulator and WhiskyMacMain apply on both systems.
 - From a logged-in desktop, run `python3 scripts/paired-coverage.py` on the
@@ -93,7 +93,8 @@ TDD is the house style: write the failing test first. Conventions:
   evidence for later pairing.
 - For an offline checkout, unpack a Git source archive and place the full
   source commit ID in `COVERAGE_REVISION` at its root. The collector also
-  compares a digest of the package, sources, resources and tests.
+  compares a digest of the package, sources, resources and tests. Commits
+  differing only outside these inputs are compatible; both revisions are recorded.
 
 ## User-facing strings
 
