@@ -92,8 +92,7 @@ final class PanelController {
             self?.hidePreview()
             self?.backgroundVeil.hide()
             self?.stateStore.panelDidClose()
-            self?.panel.makeFirstResponder(nil)
-            self?.panel.contentView = nil
+            self?.panel.discardContent()
         }
         // In vim navigation Esc walks back one mode — SEARCH to NORMAL —
         // before it may close anything, and abandons the query on the way
@@ -158,7 +157,7 @@ final class PanelController {
             window.onClose = nil
             window.onCancel = nil
             window.keyHandler = nil
-            window.contentView = nil
+            window.discardContent()
             window.close()
         }
         previewPanel?.close()
@@ -467,7 +466,9 @@ final class PanelController {
     }
 
     private func installContent() {
-        if panel === historyPanel { pinsPanel.contentView = nil } else { historyPanel.contentView = nil }
+        let inactive = panel === historyPanel ? pinsPanel : historyPanel
+        inactive.discardContent()
+        panel.discardContent()
         panel.contentView = HistoryPanelHosting.make(
             uiFactory: uiFactory, store: stateStore, actions: actions,
             keyBindings: keyBindings, popoverCoordinator: popoverCoordinator,
@@ -477,13 +478,13 @@ final class PanelController {
     func appearanceDidChange() {
         popoverCoordinator.dismiss()
         hidePreview()
-        if panel.isVisible { installContent() } else { panel.contentView = nil }
+        if panel.isVisible { installContent() } else { panel.discardContent() }
     }
     func privacyDidChange(animated: Bool = false) {
         popoverCoordinator.dismiss()
         hidePreview()
         guard panel.isVisible else {
-            panel.contentView = nil
+            panel.discardContent()
             return
         }
 
@@ -541,6 +542,18 @@ final class FloatingPanel: NSPanel {
             return
         }
         super.sendEvent(event)
+    }
+
+    func discardContent() {
+        guard let content = contentView else { return }
+        makeFirstResponder(nil)
+        contentView = nil
+        // A detached host normally dies with this event. Only a surviving
+        // host needs an explicit empty layout to release its rendered cards.
+        DispatchQueue.main.async { [weak content] in
+            guard let content, content.window == nil else { return }
+            (content as? HistoryContentOwner)?.discardHistoryContent()
+        }
     }
 
     override func orderOut(_ sender: Any?) {

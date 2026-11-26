@@ -39,7 +39,7 @@ struct MacOS26SettingsView: View {
     @State var detectionCoverageExpanded = false
     @State var temporarySessionsExpanded = false
     @State var selectedPage = SettingsPage.general
-    @State private var selectedSection: SettingsSectionID?
+    @State var selectedSection: SettingsSectionID?
     @FocusState private var focusedNavigation: NavigationDestination?
     @Namespace private var tabSelection
     @Environment(\.accessibilityReduceMotion) var reduceMotion
@@ -130,6 +130,7 @@ struct MacOS26SettingsView: View {
                 }
             }
             .onReceive(NotificationCenter.default.publisher(for: .settingsWindowClosed)) { _ in
+                search.lastViewedSection = selectedSectionID
                 store.endRecording()
                 resetUndo.dismiss()
                 cardSizeDraft.revert()

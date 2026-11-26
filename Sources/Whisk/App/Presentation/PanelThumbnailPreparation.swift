@@ -29,10 +29,10 @@ final class PanelThumbnailPreparation {
         if lightweight { release() }
     }
 
-    /// Cover the first rail window and its buffer, with a ceiling for very wide displays.
+    /// Include the partially visible last card and one more for the first scroll.
     static func slotLimit(width: CGFloat, stride: CGFloat) -> Int {
-        let capacity = max(CardRailWindow().capacity, Int(min(24, max(0, width) / max(1, stride))) + 1)
-        return min(24, capacity + CardRailWindow.buffer + 1)
+        guard width > 0, stride > 0, width.isFinite, stride.isFinite else { return 0 }
+        return min(24, Int(ceil(min(24, width / stride))) + 1)
     }
 
     func setPanelVisible(_ visible: Bool) {

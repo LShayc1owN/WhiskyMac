@@ -81,13 +81,15 @@ struct AppUIFactoryTests {
         let general = GeneralSettingsStore(defaults: defaults)
         let appearance = AppearanceSettingsStore(defaults: defaults)
         let loginItem = LoginItemManager()
+        let search = SettingsSearchModel()
+        search.lastViewedSection = .clearHistory
         let settings = factory.makeSettingsWindow(
             context: SettingsUIContext(
                 bindings: bindings, general: general, loginItem: loginItem,
                 vimBindings: VimBindingsStore(defaults: defaults), privacy: PrivacyController(defaults: defaults),
                 appearance: appearance, updateChecker: UpdateChecker(defaults: defaults),
-                search: SettingsSearchModel(), developerMode: DeveloperModeStore(defaults: defaults)),
-            initialPage: .general)
+                search: search, developerMode: DeveloperModeStore(defaults: defaults)),
+            initialPage: .history)
         defer { settings.release() }
         settings.prepareForPresentation()
         let size = settings.window.contentRect(forFrameRect: settings.window.frame).size
@@ -96,6 +98,10 @@ struct AppUIFactoryTests {
         settings.prepareForPresentation()
         #expect(settings.window.contentRect(forFrameRect: settings.window.frame).size == size)
         #expect(settings.window.toolbar?.delegate != nil)
+        settings.window.contentView?.layoutSubtreeIfNeeded()
+        search.lastViewedSection = nil
+        NotificationCenter.default.post(name: .settingsWindowClosed, object: nil)
+        #expect(search.lastViewedSection == .clearHistory)
 
         let state = OnboardingState(defaults: defaults, readClipboardAccess: { .granted }, readAccessibility: { true })
         let guide = factory.makeOnboardingWindow(

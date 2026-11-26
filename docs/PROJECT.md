@@ -70,7 +70,7 @@ acceptance records describe particular iterations; their old defaults and
 
 ## Maintenance order
 
-1. **Make full verification reliable.** Preserve the 90% coverage gate and the
+1. **Make full verification reliable.** Preserve the combined 95% coverage gate across macOS 15 and 26 and the
    existing assertions. Investigate native text pixel comparisons, Quick Look
    completion and sharing-monitor timer waits under a busy main run loop;
    prefer controllable scheduling for lifecycle tests while retaining

@@ -6,6 +6,12 @@
 import AppKit
 import SwiftUI
 
+/// AppKit can retain an old hosting view in its keyboard focus table.
+@MainActor
+protocol HistoryContentOwner {
+    func discardHistoryContent()
+}
+
 @MainActor
 enum HistoryPanelHosting {
     static func make(

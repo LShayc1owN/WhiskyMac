@@ -5,8 +5,11 @@ on:
     branches: [main]
   pull_request:
 
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+
 jobs:
-  build-and-test:
+  checks:
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v7
@@ -18,33 +21,49 @@ jobs:
         run: swift build
       - name: Check localizations
         run: ./scripts/localizations.sh check
-      - name: Test with coverage
-        shell: bash
-        # Fails the build when line coverage of the testable code drops
-        # under the minimum; see scripts/coverage.sh for what is measured.
-        env:
-          COVERAGE_MIN: 90
-        run: ./scripts/coverage.sh | tee coverage-report.txt
+
+  coverage-15:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v7
+      - run: python3 scripts/paired-coverage.py
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: coverage-15
+          path: coverage-macos-15.zip
+          if-no-files-found: error
       - name: Keep crash reports
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: crash-reports
+          name: crash-reports-15
           path: ~/Library/Logs/DiagnosticReports/
           if-no-files-found: ignore
-      - name: Coverage summary
-        if: always()
-        run: |
-          {
-            echo '### Coverage'
-            echo
-            echo '```'
-            grep -E '^(Filename|TOTAL|Coverage gate)' coverage-report.txt || true
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
+
+  build-and-test:
+    needs: coverage-15
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v7
+        with:
+          name: coverage-15
+      - name: Full suite and combined coverage gate
+        shell: bash
+        run: python3 scripts/paired-coverage.py coverage-macos-15.zip | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Keep crash reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: crash-reports-26
+          path: ~/Library/Logs/DiagnosticReports/
+          if-no-files-found: ignore
       - uses: actions/upload-artifact@v7
+        if: always()
         with:
           name: coverage
+          include-hidden-files: true
           path: |
-            coverage-report.txt
+            coverage-macos-26.zip
             .build/coverage.lcov

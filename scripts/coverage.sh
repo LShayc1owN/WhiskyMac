@@ -59,6 +59,9 @@ awk '
 gated="$(awk '$1 == "TOTAL" { print $10 }' <<< "$report" | tr -d '%')"
 echo "Coverage gate: ${gated}% of testable lines (minimum ${COVERAGE_MIN:-not set})"
 if (( test_status != 0 )); then exit "$test_status"; fi
+if [[ -n "${WHISK_COVERAGE_OUTPUT:-}" ]]; then
+  printf '%s\n' "$binary" "$profdata" "(/Tests/|/\.build/|$untestable)" > "$WHISK_COVERAGE_OUTPUT/paths.txt"
+fi
 if [ -n "${COVERAGE_MIN:-}" ]; then
   awk -v got="$gated" -v min="$COVERAGE_MIN" 'BEGIN { exit (got + 0 >= min + 0) ? 0 : 1 }' || {
     echo "Line coverage of the testable code fell under ${COVERAGE_MIN}%." >&2
