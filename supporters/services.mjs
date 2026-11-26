@@ -1,5 +1,6 @@
 export const field = {
   order: 'Patreon 订单号',
+  afdianOrder: '爱发电订单号',
   visibility: '公开方式',
   name: '展示昵称',
   username: 'GitHub 用户名',
@@ -72,6 +73,8 @@ export async function connectFeishu(env) {
     Authorization: `Bearer ${token.tenant_access_token}`,
     'Content-Type': 'application/json',
   };
+  const includeAfdian = env.FEISHU_AFDIAN_ENABLED === 'true';
+  const fieldNames = Object.values(field).filter((name) => includeAfdian || name !== field.afdianOrder);
 
   return {
     async list() {
@@ -85,7 +88,7 @@ export async function connectFeishu(env) {
           method: 'POST',
           headers,
           body: JSON.stringify({
-            field_names: Object.values(field),
+            field_names: fieldNames,
             filter: {
               conjunction: 'or',
               conditions: Object.values(approval).map((value) => ({

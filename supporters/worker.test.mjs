@@ -53,6 +53,7 @@ test('scheduled sync paginates, signs a scoped installation request, and keeps b
     if (url.pathname.endsWith('/records/search')) {
       assert.equal(options.headers.Authorization, 'Bearer test-tenant');
       assert.ok(!body.field_names.includes('核对码'));
+      assert.ok(!body.field_names.includes(field.afdianOrder));
       assert.deepEqual(body.filter.conditions.map((condition) => condition.value[0]), ['已通过', '已撤销']);
       const secondPage = url.searchParams.get('page_token') === 'second';
       return Response.json({ code: 0, data: secondPage
@@ -141,4 +142,44 @@ test('preserves the published snapshot on a failed write and recovers on the nex
   await synchronize(feishu, openGitHub);
   assert.match(content, /NewSupporter/);
   assert.equal(row.fields[field.sync], '已同步');
+});
+
+test('treats a Patreon order and an Afdian order with the same number independently', async () => {
+  const patreon = record('PatreonSupporter', 'SHARED', { [field.registeredOrder]: 'shared' });
+  const afdian = record('AfdianSupporter', '', { [field.afdianOrder]: 'SHARED' });
+  const rows = [patreon, afdian];
+  let content = '';
+  const feishu = {
+    list: async () => rows,
+    update: async (patches) => {
+      for (const { record_id, fields } of patches) {
+        Object.assign(rows.find((row) => row.record_id === record_id).fields, fields);
+      }
+    },
+  };
+  const github = {
+    loadReadme: async () => ({ sha: 'sha', content }),
+    publish: async (_, next) => { content = next; },
+  };
+  const sync = () => synchronize(feishu, async () => github);
+
+  await sync();
+  assert.match(content, /- PatreonSupporter/);
+  assert.match(content, /- AfdianSupporter/);
+  assert.equal(patreon.fields[field.registeredOrder], 'shared');
+  assert.equal(afdian.fields[field.registeredOrder], 'afdian:shared');
+
+  const duplicate = record('DuplicateAfdian', '', { [field.afdianOrder]: ' shared ' });
+  const both = record('BothChannels', 'ambiguous', { [field.afdianOrder]: 'ambiguous' });
+  rows.push(duplicate, both);
+  await sync();
+  assert.match(duplicate.fields[field.sync], /订单重复/);
+  assert.match(both.fields[field.sync], /只能填写一个渠道/);
+  assert.doesNotMatch(content, /DuplicateAfdian|BothChannels/);
+
+  afdian.fields[field.approval] = approval.revoked;
+  await sync();
+  assert.match(content, /- PatreonSupporter/);
+  assert.doesNotMatch(content, /AfdianSupporter|DuplicateAfdian/);
+  assert.match(duplicate.fields[field.sync], /订单已撤销/);
 });

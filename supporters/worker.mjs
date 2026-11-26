@@ -51,18 +51,24 @@ async function save(feishu, updates) {
 function selectOrders(rows, statuses) {
   const orders = new Map();
   for (const row of rows) {
-    const order = orderKey(value(row, field.order));
-    if (!order) {
+    const patreon = orderKey(value(row, field.order));
+    const afdian = orderKey(value(row, field.afdianOrder));
+    if (!patreon && !afdian) {
       change(statuses, row, { [field.sync]: '待更正：缺少订单号' });
       continue;
     }
-    const group = orders.get(order) ?? [];
-    group.push(row);
-    orders.set(order, group);
+    if (patreon && afdian) {
+      change(statuses, row, { [field.sync]: '待更正：同一申请只能填写一个渠道的订单号' });
+      continue;
+    }
+    const key = patreon ? `patreon:${patreon}` : `afdian:${afdian}`;
+    const group = orders.get(key) ?? { order: patreon || key, rows: [] };
+    group.rows.push(row);
+    orders.set(key, group);
   }
 
   const selected = [];
-  for (const [order, group] of orders) {
+  for (const { order, rows: group } of orders.values()) {
     const approved = group.filter((row) => value(row, field.approval) === approval.approved);
     const revoked = group.filter((row) => value(row, field.approval) === approval.revoked);
     for (const row of revoked) change(statuses, row, { [field.sync]: '已撤销' });
