@@ -10,7 +10,6 @@ private enum MacOS26AboutLinks {
     static let project = "https://github.com/LShayc1owN/WhiskyMac"
     static let upstream = "https://github.com/nathan-poncet/whisk"
     static let issues = "https://github.com/LShayc1owN/WhiskyMac/issues/new"
-    static let donation = "https://buymeacoffee.com/funclinkrev"
     static let feedbackAddress = "connect.whiskymac@outlook.com"
 }
 
@@ -301,6 +300,7 @@ struct MacOS26AboutSettings: View {
 @available(macOS 26, *)
 struct MacOS26DeveloperSettings: View {
     @Environment(\.interfaceTypography) private var typography
+    let distribution: Distribution
 
     var body: some View {
         Section {
@@ -317,7 +317,9 @@ struct MacOS26DeveloperSettings: View {
             .macOS26SettingsSearchAnchor("developer")
         }
         Section {
-            externalLink("Buy Me a Coffee", to: MacOS26AboutLinks.donation)
+            ForEach(ProfileHomepage.supportHomepages(for: distribution)) { homepage in
+                externalLink(homepage.title, to: homepage.destination.absoluteString)
+            }
         } header: {
             Text(localized("Support development"))
         }
@@ -375,8 +377,21 @@ private struct MacOS26DeveloperProfile: View {
 private func externalLink(_ title: String, to address: String) -> some View {
     if let destination = URL(string: address) {
         Link(destination: destination) {
-            Label(title, systemImage: destination.scheme == "mailto" ? "envelope" : "arrow.up.right")
-                .fixedSize(horizontal: false, vertical: true)
+            Label {
+                Text(title)
+            } icon: {
+                if let icon = SupportLinkIcon.image(for: destination) {
+                    Image(nsImage: icon)
+                        .resizable()
+                        .renderingMode(.template)
+                        .scaledToFit()
+                        .frame(width: 16, height: 16)
+                        .accessibilityHidden(true)
+                } else {
+                    Image(systemName: destination.scheme == "mailto" ? "envelope" : "arrow.up.right")
+                }
+            }
+            .fixedSize(horizontal: false, vertical: true)
         }
         .macOS26SettingsAction()
     }

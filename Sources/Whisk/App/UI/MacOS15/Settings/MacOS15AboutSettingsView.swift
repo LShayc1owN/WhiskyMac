@@ -19,7 +19,6 @@ struct MacOS15AboutSettingsView: View {
     private let projectURL = URL(string: "https://github.com/LShayc1owN/WhiskyMac")!
     private let upstreamURL = URL(string: "https://github.com/nathan-poncet/whisk")!
     private let issuesURL = URL(string: "https://github.com/LShayc1owN/WhiskyMac/issues/new")!
-    private let donationURL = URL(string: "https://buymeacoffee.com/funclinkrev")!
     private static let feedbackAddress = "connect.whiskymac@outlook.com"
     private static let appIcon = Bundle.main.url(forResource: "AppIcon", withExtension: "icns")
         .flatMap { NSImage(contentsOf: $0) }
@@ -361,7 +360,9 @@ struct MacOS15AboutSettingsView: View {
             }
             .macOS15SettingsSearchAnchor("developer")
             actionGroup(localized("Support development")) {
-                MacOS15ExternalHomepageLink(title: "Buy Me a Coffee", destination: donationURL)
+                ForEach(ProfileHomepage.supportHomepages(for: distribution)) { homepage in
+                    MacOS15ExternalHomepageLink(title: homepage.title, destination: homepage.destination)
+                }
             }
         }
     }

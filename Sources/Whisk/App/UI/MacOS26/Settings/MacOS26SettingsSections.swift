@@ -67,7 +67,7 @@ extension MacOS26SettingsView {
                 distribution: distribution, updateChecker: updateChecker, general: general,
                 developerMode: developerMode, buildInfo: buildInfo)
         case .aboutDeveloper:
-            MacOS26DeveloperSettings()
+            MacOS26DeveloperSettings(distribution: distribution)
         case .licenses:
             EmptyView()
         }

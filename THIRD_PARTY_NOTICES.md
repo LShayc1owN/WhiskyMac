@@ -29,6 +29,16 @@ Neovim mark used for the code-category icon.
 
 This attribution does not imply endorsement by Neovim or its contributors.
 
+## Support link icons
+
+- `Sources/Whisk/Resources/Afdian.svg` uses the Afdian mark from
+  [Simple Icons](https://github.com/simple-icons/simple-icons/blob/develop/icons/afdian.svg).
+- `Sources/Whisk/Resources/Patreon.svg` uses the Patreon outline icon from
+  [Tabler Icons](https://github.com/tabler/tabler-icons/blob/main/icons/outline/brand-patreon.svg).
+  The [MIT license](docs/licenses/Tabler-Icons-MIT.txt) accompanies the icon.
+
+The SVG files are included as supplied. The marks belong to their respective owners.
+
 ## Kenney UI Audio
 
 `Sources/Whisk/Resources/Sounds/kenney-*.wav` are nine UI sounds from

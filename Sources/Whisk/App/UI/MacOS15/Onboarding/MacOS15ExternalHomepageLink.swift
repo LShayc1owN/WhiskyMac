@@ -17,7 +17,14 @@ struct MacOS15ExternalHomepageLink: View {
     var body: some View {
         Link(destination: destination) {
             HStack(spacing: 6) {
-                if destination.host?.lowercased() == "github.com", let icon = Self.githubIcon {
+                if let icon = SupportLinkIcon.image(for: destination) {
+                    Image(nsImage: icon)
+                        .resizable()
+                        .renderingMode(.template)
+                        .scaledToFit()
+                        .frame(width: 16, height: 16)
+                        .accessibilityHidden(true)
+                } else if destination.host?.lowercased() == "github.com", let icon = Self.githubIcon {
                     Image(nsImage: icon)
                         .resizable()
                         .renderingMode(.template)
