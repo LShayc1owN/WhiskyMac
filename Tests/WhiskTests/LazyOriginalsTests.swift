@@ -358,6 +358,55 @@ extension LazyOriginals {
         #expect(store.previews.isEmpty)
     }
 
+    @Test(arguments: [false, true])
+    func retaining_a_discarded_history_host_releases_its_cards(replaceWhileVisible: Bool) async throws {
+        _ = NSApplication.shared
+        let isolated = try IsolatedDefaults()
+        let state = HistoryViewStateStore()
+        let items = (0..<25).map { anItem(.text("Item \($0)")) }
+        let controller = PanelController(
+            uiFactory: AppUISelector.make(), stateStore: state, actions: PanelActionSpy().actions,
+            keyBindings: KeyBindingsStore(defaults: isolated.defaults),
+            vimBindings: VimBindingsStore(defaults: isolated.defaults), vimMode: { false })
+        controller.preparePresentation(pins: false, style: nil)
+        state.update(HistoryPresenter().present(items: items, query: "", now: Date(), selectedID: items[0].id))
+        let window = controller.activeWindow
+        window.setFrame(NSRect(x: -10000, y: 0, width: 1000, height: 430), display: false)
+        window.orderFront(nil)
+        state.setPanelVisible(true)
+        defer { controller.hide() }
+        let oldHost = try #require(window.contentView)
+        func mountedViews(in view: NSView) -> [NSView] {
+            let isContent = view is NSScrollView || view is MacOS15BackdropView
+            return (isContent ? [view] : []) + view.subviews.flatMap(mountedViews)
+        }
+        let original = NSHashTable<NSView>.weakObjects()
+        autoreleasepool {
+            oldHost.layoutSubtreeIfNeeded()
+            mountedViews(in: oldHost).forEach(original.add)
+        }
+        let initialCount = autoreleasepool { original.allObjects.count }
+        try #require(initialCount > 0)
+        if replaceWhileVisible {
+            controller.appearanceDidChange()
+            #expect(window.isVisible && window.contentView !== oldHost)
+        } else {
+            controller.hide()
+            #expect(window.contentView == nil)
+        }
+        let deadline = Date().addingTimeInterval(1)
+        while autoreleasepool(invoking: { !original.allObjects.isEmpty }) && Date() < deadline {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        let remaining = autoreleasepool { original.allObjects.count }
+        withExtendedLifetime(oldHost) { #expect(remaining == 0) }
+        if replaceWhileVisible {
+            let newHost = try #require(window.contentView)
+            newHost.layoutSubtreeIfNeeded()
+            #expect(mountedViews(in: newHost).count > 0)
+        }
+    }
+
     @Test func panel_close_notifies_the_content_cache_and_view_tree_is_released() throws {
         let isolated = try IsolatedDefaults()
         let state = HistoryViewStateStore()

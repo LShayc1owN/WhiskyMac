@@ -56,7 +56,7 @@ final class MacOS26UIFactory: AppUIFactory {
     func makeHistoryContent(context: HistoryUIContext, presentation: HistoryUIPresentation) -> NSView {
         switch presentation {
         case .history:
-            let host = panelHost(
+            let host = historyHost(
                 store: context.store,
                 MacOS26HistoryPanelView(
                     store: context.store, actions: context.actions, keyBindings: context.keyBindings,
@@ -64,7 +64,7 @@ final class MacOS26UIFactory: AppUIFactory {
             host.sizingOptions = []
             return host
         case .pinnedList:
-            return panelHost(
+            return historyHost(
                 store: context.store,
                 MacOS26PinnedListView(
                     store: context.store, actions: context.actions, keyBindings: context.keyBindings
@@ -112,6 +112,12 @@ final class MacOS26UIFactory: AppUIFactory {
         // The window caps its size to the current screen. SwiftUI scrolls within that frame.
         host.sizingOptions = []
         return SplitUIContent(view: host, preferredSize: preferredSize)
+    }
+
+    private func historyHost<Content: View>(store: HistoryViewStateStore, _ content: Content)
+        -> MacOS26HistoryContentHost<MacOS26PanelTypography<Content>>
+    {
+        MacOS26HistoryContentHost(rootView: MacOS26PanelTypography(store: store, content: content))
     }
 
     private func panelHost<Content: View>(store: HistoryViewStateStore, _ content: Content)
@@ -162,6 +168,14 @@ final class MacOS26UIFactory: AppUIFactory {
             window.isMovable = false
             window.hidesOnDeactivate = false
         }
+    }
+}
+
+@available(macOS 26, *)
+private final class MacOS26HistoryContentHost<Content: View>: NSHostingView<Content?>, HistoryContentOwner {
+    func discardHistoryContent() {
+        rootView = nil
+        layoutSubtreeIfNeeded()
     }
 }
 
